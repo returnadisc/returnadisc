@@ -330,7 +330,6 @@ def activate(disc_id):
         <input name="owner_email" type="email" placeholder="Din email" required><br><br>
         <button type="submit">Aktivera</button>
     </form>
-    """
 
 
 
