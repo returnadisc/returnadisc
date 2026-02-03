@@ -155,7 +155,6 @@ def found(disc_id):
 
         return "<h2>Tack!</h2><p>Ägaren har fått ett mail.</p>"
 
-    # ---------- HTML-del ----------
     html = f"""
     <h2>Vad gjorde du med discen?</h2>
 
@@ -168,7 +167,6 @@ def found(disc_id):
 
     <form method="post" onsubmit="getLocation(event)">
         <input type="hidden" name="action" value="gömde">
-
         <input type="hidden" id="lat" name="latitude">
         <input type="hidden" id="lng" name="longitude">
 
@@ -182,8 +180,10 @@ def found(disc_id):
 
     <form method="post">
         <input type="hidden" name="action" value="behåller">
+
         <textarea name="note" placeholder="Hur kan ägaren nå dig?"
             style="width:100%;height:80px;"></textarea>
+
         <button style="width:100%;padding:15px;margin:10px 0;">
             Jag behåller den tills vi ses
         </button>
@@ -200,7 +200,6 @@ def found(disc_id):
             navigator.geolocation.getCurrentPosition(function(pos) {{
                 document.getElementById("lat").value = pos.coords.latitude;
                 document.getElementById("lng").value = pos.coords.longitude;
-
                 e.target.submit();
             }}, function() {{
                 alert("Kunde inte hämta GPS-position");
@@ -210,19 +209,6 @@ def found(disc_id):
     """
     return html
 
-
-
-
-
-    <form method="post">
-      <input type="hidden" name="action" value="behåller">
-      <textarea name="note" placeholder="Hur kan ägaren nå dig?" 
-        style="width:100%;height:80px;"></textarea>
-      <button style="width:100%;padding:15px;margin:10px 0;">
-        Jag behåller den tills vi ses
-      </button>
-    </form>
-    """
 
 @app.route("/create", methods=["GET", "POST"])
 def create_disc_web():
