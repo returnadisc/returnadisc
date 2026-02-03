@@ -7,6 +7,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__)
+ensure_tables()
 def ensure_tables():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -30,6 +31,41 @@ ensure_tables()
 
 
 DB_PATH = "database.db"
+
+def ensure_tables():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    # Discs table safety (om den saknas i prod)
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS discs (
+        disc_id TEXT PRIMARY KEY,
+        disc_name TEXT,
+        owner_name TEXT,
+        owner_email TEXT,
+        is_active INTEGER DEFAULT 0,
+        created_at TEXT,
+        activated_at TEXT
+    )
+    """)
+
+    # Handovers table
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS handovers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        disc_id TEXT,
+        action TEXT,
+        note TEXT,
+        created_at TEXT,
+        latitude REAL,
+        longitude REAL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+
 BASE_URL = os.environ.get("BASE_URL", "http://192.168.0.105:5000")
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 
@@ -77,18 +113,33 @@ def found(disc_id):
         action = request.form["action"]
         note = request.form.get("note", "")
 
+        latitude = request.form.get("latitude")
+        longitude = request.form.get("longitude")
+
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
+
         cur.execute("""
-        INSERT INTO handovers (disc_id, action, note, created_at)
-        VALUES (?, ?, ?, ?)
-        """, (disc_id, action, note, datetime.utcnow().isoformat()))
+        INSERT INTO handovers (disc_id, action, note, created_at, latitude, longitude)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            disc_id,
+            action,
+            note,
+            datetime.utcnow().isoformat(),
+            latitude,
+            longitude
+        ))
+
         conn.commit()
         conn.close()
 
         maps_link = ""
-        if action == "gömde" and note:
-            maps_link = f"<p><a href='https://www.google.com/maps/search/{note.replace(' ', '+')}'>Öppna i Google Maps</a></p>"
+        if action == "gömde" and latitude and longitude:
+            maps_link = (
+                f"<p><a href='https://maps.google.com/?q="
+                f"{latitude},{longitude}'>Öppna i Google Maps</a></p>"
+            )
 
         send_owner_mail(
             disc["owner_email"],
@@ -102,7 +153,6 @@ def found(disc_id):
             """
         )
 
-
         return """
         <h2>Tack! 🙌</h2>
         <p>Ägaren har fått ett mail.</p>
@@ -110,6 +160,13 @@ def found(disc_id):
 
     return f"""
     <h2>Vad gjorde du med discen?</h2>
+
+    <form method="post">
+        <input type="hidden" name="action" value="kontaktade">
+        <button style="width:100%;padding:15px;margin:10px 0;">
+            📧 Jag kontaktade ägaren
+        </button>
+    </form>
 
     <form method="post" onsubmit="getLocation(event)">
         <input type="hidden" name="action" value="gömde">
@@ -122,6 +179,15 @@ def found(disc_id):
 
         <button style="width:100%;padding:15px;margin:10px 0;">
             📍 Jag gömde discen
+        </button>
+    </form>
+
+    <form method="post">
+        <input type="hidden" name="action" value="behåller">
+        <textarea name="note" placeholder="Hur kan ägaren nå dig?"
+            style="width:100%;height:80px;"></textarea>
+        <button style="width:100%;padding:15px;margin:10px 0;">
+            🤝 Jag behåller den tills vi ses
         </button>
     </form>
 
@@ -143,6 +209,8 @@ def found(disc_id):
             }});
         }}
     </script>
+    """
+
 
 
 
