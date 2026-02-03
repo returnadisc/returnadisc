@@ -102,6 +102,7 @@ def send_owner_mail(to_email, subject, body):
 
 # ---------- ROUTES ----------
 
+
 @app.route("/found/<disc_id>", methods=["GET", "POST"])
 def found(disc_id):
     disc = get_disc(disc_id)
@@ -154,11 +155,11 @@ def found(disc_id):
         )
 
         return """
-        <h2>Tack! 🙌</h2>
+        <h2>Tack!</h2>
         <p>Ägaren har fått ett mail.</p>
         """
 
-        return f"""
+    return f"""
     <h2>Vad gjorde du med discen?</h2>
 
     <form method="post">
