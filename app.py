@@ -7,6 +7,27 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 app = Flask(__name__)
+def ensure_tables():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS handovers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        disc_id TEXT,
+        action TEXT,
+        note TEXT,
+        created_at TEXT,
+        latitude REAL,
+        longitude REAL
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+ensure_tables()
+
 
 DB_PATH = "database.db"
 BASE_URL = os.environ.get("BASE_URL", "http://192.168.0.105:5000")
