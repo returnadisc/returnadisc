@@ -158,13 +158,13 @@ def found(disc_id):
         <p>Ägaren har fått ett mail.</p>
         """
 
-    return f"""
+        return f"""
     <h2>Vad gjorde du med discen?</h2>
 
     <form method="post">
         <input type="hidden" name="action" value="kontaktade">
         <button style="width:100%;padding:15px;margin:10px 0;">
-            📧 Jag kontaktade ägaren
+            Jag kontaktade ägaren
         </button>
     </form>
 
@@ -178,7 +178,7 @@ def found(disc_id):
             style="width:100%;height:80px;"></textarea>
 
         <button style="width:100%;padding:15px;margin:10px 0;">
-            📍 Jag gömde discen
+            Jag gömde discen
         </button>
     </form>
 
@@ -187,7 +187,7 @@ def found(disc_id):
         <textarea name="note" placeholder="Hur kan ägaren nå dig?"
             style="width:100%;height:80px;"></textarea>
         <button style="width:100%;padding:15px;margin:10px 0;">
-            🤝 Jag behåller den tills vi ses
+            Jag behåller den tills vi ses
         </button>
     </form>
 
@@ -214,12 +214,13 @@ def found(disc_id):
 
 
 
+
     <form method="post">
       <input type="hidden" name="action" value="behåller">
       <textarea name="note" placeholder="Hur kan ägaren nå dig?" 
         style="width:100%;height:80px;"></textarea>
       <button style="width:100%;padding:15px;margin:10px 0;">
-        🤝 Jag behåller den tills vi ses
+        Jag behåller den tills vi ses
       </button>
     </form>
     """
