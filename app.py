@@ -5,6 +5,9 @@ from flask import Flask, request
 import qrcode
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+def page(html):
+    return html
+
 
 app = Flask(__name__)
 ensure_tables()
@@ -245,13 +248,15 @@ def create_disc_web():
         <p><a href="/create">Skapa en till</a></p>
         """
 
-    return """
+    html = """
     <h2>Skapa ny disc</h2>
     <form method="post">
-      <input name="disc_name" placeholder="Discens namn" required><br><br>
-      <button type="submit">Skapa disc</button>
+        <input name="disc_name" placeholder="Discens namn" required><br><br>
+        <button type="submit">Skapa disc</button>
     </form>
     """
+    return html
+
 
 
 @app.route("/activate/<disc_id>", methods=["GET", "POST"])
@@ -306,7 +311,7 @@ def activate(disc_id):
 
         return "Disc aktiverad!"
 
-    return """
+    html = """
     <h2>Aktivera din disc</h2>
     <form method="post">
         <input name="disc_name" placeholder="Discens namn" required><br><br>
@@ -314,6 +319,9 @@ def activate(disc_id):
         <input name="owner_email" type="email" placeholder="Din email" required><br><br>
         <button type="submit">Aktivera</button>
     </form>
+    """
+    return html
+
 
 
 
