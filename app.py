@@ -5,15 +5,27 @@ from flask import Flask, request
 import qrcode
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+
 def page(html):
     return html
 
+DB_PATH = "database.db"
 
-app = Flask(__name__)
-ensure_tables()
 def ensure_tables():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS discs (
+        disc_id TEXT PRIMARY KEY,
+        disc_name TEXT,
+        owner_name TEXT,
+        owner_email TEXT,
+        is_active INTEGER DEFAULT 0,
+        created_at TEXT,
+        activated_at TEXT
+    )
+    """)
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS handovers (
@@ -30,7 +42,9 @@ def ensure_tables():
     conn.commit()
     conn.close()
 
+app = Flask(__name__)
 ensure_tables()
+
 
 
 DB_PATH = "database.db"
