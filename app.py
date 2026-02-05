@@ -310,6 +310,8 @@ def found_hide(disc_id):
 
     if request.method == "POST":
 
+        os.makedirs("static/uploads", exist_ok=True)
+
         note = request.form.get("note", "").strip()
 
         photo = request.files.get("photo")
