@@ -1134,6 +1134,8 @@ def admin_bulk():
 
 
 def generate_qr_pdf(count, base_url):
+    os.makedirs("static/qr", exist_ok=True)
+
     os.makedirs("static/pdfs", exist_ok=True)
 
     pdf_path = "static/pdfs/qr_labels.pdf"
