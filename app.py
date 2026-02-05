@@ -24,7 +24,8 @@ ADMIN_PASSWORD_HASH = generate_password_hash("admin123")
 
 
 
-BASE_URL = "https://toxicological-loida-viscously.ngrok-free.dev"
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:8080")
+
 
 
 
