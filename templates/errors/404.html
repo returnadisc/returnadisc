@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Sidan hittades inte - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="container">
+        <div class="card text-center">
+            <div class="error-code">404</div>
+            <div class="error-icon">🔍</div>
+            <h1>Sidan hittades inte</h1>
+            <p class="subtitle">Sidan du letar efter finns inte eller har flyttats</p>
+            <a href="{{ url_for('auth.index') }}" class="btn-primary btn-large">
+                Till startsidan
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 60px 0;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+}
+
+.error-code {
+    font-size: 6rem;
+    font-weight: bold;
+    color: #e5e7eb;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.subtitle {
+    color: #6b7280;
+    margin-bottom: 30px;
+}
+</style>
+{% endblock %}

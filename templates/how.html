@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Så funkar det - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="how-page">
+    <div class="container">
+        <h1>Så funkar ReturnaDisc</h1>
+        <p class="lead">En QR-kod. Obegränsade discar. Total anonymitet.</p>
+        
+        <div class="concept-box">
+            <div class="concept-icon">💡</div>
+            <h2>Konceptet är enkelt</h2>
+            <p>Du får <strong>EN</strong> QR-kod. Samma kod på <strong>ALLA</strong> dina discar. 
+            När någon hittar en disc med din kod, får du mail med bild och position. 
+            Ingen behöver veta vem du är. Ingen behöver planera möten. 
+            Du hämtar discen när det passar dig.</p>
+        </div>
+        
+        <div class="steps-detailed">
+            <div class="step-detailed">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Skaffa din QR-kod</h3>
+                    <p>Skapa konto och aktivera din QR-kod. Du kan köpa färdiga klistermärken eller skriva koden med permanent tusch.</p>
+                    <div class="step-tip">💡 Tips: Sätt koden där den syns men inte stör greppet</div>
+                </div>
+            </div>
+            
+            <div class="step-detailed">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Sätt på alla dina discar</h3>
+                    <p>Samma QR-kod på alla discar. Enkelt att komma ihåg, enkelt att underhålla.</p>
+                    <div class="step-image-placeholder">
+                        [Bild: Var sätta QR-koden på discen]
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step-detailed highlight">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Någon hittar din disc</h3>
+                    <p>De scannar QR-koden, tar en bild, markerar positionen, skickar. <strong>Klart!</strong></p>
+                    <ul class="benefit-list">
+                        <li>✅ Anonymt - ingen ser vem du är</li>
+                        <li>✅ Kontaktfritt - inga samtal eller mailväxling</li>
+                        <li>✅ Tidsbesparande - inget planerande</li>
+                        <li>✅ Kostnadsfritt - ingen frakt för upphittaren</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="step-detailed">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Du får mail</h3>
+                    <p>Bild + exakt position i Google Maps. Hämta när du spelar där igen.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tournament-info">
+            <div class="tournament-icon">🏆</div>
+            <h3>Tävlar du?</h3>
+            <p>Enligt PDGA-regler får discar inte ha stickers som påverkar vikten. 
+            <strong>Lösning:</strong> Skriv ditt QR-ID (t.ex. "A7B9X") direkt på discen 
+            med permanent tusch. Samma anonymitet, tävlingsgodkänt!</p>
+        </div>
+        
+        <div class="cta-section">
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary btn-large">Skapa konto gratis</a>
+            <a href="{{ url_for('auth.index') }}" class="btn-secondary">← Tillbaka</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.how-page {
+    padding: 40px 0;
+}
+
+.lead {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.3rem;
+    margin-bottom: 40px;
+}
+
+.concept-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 20px;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.concept-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.concept-box h2 {
+    margin-bottom: 15px;
+}
+
+.concept-box p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.steps-detailed {
+    margin-bottom: 50px;
+}
+
+.step-detailed {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.step-detailed.highlight {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-detailed.highlight .step-number {
+    background: white;
+    color: #059669;
+}
+
+.step-content h3 {
+    margin-bottom: 15px;
+    font-size: 1.4rem;
+}
+
+.step-content p {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.step-detailed.highlight .step-content p {
+    color: rgba(255,255,255,0.9);
+}
+
+.step-tip {
+    background: #f3f4f6;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: #4b5563;
+}
+
+.step-image-placeholder {
+    background: #f3f4f6;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    color: #9ca3af;
+    border: 2px dashed #d1d5db;
+}
+
+.benefit-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.benefit-list li {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.tournament-info {
+    background: #fef3c7;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.tournament-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.tournament-info h3 {
+    margin-bottom: 10px;
+    color: #92400e;
+}
+
+.tournament-info p {
+    color: #78350f;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.cta-section {
+    text-align: center;
+    padding: 40px 0;
+}
+
+@media (max-width: 640px) {
+    .step-detailed {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .tournament-info {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

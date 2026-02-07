@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Generera QR-koder (Admin) - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="admin-qr-page">
+    <div class="container">
+        <div class="card">
+            <div class="admin-badge">⚠️ ENDAST ADMIN</div>
+            
+            <h1>Generera QR-koder</h1>
+            <p class="subtitle">För testning - kommer tas bort vid lansering</p>
+            
+            <form method="post" class="qr-form">
+                <div class="form-group">
+                    <label for="count">Antal QR-koder</label>
+                    <input type="number" id="count" name="count" min="1" max="30" value="10" required>
+                    <small>Max 30 per gång</small>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full">
+                    Generera PDF
+                </button>
+            </form>
+            
+            <div class="info-box">
+                <p><strong>Obs!</strong> Vid lansering kommer QR-koder endast kunna köpas i shoppen.</p>
+            </div>
+            
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary btn-full">← Tillbaka</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-qr-page {
+    padding: 20px 0;
+}
+
+.admin-badge {
+    background: #ef4444;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.qr-form {
+    margin: 30px 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1.2rem;
+}
+
+.form-group small {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.info-box {
+    background: #fef3c7;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.info-box p {
+    margin: 0;
+    color: #92400e;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Hittad disc - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="found-page">
+    <div class="container">
+        <div class="card">
+            <div class="found-header">
+                <div class="found-icon">🥏</div>
+                <h1>Du har hittat en disc!</h1>
+                <p class="subtitle">Tack för att du hjälper till</p>
+            </div>
+            
+            <div class="process-info">
+                <div class="process-step active">
+                    <span class="step-num">1</span>
+                    <span>Göm discen</span>
+                </div>
+                <div class="process-arrow">→</div>
+                <div class="process-step">
+                    <span class="step-num">2</span>
+                    <span>Ägaren får mail</span>
+                </div>
+                <div class="process-arrow">→</div>
+                <div class="process-step">
+                    <span class="step-num">3</span>
+                    <span>Klart!</span>
+                </div>
+            </div>
+            
+            <form method="post" enctype="multipart/form-data" class="found-form">
+                <div class="form-section">
+                    <label for="note">Var gömde du discen?</label>
+                    <textarea id="note" name="note" rows="3" placeholder="t.ex. 'Under bron vid hål 7, bakom stenen'"></textarea>
+                </div>
+                
+                <div class="form-section photo-section">
+                    <input type="file" id="photo" name="photo" accept="image/*" capture="environment" hidden>
+                    <button type="button" class="btn-photo" onclick="document.getElementById('photo').click()">
+                        📷 Lägg till bild
+                    </button>
+                    <p id="photo-status" class="photo-status">Ingen bild vald</p>
+                </div>
+                
+                <input type="hidden" name="latitude" id="lat">
+                <input type="hidden" name="longitude" id="lng">
+                
+                <div class="location-status" id="gps-status">
+                    <span class="loading">📍 Hämtar position...</span>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full" id="submit-btn">
+                    Skicka till ägaren
+                </button>
+                
+                <p class="privacy-note">
+                    🔒 Anonymt - du behöver inte lämna några kontaktuppgifter
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // GPS
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                document.getElementById('lat').value = pos.coords.latitude;
+                document.getElementById('lng').value = pos.coords.longitude;
+                document.getElementById('gps-status').innerHTML = '<span class="success">✅ Position sparad</span>';
+                document.getElementById('submit-btn').disabled = false;
+            },
+            function(err) {
+                document.getElementById('gps-status').innerHTML = '<span class="warning">⚠️ Position ej tillgänglig (skicka ändå)</span>';
+                document.getElementById('submit-btn').disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    } else {
+        document.getElementById('gps-status').innerHTML = '<span class="warning">⚠️ GPS ej tillgänglig</span>';
+        document.getElementById('submit-btn').disabled = false;
+    }
+    
+    // Foto
+    document.getElementById('photo').addEventListener('change', function() {
+        const status = document.getElementById('photo-status');
+        if (this.files && this.files[0]) {
+            status.textContent = '✅ Bild vald';
+            status.classList.add('selected');
+        }
+    });
+</script>
+{% endblock %}
+
+<style>
+.found-page {
+    padding: 20px 0;
+}
+
+.found-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.found-icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+}
+
+.found-header h1 {
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+.subtitle {
+    color: #6b7280;
+}
+
+.process-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.process-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.process-step.active {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.process-step.active .step-num {
+    background: #2563eb;
+    color: white;
+}
+
+.process-arrow {
+    color: #9ca3af;
+}
+
+.found-form {
+    margin-top: 20px;
+}
+
+.form-section {
+    margin-bottom: 25px;
+}
+
+.form-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-section textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.form-section textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.photo-section {
+    text-align: center;
+}
+
+.btn-photo {
+    background: #f3f4f6;
+    border: 2px dashed #d1d5db;
+    padding: 20px 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.btn-photo:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.photo-status {
+    margin-top: 10px;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.photo-status.selected {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.location-status {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
+.location-status .loading {
+    color: #6b7280;
+}
+
+.location-status .success {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.location-status .warning {
+    color: #f59e0b;
+}
+
+.privacy-note {
+    text-align: center;
+    margin-top: 20px;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.btn-full {
+    width: 100%;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}ReturnaDisc - Anonym återlämning av discar{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="container">
+        <h1>Slipp ge bort din disc för alltid</h1>
+        <p class="lead">En QR-kod. Alla dina discar. Anonym återlämning utan krångel.</p>
+        
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number">📷</span>
+                <span class="stat-label">Bild + position</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">📧</span>
+                <span class="stat-label">Mail direkt</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">🎉</span>
+                <span class="stat-label">Klart!</span>
+            </div>
+        </div>
+        
+        <div class="cta-buttons">
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary btn-large">Skapa konto gratis</a>
+            <a href="{{ url_for('auth.how_it_works') }}" class="btn-secondary btn-large">Så funkar det</a>
+        </div>
+    </div>
+</div>
+
+<div class="how-it-works-simple">
+    <div class="container">
+        <h2>Så enkelt är det</h2>
+        
+        <div class="steps-simple">
+            <div class="step-simple">
+                <div class="step-icon">1️⃣</div>
+                <h3>Sätt QR på dina discar</h3>
+                <p>Samma QR-kod på alla dina discar. Sätt den där den syns.</p>
+            </div>
+            
+            <div class="step-arrow">→</div>
+            
+            <div class="step-simple highlight">
+                <div class="step-icon">2️⃣</div>
+                <h3>Någon hittar den</h3>
+                <p>Scannar QR → Tar bild → Skickar position → <strong>Klart!</strong></p>
+                <p class="step-note">Ingen kontakt. Inget planerande. Anonymt.</p>
+            </div>
+            
+            <div class="step-arrow">→</div>
+            
+            <div class="step-simple">
+                <div class="step-icon">3️⃣</div>
+                <h3>Du får mail</h3>
+                <p>Bild + exakt position. Hämta när det passar dig.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="benefits">
+    <div class="container">
+        <h2>Varför ReturnaDisc?</h2>
+        
+        <div class="benefit-grid">
+            <div class="benefit">
+                <div class="benefit-icon">🕵️</div>
+                <h3>100% anonymt</h3>
+                <p>Varken du eller upphittaren behöver dela kontaktuppgifter.</p>
+            </div>
+            
+            <div class="benefit">
+                <div class="benefit-icon">⚡</div>
+                <h3>Tidssparande</h3>
+                <p>Inga samtal, inget planerande, ingen postning. Bild + position = klart.</p>
+            </div>
+            
+            <div class="benefit">
+                <div class="benefit-icon">💰</div>
+                <h3>Slipp fraktkostnader</h3>
+                <p>Upphittaren gömmer discen på plats. Du hämtar när du spelar där igen.</p>
+            </div>
+            
+            <div class="benefit">
+                <div class="benefit-icon">🏆</div>
+                <h3>Hjältepoäng</h3>
+                <p>Få poäng för varje disc du hittar. Tävla om att vara största hjälten!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="found-disc-cta">
+    <div class="container">
+        <h2>Har du hittat en disc? 🥏</h2>
+        <p>Skanna QR-koden på discen för att hjälpa ägaren få tillbaka den.</p>
+        <p class="found-note">Det tar 30 sekunder. Du behöver inte lämna några kontaktuppgifter.</p>
+        <a href="#" class="btn-secondary btn-large" onclick="alert('Skanna QR-koden på discen med din kamera!'); return false;">
+            Så här skannar du
+        </a>
+    </div>
+</div>
+
+<style>
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.steps-simple {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+
+.step-simple {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 280px;
+    text-align: center;
+}
+
+.step-simple.highlight {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: scale(1.05);
+}
+
+.step-simple.highlight p {
+    color: rgba(255,255,255,0.9);
+}
+
+.step-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.step-note {
+    font-size: 0.9rem;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+.step-arrow {
+    font-size: 2rem;
+    color: #9ca3af;
+}
+
+.benefit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.benefit {
+    text-align: center;
+    padding: 30px;
+}
+
+.benefit-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.found-disc-cta {
+    background: #f3f4f6;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.found-note {
+    color: #6b7280;
+    margin: 15px 0;
+}
+
+@media (max-width: 768px) {
+    .steps-simple {
+        flex-direction: column;
+    }
+    
+    .step-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .step-simple.highlight {
+        transform: none;
+    }
+}
+</style>
+{% endblock %}

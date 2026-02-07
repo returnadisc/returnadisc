@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Tack! - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="thanks-page">
+    <div class="container">
+        <div class="card text-center">
+            <div class="success-animation">
+                <div class="success-icon">🎉</div>
+                <div class="success-ring"></div>
+            </div>
+            
+            <h1>Tack för hjälpen!</h1>
+            <p class="subtitle">Du är en hjälte! 🦸</p>
+            
+            <div class="impact-message">
+                <p>En disc är på väg hem tack vare dig.</p>
+                <p class="anon-note">Anonymt, smidigt, utan krångel. Så ska det vara.</p>
+            </div>
+            
+            {% if show_hero_offer %}
+            <div class="hero-offer">
+                <div class="hero-icon">🏆</div>
+                <h2>Vill du ha din hjältepoäng?</h2>
+                <p>Skapa ett konto så sparas dina hjältepoäng. Tävla om att bli största disc-hjälten!</p>
+                
+                <div class="hero-buttons">
+                    <a href="{{ url_for('auth.signup') }}?next=/hero-claim/{{ handover_id }}" class="btn-primary">
+                        Skapa konto & få poäng
+                    </a>
+                    <a href="{{ url_for('auth.login') }}?next=/hero-claim/{{ handover_id }}" class="btn-secondary">
+                        Logga in (har redan konto)
+                    </a>
+                </div>
+                
+                <a href="{{ url_for('auth.index') }}" class="skip-link">
+                    Nej tack, ta mig till startsidan →
+                </a>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.index') }}" class="btn-primary btn-large">
+                Till startsidan
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.thanks-page {
+    padding: 40px 0;
+}
+
+.success-animation {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 30px;
+}
+
+.success-icon {
+    font-size: 4rem;
+    position: relative;
+    z-index: 2;
+    animation: bounce 1s ease infinite;
+}
+
+.success-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border: 4px solid #10b981;
+    border-radius: 50%;
+    opacity: 0;
+    animation: ripple 2s ease-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes ripple {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.3rem;
+    margin-bottom: 30px;
+}
+
+.impact-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+}
+
+.impact-message p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.anon-note {
+    margin-top: 10px !important;
+    opacity: 0.9;
+    font-size: 0.95rem !important;
+}
+
+.hero-offer {
+    background: #f9fafb;
+    padding: 30px;
+    border-radius: 16px;
+    margin-top: 20px;
+}
+
+.hero-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.hero-offer h2 {
+    margin-bottom: 10px;
+}
+
+.hero-offer p {
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.skip-link {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.skip-link:hover {
+    color: #2563eb;
+}
+</style>
+{% endblock %}

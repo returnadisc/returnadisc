@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}Min sida - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="container">
+        <div class="welcome-section">
+            <h1>Välkommen, {{ user.name }}! 👋</h1>
+            <p class="subtitle">En QR-kod. Alla dina discar.</p>
+        </div>
+        
+        {% if not qr %}
+            <div class="activate-cta">
+                <div class="cta-icon">🎯</div>
+                <h2>Aktivera din QR-kod</h2>
+                <p>Du har ingen aktiv QR-kod än. Aktivera den för att komma igång.</p>
+                <a href="{{ url_for('disc.activate_qr_page') }}" class="btn-primary btn-large">
+                    Aktivera QR-kod
+                </a>
+            </div>
+        {% else %}
+            <div class="qr-section">
+                <div class="qr-card">
+                    <div class="qr-header">
+                        <h2>Din QR-kod</h2>
+                        <span class="qr-badge">AKTIV</span>
+                    </div>
+                    <p class="qr-id">ID: <code>{{ qr.qr_id }}</code></p>
+                    
+                    <div class="qr-image-container">
+                        <img src="{{ qr_path }}" alt="Din QR-kod" class="qr-image">
+                    </div>
+                    
+                    <div class="qr-instructions">
+                        <p class="main-instruction">✅ Sätt denna på <strong>alla</strong> dina discar!</p>
+                        <p class="sub-instruction">Samma kod på alla discar - enkelt och smidigt.</p>
+                    </div>
+                    
+                    <div class="qr-actions">
+                        <a href="{{ qr_path }}" download="returnadisc-{{ qr.qr_id }}.png" class="btn-secondary">
+                            📥 Ladda ner
+                        </a>
+                        <a href="{{ url_for('disc.view_qr') }}" class="btn-secondary">
+                            Visa större
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="stats-section">
+            <h2>Dina stats</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🏆</div>
+                    <div class="stat-value">{{ stats.hero_points }}</div>
+                    <div class="stat-label">Hjältepoäng</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">🥏</div>
+                    <div class="stat-value">{{ stats.total_returns }}</div>
+                    <div class="stat-label">Discar räddade</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value">{{ stats.member_since.strftime('%Y') if stats.member_since else 'Ny' }}</div>
+                    <div class="stat-label">Medlem sedan</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tips-section">
+            <h2>💡 Tips</h2>
+            <div class="tips-grid">
+                <div class="tip">
+                    <div class="tip-icon">📍</div>
+                    <div class="tip-content">
+                        <h4>Sätt koden synligt</h4>
+                        <p>Men där den inte stör ditt grepp</p>
+                    </div>
+                </div>
+                <div class="tip">
+                    <div class="tip-icon">🌧️</div>
+                    <div class="tip-content">
+                        <h4>Vattentåligt</h4>
+                        <p>Våra klistermärken klarar all väderlek</p>
+                    </div>
+                </div>
+                <div class="tip">
+                    <div class="tip-icon">🏆</div>
+                    <div class="tip-content">
+                        <h4>Hjälp andra</h4>
+                        <p>Hitta discar för att tjäna hjältepoäng!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard {
+    padding: 20px 0;
+}
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.welcome-section h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.2rem;
+}
+
+.activate-cta {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 40px;
+    border-radius: 20px;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.cta-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.activate-cta h2 {
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.activate-cta p {
+    margin-bottom: 25px;
+    opacity: 0.9;
+}
+
+.qr-section {
+    margin-bottom: 40px;
+}
+
+.qr-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.qr-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.qr-header h2 {
+    margin: 0;
+}
+
+.qr-badge {
+    background: #10b981;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.qr-id {
+    color: #6b7280;
+    margin-bottom: 25px;
+}
+
+.qr-id code {
+    background: #f3f4f6;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    color: #2563eb;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.qr-image-container {
+    background: #f9fafb;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+}
+
+.qr-image {
+    max-width: 250px;
+    border-radius: 12px;
+}
+
+.qr-instructions {
+    margin-bottom: 25px;
+}
+
+.main-instruction {
+    font-size: 1.2rem;
+    color: #10b981;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.sub-instruction {
+    color: #6b7280;
+    margin: 0;
+}
+
+.qr-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.stats-section {
+    margin-bottom: 40px;
+}
+
+.stats-section h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.tips-section h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.tip {
+    background: #f9fafb;
+    padding: 25px;
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.tip-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.tip-content h4 {
+    margin-bottom: 5px;
+    color: #374151;
+}
+
+.tip-content p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}
