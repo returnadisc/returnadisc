@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Köp QR-klistermärken - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="buy-page">
+    <div class="container">
+        <div class="buy-header">
+            <h1>🛒 Köp QR-klistermärken</h1>
+            <p class="subtitle">Vattentåliga klistermärken för alla dina discar</p>
+        </div>
+        
+        <div class="sticker-showcase">
+            <div class="sticker-visual">
+                <div class="sticker-circle">
+                    <!-- Riktig QR-kod som exempel - STÖRRE -->
+                    <img src="{{ url_for('static', filename='qr/qr_EXEMP.png') }}" 
+                         alt="Exempel QR-kod" 
+                         class="qr-example"
+                         onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex'">
+                    <div id="qrFallback" class="qr-fallback" style="display: none;">
+                        <div class="qr-pattern"></div>
+                        <div class="qr-id">A7B9X</div>
+                    </div>
+                </div>
+                <div class="size-badge">2.5 cm × 2.5 cm</div>
+            </div>
+            
+            <div class="sticker-features">
+                <h3>✨ Egenskaper</h3>
+                <ul>
+                    <li>💧 100% vattentåliga</li>
+                    <li>☀️ UV-beständiga (bleknar inte)</li>
+                    <li>❄️ Klarar svensk kyla (-20°C)</li>
+                    <li>🏃‍♂️ Klara för rough handling</li>
+                    <li>🇸🇪 Designade i Sverige</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="pricing-section">
+            <h2>Välj paket</h2>
+            <div class="pricing-grid">
+                <div class="price-card">
+                    <div class="price-header">
+                        <h3>Startpaket</h3>
+                        <div class="price">59 kr</div>
+                        <div class="price-note">Inklusive frakt</div>
+                    </div>
+                    <div class="price-features">
+                        <div class="feature-highlight">10 st klistermärken</div>
+                        <p>Tillräckligt för 10 discar</p>
+                        <p>Perfekt för nybörjaren</p>
+                    </div>
+                    <button class="btn-primary btn-large btn-full" onclick="alert('Funktion kommer snart!')">
+                        Välj
+                    </button>
+                </div>
+                
+                <div class="price-card popular">
+                    <div class="popular-badge">MEST POPULÄR</div>
+                    <div class="price-header">
+                        <h3>Standard</h3>
+                        <div class="price">99 kr</div>
+                        <div class="price-note">Inklusive frakt</div>
+                    </div>
+                    <div class="price-features">
+                        <div class="feature-highlight">20 st klistermärken</div>
+                        <p>För den aktiva spelaren</p>
+                        <p>Spara 19 kr!</p>
+                    </div>
+                    <button class="btn-primary btn-large btn-full" onclick="alert('Funktion kommer snart!')">
+                        Välj
+                    </button>
+                </div>
+                
+                <div class="price-card">
+                    <div class="price-header">
+                        <h3>Pro</h3>
+                        <div class="price">179 kr</div>
+                        <div class="price-note">Inklusive frakt</div>
+                    </div>
+                    <div class="price-features">
+                        <div class="feature-highlight">40 st klistermärken</div>
+                        <p>För seriösa discgolfare</p>
+                        <p>Spara 57 kr!</p>
+                    </div>
+                    <button class="btn-primary btn-large btn-full" onclick="alert('Funktion kommer snart!')">
+                        Välj
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pdga-section">
+            <h3>🏆 Tävlingsdugliga</h3>
+            <p>Alla våra klistermärken är tunna nog för att inte påverka discens flygegenskaper. 
+            Enligt <strong>PDGA Official Rules 813.01</strong> är det tillåtet med tunn markering som inte 
+            påverkar vikten eller flygegenskaperna.</p>
+            <p>Du kan också skriva QR-koden med permanent tusch om du föredrar det!</p>
+        </div>
+        
+        <div class="faq-section">
+            <h3>❓ Vanliga frågor</h3>
+            <div class="faq-item">
+                <h4>Hur lång tid tar leveransen?</h4>
+                <p>Vanligtvis 2-4 arbetsdagar med PostNord.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Kan jag sätta klistermärket på en redan markerad disc?</h4>
+                <p>Ja! Sätt QR-klistermärket bredvid din befintliga markering.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Vad händer om klistermärket lossnar?</h4>
+                <p>Våra klistermärken har stark vidhäftning, men om det skulle lossna kan du alltid 
+                skriva QR-koden med permanent tusch som backup.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.buy-page {
+    padding: 40px 0;
+}
+
+.buy-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.buy-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.2rem;
+}
+
+/* Sticker Showcase */
+.sticker-showcase {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-bottom: 60px;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    padding: 50px;
+    border-radius: 24px;
+}
+
+.sticker-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* STÖRRE cirkel för större QR */
+.sticker-circle {
+    width: 280px;
+    height: 280px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    position: relative;
+    padding: 15px;
+}
+
+/* STÖRRE QR-kod */
+.qr-example {
+    width: 220px;
+    height: 220px;
+    object-fit: contain;
+}
+
+/* Fallback */
+.qr-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.qr-pattern {
+    width: 140px;
+    height: 140px;
+    background: 
+        repeating-linear-gradient(0deg, #000 0px, #000 8px, transparent 8px, transparent 16px),
+        repeating-linear-gradient(90deg, #000 0px, #000 8px, transparent 8px, transparent 16px);
+    background-size: 16px 16px;
+    background-position: center;
+}
+
+.qr-id {
+    font-family: monospace;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #374151;
+    letter-spacing: 2px;
+    margin-top: 5px;
+}
+
+.size-badge {
+    margin-top: 20px;
+    background: #2563eb;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.sticker-features h3 {
+    margin-bottom: 20px;
+    color: #374151;
+}
+
+.sticker-features ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sticker-features li {
+    padding: 10px 0;
+    font-size: 1.1rem;
+    color: #4b5563;
+}
+
+/* Pricing */
+.pricing-section {
+    margin-bottom: 60px;
+}
+
+.pricing-section h2 {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.price-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.price-card.popular {
+    border: 3px solid #2563eb;
+    transform: scale(1.05);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2563eb;
+    color: white;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.price-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.price-header h3 {
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.price {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #374151;
+    line-height: 1;
+}
+
+.price-note {
+    color: #10b981;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+.price-features {
+    flex: 1;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.feature-highlight {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 15px;
+}
+
+.price-features p {
+    color: #6b7280;
+    margin: 8px 0;
+}
+
+/* PDGA Section */
+.pdga-section {
+    background: #fef3c7;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.pdga-section h3 {
+    color: #92400e;
+    margin-bottom: 15px;
+}
+
+.pdga-section p {
+    color: #78350f;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+/* FAQ */
+.faq-section {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.faq-section h3 {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.faq-item {
+    background: #f9fafb;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.faq-item h4 {
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+.faq-item p {
+    color: #6b7280;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .sticker-showcase {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .sticker-circle {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .qr-example {
+        width: 130px;
+        height: 130px;
+    }
+    
+    .price-card.popular {
+        transform: none;
+    }
+}
+</style>
+{% endblock %}

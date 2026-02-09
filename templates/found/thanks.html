@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Tack för hjälpen! - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="thanks-page">
+    <div class="container">
+        <div class="thanks-card">
+            <div class="success-animation">
+                <div class="checkmark">✓</div>
+                <div class="confetti">🎉</div>
+            </div>
+            
+            <h1>Tack för hjälpen!</h1>
+            <p class="lead">Du är en discgolf-hjälte! 🦸</p>
+            
+            <div class="message-box">
+                <div class="message-icon">📧</div>
+                <div class="message-content">
+                    <h3>Ägaren har fått ett mail med:</h3>
+                    <ul>
+                        <li>✅ Bild på discen (om du tog en)</li>
+                        <li>✅ Exakt position i Google Maps</li>
+                        <li>✅ Ditt meddelande om var du gömde den</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="hero-badge">
+                <div class="badge-icon">🏆</div>
+                <div class="badge-text">
+                    <strong>Du fick just hjältepoäng!</strong>
+                    <p>Tack för att du gör discgolf-communityn bättre.</p>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>Vad händer nu?</h3>
+                <div class="steps-list">
+                    <div class="step-item">
+                        <div class="step-num">1</div>
+                        <p>Ägaren får ditt mail och vet var discen finns</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">2</div>
+                        <p>De hämtar discen när det passar dem</p>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-num">3</div>
+                        <p>Alla är glada! Inget krångel, ingen stress.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <a href="{{ url_for('auth.index') }}" class="btn-primary btn-large">
+                    Till startsidan
+                </a>
+                <p class="cta-hint">Tips: Skaffa du också QR-koder så du får tillbaka dina egna discar!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.thanks-page {
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.thanks-card {
+    background: white;
+    border-radius: 24px;
+    padding: 50px;
+    text-align: center;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.success-animation {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 30px;
+}
+
+.checkmark {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    animation: scaleIn 0.5s ease-out;
+}
+
+.confetti {
+    position: absolute;
+    top: -10px;
+    right: -20px;
+    font-size: 2.5rem;
+    animation: bounce 1s infinite;
+}
+
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(10deg); }
+    75% { transform: translateY(-5px) rotate(-5deg); }
+}
+
+.thanks-card h1 {
+    font-size: 2rem;
+    color: #065f46;
+    margin-bottom: 10px;
+}
+
+.lead {
+    color: #047857;
+    font-size: 1.3rem;
+    margin-bottom: 30px;
+}
+
+.message-box {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    text-align: left;
+    margin-bottom: 25px;
+}
+
+.message-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.message-content h3 {
+    color: #1e40af;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+}
+
+.message-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.message-content li {
+    color: #1e3a8a;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.hero-badge {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    padding: 20px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.badge-icon {
+    font-size: 2.5rem;
+}
+
+.badge-text strong {
+    color: #92400e;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.badge-text p {
+    color: #78350f;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.next-steps {
+    margin-bottom: 30px;
+}
+
+.next-steps h3 {
+    color: #374151;
+    margin-bottom: 20px;
+}
+
+.steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f9fafb;
+    padding: 15px 20px;
+    border-radius: 12px;
+    text-align: left;
+}
+
+.step-num {
+    width: 32px;
+    height: 32px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.step-item p {
+    margin: 0;
+    color: #4b5563;
+}
+
+.cta-section {
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.cta-hint {
+    color: #6b7280;
+    margin-top: 15px;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+    .thanks-card {
+        padding: 30px 20px;
+    }
+    
+    .message-box,
+    .hero-badge {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

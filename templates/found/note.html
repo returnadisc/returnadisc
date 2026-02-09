@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Lämna meddelande - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="note-page">
+    <div class="container">
+        <div class="card">
+            <h1>Lämna meddelande</h1>
+            <p class="subtitle">Beskriv var discen finns</p>
+            
+            <form method="post" class="note-form">
+                <div class="form-group">
+                    <label for="note">Var finns discen?</label>
+                    <textarea id="note" name="note" rows="4" required 
+                              placeholder="t.ex. 'Jag lämnade den i klubbhuset'"></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full">
+                    Skicka meddelande
+                </button>
+                
+                <a href="{{ url_for('found.found_qr', qr_id=qr_id) }}" class="btn-text">
+                    ← Tillbaka
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.note-page {
+    padding: 20px 0;
+}
+
+.note-form {
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.btn-text {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #6b7280;
+    text-decoration: none;
+}
+
+.btn-text:hover {
+    color: #2563eb;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,29 @@
+﻿# Miljövariabler (hemligheter)
+.env
+
+# Databas (ska inte med i git)
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Uploads och genererade filer
+static/uploads/*
+static/qr/*
+static/pdfs/*
+!static/uploads/.gitkeep
+!static/qr/.gitkeep
+!static/pdfs/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db

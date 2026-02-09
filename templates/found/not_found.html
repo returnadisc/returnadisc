@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Disc hittades inte - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="card-container">
+    <div class="card text-center">
+        <div class="error-icon" style="font-size: 4rem; margin-bottom: 16px;">❓</div>
+        <h2>Discen hittades inte</h2>
+        <p>Det finns ingen disc med detta ID i vårt system.</p>
+        
+        <a href="{{ url_for('auth.index') }}" class="btn-primary btn-full" style="margin-top: 16px;">
+            Till startsidan
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Rapportera saknad disc - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="report-page">
+    <div class="container">
+        <div class="card">
+            <div class="report-header">
+                <div class="report-icon">🎯</div>
+                <h1>Rapportera saknad disc</h1>
+                <p class="subtitle">Markera var du tappade den så andra kan hjälpa till att leta</p>
+            </div>
+            
+            <div class="gps-controls">
+                <button type="button" class="btn-gps" id="gpsBtn" onclick="getGPSPosition()">
+                    📍 Hämta min position
+                </button>
+                <span class="gps-status-text" id="gpsText">Klicka för att hämta GPS</span>
+            </div>
+            
+            <form method="post" class="report-form" id="reportForm">
+                <div class="form-group">
+                    <label for="disc_name">Discens namn *</label>
+                    <input type="text" id="disc_name" name="disc_name" required 
+                           placeholder="t.ex. Gul Destroyer" maxlength="50">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="course_name">Bana (valfritt)</label>
+                        <input type="text" id="course_name" name="course_name" 
+                               placeholder="t.ex. Kärsö Discgolf">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hole_number">Hål (valfritt)</label>
+                        <input type="text" id="hole_number" name="hole_number" 
+                               placeholder="t.ex. 3" maxlength="10">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Beskrivning *</label>
+                    <textarea id="description" name="description" rows="3" required
+                              placeholder="t.ex. Driver i gult plast, troligen i buskaget till höger om fairway"></textarea>
+                </div>
+                
+                <div class="map-section">
+                    <label>Var tappade du discen? *</label>
+                    <p class="map-hint" id="mapHint">Klicka på "Hämta min position" eller klicka på kartan</p>
+                    <div id="map"></div>
+                    <input type="hidden" name="latitude" id="latitude" required>
+                    <input type="hidden" name="longitude" id="longitude" required>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full" id="submitBtn" disabled>
+                    Rapportera saknad disc
+                </button>
+                
+                <a href="{{ url_for('disc.dashboard') }}" class="btn-text">← Avbryt</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    var map;
+    var marker = null;
+    
+    // Initiera karta (Sverige som default)
+    map = L.map('map').setView([59.3293, 18.0686], 5);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+    
+    // Funktion för att sätta markör
+    function setMarker(lat, lng, zoomIn) {
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        
+        var customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div class="marker-pin"></div>',
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+        
+        marker = L.marker([lat, lng], {icon: customIcon}).addTo(map);
+        
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+        document.getElementById('submitBtn').disabled = false;
+        
+        if (zoomIn) {
+            map.setView([lat, lng], 17);
+        }
+    }
+    
+    // Hämta GPS-position
+    function getGPSPosition() {
+        var btn = document.getElementById('gpsBtn');
+        var txt = document.getElementById('gpsText');
+        
+        btn.disabled = true;
+        txt.textContent = 'Hämtar...';
+        
+        if (!navigator.geolocation) {
+            txt.textContent = 'GPS stöds inte';
+            btn.disabled = false;
+            return;
+        }
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                var lat = position.coords.latitude;
+                var lng = position.coords.longitude;
+                
+                setMarker(lat, lng, true);
+                
+                txt.textContent = '✅ Position hittad!';
+                txt.className = 'gps-status-text success';
+                document.getElementById('mapHint').textContent = 'Klicka på kartan för att justera';
+                btn.disabled = false;
+            },
+            function(error) {
+                var msg = 'Kunde inte hämta';
+                if (error.code === 1) msg = 'Tillåt platsåtkomst';
+                if (error.code === 2) msg = 'Position ej tillgänglig';
+                if (error.code === 3) msg = 'Timeout';
+                
+                txt.textContent = '❌ ' + msg;
+                txt.className = 'gps-status-text error';
+                btn.disabled = false;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+    
+    // Klick på kartan
+    map.on('click', function(e) {
+        setMarker(e.latlng.lat, e.latlng.lng, false);
+        document.getElementById('gpsText').textContent = '✅ Position vald manuellt';
+        document.getElementById('gpsText').className = 'gps-status-text success';
+    });
+</script>
+{% endblock %}
+
+<style>
+.report-page {
+    padding: 20px 0;
+}
+
+.report-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.report-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.gps-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
+.btn-gps {
+    background: #2563eb;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-gps:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.btn-gps:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.gps-status-text {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.gps-status-text.success {
+    color: #059669;
+    font-weight: 600;
+}
+
+.gps-status-text.error {
+    color: #dc2626;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.map-section {
+    margin-bottom: 25px;
+}
+
+.map-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.map-hint {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+#map {
+    height: 350px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.marker-pin {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 3px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.btn-text {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #6b7280;
+    text-decoration: none;
+}
+
+@media (max-width: 640px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .gps-controls {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}

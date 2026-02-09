@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Min sida - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="container">
+
+        <div class="welcome-section">
+            <h1>Välkommen, {{ user.name }}! 👋</h1>
+            <p class="subtitle">Din QR-kod är redo att användas</p>
+        </div>
+        
+        <!-- NYTT: Statistik-kort -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number">{{ missing_stats.missing }}</div>
+                <div class="stat-label">Saknade discar</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number found">{{ missing_stats.found }}</div>
+                <div class="stat-label">Återfunna</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-number">{{ stats.hero_points }}</div>
+                <div class="stat-label">Hjältepoäng</div>
+            </div>
+        </div>
+        
+        {% if not qr %}
+            <div class="activate-cta">
+                <div class="cta-icon">🎯</div>
+                <h2>Genererar din QR-kod...</h2>
+                <p>Ladda om sidan om ett ögonblick.</p>
+            </div>
+        {% else %}
+            <!-- QR-kort -->
+            <div class="qr-section">
+                <div class="qr-card">
+                    <div class="qr-header">
+                        <h2>Din QR-kod</h2>
+                        <span class="qr-badge">AKTIV</span>
+                    </div>
+                    
+                    <div class="qr-image-container">
+                        <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                             alt="Din QR-kod" 
+                             class="qr-image"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="qr-fallback" style="display: none;">
+                            <p>QR-kod: <strong>{{ qr.qr_id }}</strong></p>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-actions">
+                        <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                           download="returnadisc-{{ qr.qr_id }}.png"
+                           class="btn-primary btn-large">
+                            ⬇️ Ladda ner QR-kod
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Köp klistermärken - egen sektion -->
+            <div class="stickers-promo">
+                <div class="promo-content">
+                    <span class="promo-icon">🛒</span>
+                    <div class="promo-text">
+                        <h3>Vill du ha proffsiga klistermärken?</h3>
+                        <p>Vattentåliga, UV-beständiga, perfekt storlek (2.5×2.5 cm)</p>
+                    </div>
+                    <a href="{{ url_for('auth.buy_stickers') }}" class="btn-secondary">
+                        Beställ här
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Info i symmetriskt grid -->
+            <div class="info-section">
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>🎯 Så här fungerar det</h3>
+                        <ol>
+                            <li>Ladda ner QR-koden</li>
+                            <li>Skriv ut på papper eller etikett</li>
+                            <li>Sätt på dina discar</li>
+                            <li>Klart!</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>💡 Tips för placering</h3>
+                        <ul>
+                            <li>Undersidan av discen</li>
+                            <li>Innerkanten</li>
+                            <li>Syns tydligt men slits inte</li>
+                            <li>Tejp över för skydd</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>⚙️ Dina uppgifter</h3>
+                        <div class="user-info">
+                            <p><strong>Namn:</strong> {{ user.name }}</p>
+                            <p><strong>Email:</strong> {{ user.email }}</p>
+                            <p><strong>QR-ID:</strong> <code>{{ qr.qr_id }}</code></p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>🏆 PDGA Tävling</h3>
+                        <p>Enligt <strong>PDGA 813.01</strong> måste discar vara identifierbara.</p>
+                            <p>Skriv <code>{{ qr.qr_id }}</code> med tusch = regelföljd + anonymt!</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.dashboard {
+    padding: 20px 0;
+}
+
+.welcome-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.welcome-section h1 {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #6b7280;
+}
+
+/* NYTT: Stats bar */
+.stats-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding: 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    color: white;
+}
+
+.stat-item {
+    text-align: center;
+    min-width: 120px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-number.found {
+    color: #10b981;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 50px;
+    background: rgba(255,255,255,0.3);
+}
+
+/* QR-kort */
+.qr-section {
+    margin-bottom: 30px;
+}
+
+.qr-card {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.qr-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.qr-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.qr-badge {
+    background: #10b981;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.qr-image-container {
+    background: #f9fafb;
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+}
+
+.qr-image {
+    max-width: 280px;
+    width: 100%;
+    border-radius: 12px;
+}
+
+.qr-fallback {
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+}
+
+.qr-actions {
+    display: flex;
+    justify-content: center;
+}
+
+/* Stickers promo - egen sektion */
+.stickers-promo {
+    margin-bottom: 30px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.promo-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 25px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+}
+
+.promo-icon {
+    font-size: 2.5rem;
+}
+
+.promo-text {
+    flex: 1;
+}
+
+.promo-text h3 {
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.promo-text p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+/* Info grid - symmetriskt */
+.info-section {
+    margin-bottom: 30px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.info-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.info-card h3 {
+    margin-bottom: 15px;
+    color: #374151;
+    font-size: 1.1rem;
+}
+
+.info-card ol,
+.info-card ul {
+    padding-left: 20px;
+    color: #4b5563;
+    margin: 0;
+}
+
+.info-card li {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.user-info p {
+    margin: 10px 0;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.user-info code {
+    background: #f3f4f6;
+    padding: 3px 8px;
+    border-radius: 4px;
+    color: #2563eb;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .stats-bar {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .stat-divider {
+        width: 80%;
+        height: 1px;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .promo-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .qr-card {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}

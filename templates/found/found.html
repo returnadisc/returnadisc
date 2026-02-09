@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Hittad disc - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="found-page">
+    <div class="container">
+        <div class="found-header">
+            <div class="found-icon">🥏</div>
+            <h1>Du har hittat en disc!</h1>
+        </div>
+        
+        <div class="choices">
+            <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="choice-card primary">
+                <div class="choice-main">
+                    <div class="choice-icon">📍</div>
+                    <div class="choice-content">
+                        <h3>Jag gömmer discen</h3>
+                        <p>Bild + Position skickas</p>
+                        <span class="time">⚡ 30 sekunder</span>
+                    </div>
+                </div>
+                <div class="choice-badge">Rekommenderas</div>
+            </a>
+            
+            <div class="divider">eller</div>
+            
+            <a href="{{ url_for('found.found_note', qr_id=qr_id) }}" class="choice-card secondary">
+                <div class="choice-icon">✍️</div>
+                <div class="choice-content">
+                    <h3>Lämna meddelande</h3>
+                </div>
+            </a>
+            
+            <a href="{{ url_for('found.found_meet', qr_id=qr_id) }}" class="choice-card secondary">
+                <div class="choice-icon">🤝</div>
+                <div class="choice-content">
+                    <h3>Jag vill mötas</h3>
+                </div>
+            </a>
+        </div>
+        
+        <div class="privacy-note">
+            <p>🔒 Du behöver inte lämna några kontaktuppgifter</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.found-page {
+    padding: 40px 20px;
+    background: #f3f4f6;
+    min-height: 100vh;
+}
+
+.found-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.found-icon {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+.found-header h1 {
+    font-size: 1.6rem;
+    color: #1f2937;
+}
+
+.choices {
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.choice-card {
+    display: block;
+    padding: 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    margin-bottom: 12px;
+}
+
+.choice-card.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    position: relative;
+    text-align: center;
+}
+
+.choice-main {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-align: left;
+}
+
+.choice-icon {
+    font-size: 2rem;
+}
+
+.choice-content h3 {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.choice-content p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin: 0 0 4px 0;
+}
+
+.time {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.choice-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-top: 10px;
+}
+
+.choice-card.secondary {
+    background: white;
+    color: #374151;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.divider {
+    text-align: center;
+    color: #9ca3af;
+    margin: 15px 0;
+    font-size: 0.9rem;
+}
+
+.privacy-note {
+    text-align: center;
+    margin-top: 30px;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}

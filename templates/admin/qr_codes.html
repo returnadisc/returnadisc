@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}QR-koder - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-qr-list">
+    <div class="container">
+        <h1>📋 Alla QR-koder</h1>
+        
+        <div class="stats-summary">
+            <div class="summary-item">
+                <span class="summary-number">{{ qr_codes|selectattr('is_active', 'equalto', 1)|list|length }}</span>
+                <span class="summary-label">Aktiva</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-number inactive">{{ qr_codes|selectattr('is_active', 'equalto', 0)|list|length }}</span>
+                <span class="summary-label">Inaktiva</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-number">{{ qr_codes|sum(attribute='total_scans') }}</span>
+                <span class="summary-label">Totala scanningar</span>
+            </div>
+        </div>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>QR-ID</th>
+                    <th>Ägare</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Scanningar</th>
+                    <th>Senast aktiv</th>
+                    <th>Skapad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for qr in qr_codes %}
+                <tr>
+                    <td><code>{{ qr.qr_id }}</code></td>
+                    <td>{{ qr.name or 'Ej tilldelad' }}</td>
+                    <td>{{ qr.email or '-' }}</td>
+                    <td>
+                        {% if qr.is_active %}
+                            <span class="badge active">Aktiv</span>
+                        {% else %}
+                            <span class="badge inactive">Inaktiv</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ qr.total_scans or 0 }}</td>
+                    <td>
+                        {% if qr.last_login %}
+                            {% if qr.last_login is string %}
+                                {{ qr.last_login[:10] }}
+                            {% else %}
+                                {{ qr.last_login.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if qr.created_at %}
+                            {% if qr.created_at is string %}
+                                {{ qr.created_at[:10] }}
+                            {% else %}
+                                {{ qr.created_at.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="back-link">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-secondary">← Tillbaka</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-qr-list {
+    padding: 40px 0;
+}
+
+.stats-summary {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.summary-item {
+    text-align: center;
+}
+
+.summary-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #10b981;
+}
+
+.summary-number.inactive {
+    color: #9ca3af;
+}
+
+.summary-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+.admin-table tr:hover {
+    background: #f9fafb;
+}
+
+.admin-table code {
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge.active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge.inactive {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.back-link {
+    margin-top: 30px;
+}
+</style>
+{% endblock %}

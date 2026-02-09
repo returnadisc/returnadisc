@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Hittat en disc? - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="found-manual-page">
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="icon">🥏</div>
+                <h1>Hittat en disc?</h1>
+                <p class="subtitle">Skriv in koden som står på discen</p>
+            </div>
+            
+            <div class="code-example">
+                <p>Exempel på hur det kan se ut:</p>
+                <div class="example-box">
+                    <span class="example-text">A7B9X</span>
+                </div>
+                <p class="hint">(5-6 tecken med bokstäver och siffror)</p>
+            </div>
+            
+            <form method="post" class="manual-form">
+                <div class="form-group">
+                    <label for="qr_id">Discens kod</label>
+                    <input type="text" 
+                           id="qr_id" 
+                           name="qr_id" 
+                           required 
+                           maxlength="6"
+                           placeholder="t.ex. A7B9X"
+                           autocomplete="off"
+                           style="text-transform: uppercase;">
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full">
+                    Fortsätt →
+                </button>
+            </form>
+            
+            <div class="help-section">
+                <h3>🤔 Var hittar jag koden?</h3>
+                <ul>
+                    <li>Står ofta på en liten QR-sticker på discen</li>
+                    <li>Kan vara skrivet med permanent tusch</li>
+                    <li>Är vanligtvis 5-6 tecken (t.ex. "A7B9X")</li>
+                </ul>
+            </div>
+            
+            <div class="back-link">
+                <a href="{{ url_for('auth.index') }}" class="btn-text">← Tillbaka till startsidan</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.found-manual-page {
+    padding: 40px 0;
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+}
+
+.card {
+    max-width: 450px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.header {
+    margin-bottom: 30px;
+}
+
+.icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+}
+
+.header h1 {
+    margin-bottom: 10px;
+    font-size: 1.8rem;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+.code-example {
+    background: #f9fafb;
+    padding: 25px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+}
+
+.code-example p {
+    color: #6b7280;
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+.example-box {
+    background: white;
+    border: 2px solid #2563eb;
+    padding: 20px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.example-text {
+    font-family: monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2563eb;
+    letter-spacing: 4px;
+}
+
+.hint {
+    font-size: 0.85rem !important;
+    color: #9ca3af !important;
+}
+
+.manual-form {
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1.5rem;
+    text-align: center;
+    letter-spacing: 4px;
+    font-weight: 600;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.help-section {
+    background: #fef3c7;
+    padding: 25px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    text-align: left;
+}
+
+.help-section h3 {
+    color: #92400e;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.help-section ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #78350f;
+}
+
+.help-section li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.back-link {
+    margin-top: 20px;
+}
+
+.btn-text {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.btn-text:hover {
+    color: #2563eb;
+}
+</style>
+{% endblock %}

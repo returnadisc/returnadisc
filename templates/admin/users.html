@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Användare - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-users-page">
+    <div class="container">
+        <h1>👤 Alla användare</h1>
+        
+        <div class="stats-summary">
+            <div class="summary-item">
+                <span class="summary-number">{{ users|length }}</span>
+                <span class="summary-label">Totalt</span>
+            </div>
+        </div>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Namn</th>
+                    <th>Email</th>
+                    <th>Medlem sedan</th>
+                    <th>Saknade discar</th>
+                    <th>Hittade</th>
+                    <th>Återlämningar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.created_at %}
+                            {% if user.created_at is string %}
+                                {{ user.created_at[:10] }}
+                            {% else %}
+                                {{ user.created_at.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ user.missing_count or 0 }}</td>
+                    <td>{{ user.found_count or 0 }}</td>
+                    <td>{{ user.handovers_count or 0 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="back-link">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-secondary">← Tillbaka</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-users-page {
+    padding: 40px 0;
+}
+
+.stats-summary {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f9fafb;
+    border-radius: 12px;
+}
+
+.summary-item {
+    text-align: center;
+}
+
+.summary-number {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.summary-label {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+.admin-table tr:hover {
+    background: #f9fafb;
+}
+
+.back-link {
+    margin-top: 30px;
+}
+</style>
+{% endblock %}

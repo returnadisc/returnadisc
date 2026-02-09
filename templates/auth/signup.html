@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Skapa konto - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="container">
+        <div class="card auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">🎯</div>
+                <h1>Bli medlem</h1>
+                <p class="subtitle">En QR-kod. Alla dina discar. Gratis.</p>
+            </div>
+            
+            <form method="post" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Ditt namn</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Förnamn Efternamn" autocomplete="name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="din@email.se" autocomplete="email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Lösenord</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Minst 6 tecken" minlength="6" autocomplete="new-password">
+                    <small class="help-text">Minst 6 tecken</small>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full">
+                    Skapa konto gratis
+                </button>
+            </form>
+            
+            <div class="benefits-preview">
+                <p>✅ En QR-kod på alla discar</p>
+                <p>✅ Anonym återlämning</p>
+                <p>✅ Hjältepoäng</p>
+            </div>
+            
+            <div class="auth-links">
+                <span>Har du redan konto?</span>
+                <a href="{{ url_for('auth.login') }}">Logga in</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-page {
+    padding: 40px 0;
+}
+
+.auth-card {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.auth-header h1 {
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #6b7280;
+}
+
+.auth-form {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.help-text {
+    display: block;
+    margin-top: 6px;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.benefits-preview {
+    background: #f0fdf4;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.benefits-preview p {
+    margin: 8px 0;
+    color: #166534;
+    font-size: 0.95rem;
+}
+
+.auth-links {
+    text-align: center;
+}
+
+.auth-links span {
+    color: #6b7280;
+}
+
+.auth-links a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 5px;
+}
+</style>
+{% endblock %}

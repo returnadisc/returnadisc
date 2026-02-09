@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Göm discen - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="hide-page">
+    <div class="container">
+        <div class="hide-card">
+            <div class="hide-header">
+                <div class="hide-icon">📍</div>
+                <h1>Jag gömmer discen</h1>
+                <p>Bild + position skickas anonymt till ägaren</p>
+            </div>
+            
+            <form method="post" enctype="multipart/form-data" class="hide-form">
+                <!-- NYTT: Snygg kamera-knapp istället för "välj fil" -->
+                <div class="form-group">
+                    <label>📷 Ta en bild (valfritt men hjälpsamt)</label>
+                    <div class="camera-upload">
+                        <input type="file" id="photo" name="photo" accept="image/*" capture="environment" class="hidden-input">
+                        <label for="photo" class="camera-button">
+                            <span class="camera-icon">📸</span>
+                            <span class="camera-text">Öppna kameran</span>
+                            <span class="camera-hint">Tryck för att fota discen och gömstället</span>
+                        </label>
+                        <div id="preview-container" class="preview-container" style="display: none;">
+                            <img id="image-preview" alt="Förhandsvisning">
+                            <button type="button" class="btn-retake" onclick="retakePhoto()">📷 Ta ny bild</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="note">📝 Meddelande (valfritt)</label>
+                    <textarea id="note" name="note" rows="3" placeholder="T.ex. 'Gömd bakom stora grå stenen vid hål 7'"></textarea>
+                    <small class="help-text">Beskriv tydligt var du gömde discen så ägaren hittar den lätt</small>
+                </div>
+                
+                <input type="hidden" name="latitude" id="latitude">
+                <input type="hidden" name="longitude" id="longitude">
+                
+                <div class="location-status" id="locationStatus">
+                    <span class="status-icon">📡</span>
+                    <span class="status-text">Hämtar din position...</span>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-large btn-full" id="submitBtn">
+                    ✉️ Skicka till ägaren
+                </button>
+                
+                <a href="{{ url_for('found.found_qr', qr_id=qr_id) }}" class="btn-text">← Tillbaka</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Hämta position
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            document.getElementById('latitude').value = position.coords.latitude;
+            document.getElementById('longitude').value = position.coords.longitude;
+            document.getElementById('locationStatus').innerHTML = 
+                '<span class="status-icon">✅</span><span class="status-text success">Position hittad!</span>';
+        },
+        function() {
+            document.getElementById('locationStatus').innerHTML = 
+                '<span class="status-icon">⚠️</span><span class="status-text warning">Kunde inte hämta position - skicka ändå eller aktivera GPS</span>';
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+} else {
+    document.getElementById('locationStatus').innerHTML = 
+        '<span class="status-icon">⚠️</span><span class="status-text warning">Din enhet stödjer inte GPS</span>';
+}
+
+// Förhandsvisning av bild
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('image-preview').src = e.target.result;
+            document.querySelector('.camera-button').style.display = 'none';
+            document.getElementById('preview-container').style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+function retakePhoto() {
+    document.getElementById('photo').value = '';
+    document.querySelector('.camera-button').style.display = 'flex';
+    document.getElementById('preview-container').style.display = 'none';
+}
+</script>
+
+<style>
+.hide-page {
+    padding: 40px 20px;
+    background: #f3f4f6;
+    min-height: 100vh;
+}
+
+.hide-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.hide-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.hide-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.hide-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: #1f2937;
+}
+
+.hide-header p {
+    color: #6b7280;
+    margin: 0;
+}
+
+.hide-form .form-group {
+    margin-bottom: 25px;
+}
+
+.hide-form label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* NYTT: Snygg kamera-knapp */
+.camera-upload {
+    position: relative;
+}
+
+.hidden-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.camera-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 3px dashed #3b82f6;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.camera-button:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    border-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+.camera-icon {
+    font-size: 3rem;
+}
+
+.camera-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.camera-hint {
+    font-size: 0.9rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.preview-container {
+    text-align: center;
+}
+
+.preview-container img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-retake {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.btn-retake:hover {
+    background: #4b5563;
+}
+
+.hide-form textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    resize: vertical;
+    min-height: 100px;
+}
+
+.hide-form textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.help-text {
+    display: block;
+    margin-top: 8px;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.location-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.status-icon {
+    font-size: 1.2rem;
+}
+
+.status-text {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.status-text.success {
+    color: #059669;
+    font-weight: 600;
+}
+
+.status-text.warning {
+    color: #d97706;
+}
+
+.hide-form button[type="submit"] {
+    margin-top: 10px;
+}
+
+.btn-text {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #6b7280;
+    text-decoration: none;
+}
+
+.btn-text:hover {
+    color: #2563eb;
+}
+</style>
+{% endblock %}

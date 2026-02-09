@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}QR-kod ej aktiverad - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="not-active-page">
+    <div class="container">
+        <div class="card text-center">
+            <div class="status-icon">⚪</div>
+            <h1>Denna QR-kod är inte aktiverad</h1>
+            <p class="subtitle">Koden <code>{{ qr_id }}</code> väntar på sin ägare</p>
+            
+            {% if current_user %}
+                <!-- Inloggad användare -->
+                <div class="action-box">
+                    <div class="action-icon">🎯</div>
+                    <h2>Är detta din kod?</h2>
+                    <p>Aktivera den nu för att börja använda den på dina discar.</p>
+                    <form method="post" action="{{ url_for('found.found_qr', qr_id=qr_id) }}" style="display: inline;">
+                        <button type="submit" class="btn-primary btn-large">
+                            Aktivera denna kod
+                        </button>
+                    </form>
+                </div>
+            {% else %}
+                <!-- Inte inloggad -->
+                <div class="action-box">
+                    <div class="action-icon">👋</div>
+                    <h2>Är detta din kod?</h2>
+                    <p>Skapa ett konto för att aktivera din QR-kod.</p>
+                    <a href="{{ url_for('auth.signup') }}" class="btn-primary btn-large">
+                        Skapa konto
+                    </a>
+                </div>
+                
+                <div class="alternative">
+                    <p>Har du redan konto?</p>
+                    <a href="{{ url_for('auth.login') }}" class="btn-secondary">
+                        Logga in först
+                    </a>
+                </div>
+            {% endif %}
+            
+            <div class="info-section">
+                <h3>🥏 Vad är ReturnaDisc?</h3>
+                <p>En QR-kod på alla dina discar. Anonym återlämning med bild och position. 
+                Ingen kontakt, inget krångel.</p>
+                <a href="{{ url_for('auth.how_it_works') }}">Läs mer →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.not-active-page {
+    padding: 40px 0;
+}
+
+.status-icon {
+    font-size: 5rem;
+    margin-bottom: 20px;
+}
+
+.subtitle {
+    color: #6b7280;
+    margin-bottom: 30px;
+}
+
+.subtitle code {
+    background: #f3f4f6;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 1.4rem;
+    color: #2563eb;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.action-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 20px;
+    margin-bottom: 25px;
+}
+
+.action-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.action-box h2 {
+    margin-bottom: 10px;
+}
+
+.action-box p {
+    margin-bottom: 25px;
+    opacity: 0.9;
+}
+
+.alternative {
+    margin-bottom: 40px;
+}
+
+.alternative p {
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.info-section {
+    padding-top: 30px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.info-section h3 {
+    margin-bottom: 10px;
+}
+
+.info-section p {
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.info-section a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+}
+</style>
+{% endblock %}
