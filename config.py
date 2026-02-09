@@ -34,7 +34,8 @@ class Config:
     
     # URL:er
     # BASE_URL = för appen (localhost vid utveckling)
-    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+    # BASE_URL = os.environ.get('BASE_URL', 'https://localhost:5000')
+    BASE_URL = os.environ.get('BASE_URL', 'https://returnadisc.se')
     
     # PUBLIC_URL = för bilder i mail (måste vara ngrok så de syns utifrån)
     PUBLIC_URL = os.environ.get('PUBLIC_URL', BASE_URL)
