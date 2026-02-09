@@ -8,11 +8,7 @@ from flask_limiter.util import get_remote_address
 
 from config import config
 from database import db
-<<<<<<< HEAD
 from blueprints import auth_bp, disc_bp, found_bp, admin_bp, missing_bp
-=======
-from blueprints import auth_bp, disc_bp, found_bp, admin_bp
->>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
 
 # Setup logging
 logging.basicConfig(
@@ -26,68 +22,65 @@ def create_app(config_name=None):
     """Application factory."""
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
-    
+
     app = Flask(__name__)
     app.config.from_object(config[config_name])
-    
+
     # Säkerhet: Rate limiting
     limiter = Limiter(
         app=app,
         key_func=get_remote_address,
         default_limits=["200 per day", "50 per hour"]
     )
-    
+
     # Säkerhet: Stricter limits for auth endpoints
     limiter.limit("5 per minute")(auth_bp)
-    
+
     # Initiera databas
     db.init_tables()
-    
+
     # Skapa folders om de inte finns
-    for folder in [app.config['UPLOAD_FOLDER'], 
-                   app.config['QR_FOLDER'],
-                   app.config['PDF_FOLDER']]:
+    for folder in [
+        app.config['UPLOAD_FOLDER'],
+        app.config['QR_FOLDER'],
+        app.config['PDF_FOLDER']
+    ]:
         os.makedirs(folder, exist_ok=True)
-    
+
     # Registrera blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(disc_bp)
     app.register_blueprint(found_bp)
     app.register_blueprint(admin_bp)
-<<<<<<< HEAD
     app.register_blueprint(missing_bp)
-=======
->>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
-    
+
     # Global error handlers
     @app.errorhandler(404)
     def not_found(error):
         return "Sidan finns inte", 404
-    
+
     @app.errorhandler(500)
     def internal_error(error):
         logger.error(f"Server error: {error}")
         return "Ett fel uppstod", 500
-    
-    # Context processor för templates - MÅSTE vara INUTI create_app
+
+    # Context processor
     @app.context_processor
     def inject_globals():
         from flask import session
         return {
             'current_user': db.get_user_by_id(session.get('user_id')),
-            'base_url': app.config.get('BASE_URL', request.host_url.rstrip('/'))
+            'base_url': app.config.get(
+                'BASE_URL',
+                request.host_url.rstrip('/')
+            )
         }
-    
-    return app
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    return app
+
 
 # Skapa app-instans
 app = create_app()
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
