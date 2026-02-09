@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}QR-koder - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-qr-list">
+    <div class="container">
+        <h1>📋 Alla QR-koder</h1>
+        
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>QR-ID</th>
+                    <th>Ägare</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Skapad</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for qr in qr_codes %}
+                <tr>
+                    <td><code>{{ qr.qr_id }}</code></td>
+                    <td>{{ qr.name or 'Ej tilldelad' }}</td>
+                    <td>{{ qr.email or '-' }}</td>
+                    <td>
+                        {% if qr.is_active %}
+                            <span class="badge active">Aktiv</span>
+                        {% else %}
+                            <span class="badge inactive">Inaktiv</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ qr.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+.admin-qr-list {
+    padding: 40px 0;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th {
+    background: #f9fafb;
+    font-weight: 600;
+}
+
+.admin-table code {
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.badge.active {
+    background: #10b981;
+    color: white;
+}
+
+.badge.inactive {
+    background: #9ca3af;
+    color: white;
+}
+</style>
+{% endblock %}

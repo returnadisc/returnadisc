@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">{{ stats.users }}</div>
+                <div class="stat-label">Användare</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🏷️</div>
+                <div class="stat-value">{{ stats.active_qrs }}</div>
+                <div class="stat-label">Aktiva QR-koder</div>
+            </div>
+            
+            <div class="stat-card">
+<<<<<<< HEAD
+                <div class="stat-icon">📷</div>
+                <div class="stat-value">{{ stats.total_scans }}</div>
+                <div class="stat-label">QR-scanningar</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">📧</div>
+                <div class="stat-value">{{ stats.handovers }}</div>
+                <div class="stat-label">Mail skickade</div>
+=======
+                <div class="stat-icon">🥏</div>
+                <div class="stat-value">{{ stats.handovers }}</div>
+                <div class="stat-label">Hittade discar</div>
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+            </div>
+        </div>
+        
+        <div class="admin-section">
+            <h2>Admin-verktyg</h2>
+            
+            <div class="tool-grid">
+                <a href="{{ url_for('admin.create_qr') }}" class="tool-card">
+                    <div class="tool-icon">🏷️</div>
+                    <h3>Generera QR-koder</h3>
+                    <p>Skapa nya QR-koder för test</p>
+                </a>
+<<<<<<< HEAD
+                
+                <a href="{{ url_for('admin.list_qr_codes') }}" class="tool-card">
+                    <div class="tool-icon">📋</div>
+                    <h3>Lista QR-koder</h3>
+                    <p>Se alla QR-koder och ägare</p>
+                </a>
+=======
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+            </div>
+        </div>
+        
+        <div class="danger-zone">
+            <h3>⚠️ Farozon</h3>
+            <form method="post" action="{{ url_for('admin.reset_db') }}" 
+                  onsubmit="return confirm('ÄR DU SÄKER? Skriv DELETE EVERYTHING för att bekräfta.');">
+                <input type="text" name="confirm" placeholder="Skriv DELETE EVERYTHING" 
+                       style="width: 100%; margin-bottom: 12px; padding: 12px;">
+                <button type="submit" class="btn-danger btn-full">
+                    Nollställ databasen
+                </button>
+            </form>
+        </div>
+        
+        <div class="admin-footer">
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary">← Till användarvy</a>
+            <a href="{{ url_for('admin.logout') }}" class="btn-text">Logga ut</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-page {
+    padding: 20px 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.stat-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+<<<<<<< HEAD
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+=======
+    box-shadow: var(--shadow);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+<<<<<<< HEAD
+    color: #2563eb;
+}
+
+.stat-label {
+    color: #6b7280;
+=======
+    color: var(--primary);
+}
+
+.stat-label {
+    color: var(--text-light);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    font-size: 0.9rem;
+}
+
+.admin-section {
+    margin: 40px 0;
+}
+
+.admin-section h2 {
+    margin-bottom: 20px;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.tool-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    text-decoration: none;
+    color: inherit;
+<<<<<<< HEAD
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+=======
+    box-shadow: var(--shadow);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    transition: transform 0.2s;
+}
+
+.tool-card:hover {
+    transform: translateY(-4px);
+}
+
+.tool-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.tool-card h3 {
+    margin-bottom: 10px;
+}
+
+.tool-card p {
+<<<<<<< HEAD
+    color: #6b7280;
+=======
+    color: var(--text-light);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    margin: 0;
+}
+
+.danger-zone {
+    margin: 40px 0;
+    padding: 25px;
+    background: #fee2e2;
+    border-radius: 16px;
+    border: 2px solid #ef4444;
+}
+
+.danger-zone h3 {
+    color: #991b1b;
+    margin-bottom: 15px;
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: white;
+    padding: 14px 24px;
+    border: none;
+<<<<<<< HEAD
+    border-radius: 8px;
+=======
+    border-radius: var(--radius-sm);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.admin-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding-top: 20px;
+<<<<<<< HEAD
+    border-top: 1px solid #e5e7eb;
+}
+
+.btn-text {
+    color: #6b7280;
+=======
+    border-top: 1px solid var(--border);
+}
+
+.btn-text {
+    color: var(--text-light);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    text-decoration: none;
+}
+
+.btn-text:hover {
+<<<<<<< HEAD
+    color: #2563eb;
+=======
+    color: var(--primary);
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+}
+</style>
+{% endblock %}

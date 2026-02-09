@@ -1,0 +1,1023 @@
+{% extends "base.html" %}
+
+{% block title %}ReturnaDisc - Anonym återlämning av discar{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="container">
+<<<<<<< HEAD
+        <div class="hero-content">
+            <h1>Få tillbaka dina förlorade discar</h1>
+            <p class="lead">En QR-kod på alla dina discar. Anonym återlämning utan krångel.</p>
+            
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">📷</div>
+                    <div class="stat-label">Bild + position</div>
+                </div>
+                <div class="stat-arrow">→</div>
+                <div class="stat-item">
+                    <div class="stat-icon">📧</div>
+                    <div class="stat-label">Mail direkt</div>
+                </div>
+                <div class="stat-arrow">→</div>
+                <div class="stat-item">
+                    <div class="stat-icon">🎉</div>
+                    <div class="stat-label">Klart!</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="auth-box">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showTab('login')">Logga in</button>
+                <button class="auth-tab" onclick="showTab('signup')">Skapa konto</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-tab" class="auth-form-container">
+                <form method="post" action="{{ url_for('auth.login') }}" class="auth-form">
+                    <div class="form-group">
+                        <input type="email" name="email" required placeholder="Email" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="password" required placeholder="Lösenord" autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-primary btn-large btn-full">
+                        Logga in
+                    </button>
+                </form>
+                <div class="auth-links">
+                    <a href="{{ url_for('auth.forgot_password') }}">Glömt lösenord?</a>
+                </div>
+            </div>
+            
+            <!-- Signup Form -->
+            <div id="signup-tab" class="auth-form-container" style="display: none;">
+                <form method="post" action="{{ url_for('auth.signup') }}" class="auth-form">
+                    <div class="form-group">
+                        <input type="text" name="name" required placeholder="Ditt namn" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" required placeholder="Email" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="password" required placeholder="Lösenord (minst 6 tecken)" minlength="6" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn-primary btn-large btn-full">
+                        Skapa konto gratis
+                    </button>
+                </form>
+            </div>
+=======
+        <h1>Slipp ge bort din disc för alltid</h1>
+        <p class="lead">En QR-kod. Alla dina discar. Anonym återlämning utan krångel.</p>
+        
+        <div class="hero-stats">
+            <div class="stat">
+                <span class="stat-number">📷</span>
+                <span class="stat-label">Bild + position</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">📧</span>
+                <span class="stat-label">Mail direkt</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number">🎉</span>
+                <span class="stat-label">Klart!</span>
+            </div>
+        </div>
+        
+        <div class="cta-buttons">
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary btn-large">Skapa konto gratis</a>
+            <a href="{{ url_for('auth.how_it_works') }}" class="btn-secondary btn-large">Så funkar det</a>
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+        </div>
+    </div>
+</div>
+
+<<<<<<< HEAD
+<!-- NYTT: Community-karta preview -->
+<div class="community-preview">
+    <div class="container">
+        <div class="preview-header">
+            <span class="preview-badge">NYHET!</span>
+            <h2>🗺️ Community-kartan - Hjälp varandra hitta discar</h2>
+            <p class="preview-lead">Se var discar har tappats och hjälp andra spelare - även utan QR-koder!</p>
+        </div>
+        
+        <div class="preview-content">
+            <div class="preview-map-visual">
+                <div class="map-illustration">
+                    <div class="map-pin pin-1">🥏</div>
+                    <div class="map-pin pin-2">🥏</div>
+                    <div class="map-pin pin-3">🥏</div>
+                    <div class="map-pin pin-4">🎯</div>
+                    <div class="map-legend">
+                        <span class="legend-item"><span class="dot blue"></span> Din position</span>
+                        <span class="legend-item"><span class="dot red"></span> Saknade discar</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="preview-features">
+                <div class="feature-item">
+                    <div class="feature-icon">📍</div>
+                    <h3>Markera exakt var du tappade</h3>
+                    <p>Andra kan se och hjälpa till att leta</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Hitta andras saknade discar</h3>
+                    <p>Var en hjälte och återlämna anonymt</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🏆</div>
+                    <h3>Samla hjältepoäng</h3>
+                    <p>Få erkännande i communityn</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-cta">
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary btn-large">Skapa konto och se kartan</a>
+            <p class="preview-note">Endast för medlemmar - gratis att registrera sig!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Fördelar -->
+<div class="benefits-bar">
+    <div class="container">
+        <div class="benefits-grid">
+            <div class="benefit-item">
+                <span class="benefit-icon">🏷️</span>
+                <span class="benefit-text">En QR-kod på <strong>alla</strong> dina discar</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🥷</span>
+                <span class="benefit-text"><strong>Anonym</strong> återlämning</span>
+            </div>
+            <div class="benefit-item">
+                <span class="benefit-icon">🗺️</span>
+                <span class="benefit-text"><strong>Community-karta</strong> ingår</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- NYTT: Gratis vs Premium -->
+<div class="pricing-preview">
+    <div class="container">
+        <h2>Välj din nivå</h2>
+        <p class="pricing-intro">Just nu under uppstarten får <strong>alla</strong> Premium-funktioner gratis!</p>
+        
+        <div class="pricing-cards">
+            <div class="pricing-card free">
+                <div class="pricing-header">
+                    <h3>Gratis</h3>
+                    <div class="price">0 kr</div>
+                </div>
+                <ul class="pricing-features">
+                    <li>✅ QR-kod på alla dina discar</li>
+                    <li>✅ Anonym återlämning</li>
+                    <li>✅ <strong>Registrera</strong> saknade discar på kartan</li>
+                    <li>❌ Se andras saknade discar</li>
+                </ul>
+                <button class="btn-secondary btn-full" onclick="showTab('signup')">Välj Gratis</button>
+            </div>
+            
+            <div class="pricing-card premium highlighted">
+                <div class="pilot-badge">🚀 PILOT-ERBJUDANDE</div>
+                <div class="pricing-header">
+                    <h3>Premium</h3>
+                    <div class="price">
+                        <span class="old-price">49 kr/år</span>
+                        <span class="current-price">GRATIS</span>
+                    </div>
+                    <p class="price-note">Under piloten - sedan 49 kr/år</p>
+                </div>
+                <ul class="pricing-features">
+                    <li>✅ Allt i Gratis</li>
+                    <li>✅ <strong>Se hela community-kartan</strong></li>
+                    <li>✅ Hitta och återlämna andras discar</li>
+                    <li>✅ Hjältepoäng och topplista</li>
+                    <li>✅ Obegränsade rapporter</li>
+                    <li>✅ Prioriterad support</li>
+                </ul>
+                <button class="btn-primary btn-full" onclick="showTab('signup')">Välj Premium (Gratis nu)</button>
+            </div>
+        </div>
+        
+        <div class="pilot-info">
+            <div class="info-icon">ℹ️</div>
+            <p><strong>Vad är piloten?</strong> Vi testar tjänsten med hjälp av er discgolfare. 
+            Som tack för att du är med från start får du Premium gratis första året. 
+            Efter piloten kan du välja att fortsätta med Premium eller behålla Gratis-nivån.</p>
+        </div>
+    </div>
+</div>
+
+<div class="how-it-works">
+    <div class="container">
+        <h2>Så enkelt är det</h2>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Sätt QR på dina discar</h3>
+                <p>Samma QR-kod på alla dina discar</p>
+            </div>
+            
+            <div class="step highlighted">
+                <div class="step-number">2</div>
+                <h3>Någon hittar den</h3>
+                <p>Scannar QR → Tar bild → Skickar position</p>
+                <p class="step-note">Ingen kontakt. Inget planerande.</p>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Du får mail</h3>
+                <p>Bild + exakt position. Hämta när det passar.</p>
+=======
+<div class="how-it-works-simple">
+    <div class="container">
+        <h2>Så enkelt är det</h2>
+        
+        <div class="steps-simple">
+            <div class="step-simple">
+                <div class="step-icon">1️⃣</div>
+                <h3>Sätt QR på dina discar</h3>
+                <p>Samma QR-kod på alla dina discar. Sätt den där den syns.</p>
+            </div>
+            
+            <div class="step-arrow">→</div>
+            
+            <div class="step-simple highlight">
+                <div class="step-icon">2️⃣</div>
+                <h3>Någon hittar den</h3>
+                <p>Scannar QR → Tar bild → Skickar position → <strong>Klart!</strong></p>
+                <p class="step-note">Ingen kontakt. Inget planerande. Anonymt.</p>
+            </div>
+            
+            <div class="step-arrow">→</div>
+            
+            <div class="step-simple">
+                <div class="step-icon">3️⃣</div>
+                <h3>Du får mail</h3>
+                <p>Bild + exakt position. Hämta när det passar dig.</p>
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+            </div>
+        </div>
+    </div>
+</div>
+
+<<<<<<< HEAD
+<script>
+function showTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Hitta rätt knapp att aktivera
+    const buttons = document.querySelectorAll('.auth-tab');
+    if (tab === 'login') buttons[0].classList.add('active');
+    if (tab === 'signup') buttons[1].classList.add('active');
+    
+    document.getElementById('login-tab').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('signup-tab').style.display = tab === 'signup' ? 'block' : 'none';
+    
+    // Scrolla upp till formuläret om man klickade längre ner
+    if (window.scrollY > 500) {
+        document.querySelector('.auth-box').scrollIntoView({ behavior: 'smooth' });
+    }
+}
+</script>
+
+<style>
+/* Hero - oförändrad */
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 0;
+}
+
+.hero .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    max-width: 1000px;
+}
+
+.hero-content {
+    text-align: center;
+    max-width: 600px;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.lead {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+}
+
+.hero-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 100px;
+}
+
+.stat-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    line-height: 1;
+=======
+<div class="benefits">
+    <div class="container">
+        <h2>Varför ReturnaDisc?</h2>
+        
+        <div class="benefit-grid">
+            <div class="benefit">
+                <div class="benefit-icon">🕵️</div>
+                <h3>100% anonymt</h3>
+                <p>Varken du eller upphittaren behöver dela kontaktuppgifter.</p>
+            </div>
+            
+            <div class="benefit">
+                <div class="benefit-icon">⚡</div>
+                <h3>Tidssparande</h3>
+                <p>Inga samtal, inget planerande, ingen postning. Bild + position = klart.</p>
+            </div>
+            
+            <div class="benefit">
+                <div class="benefit-icon">💰</div>
+                <h3>Slipp fraktkostnader</h3>
+                <p>Upphittaren gömmer discen på plats. Du hämtar när du spelar där igen.</p>
+            </div>
+            
+            <div class="benefit">
+                <div class="benefit-icon">🏆</div>
+                <h3>Hjältepoäng</h3>
+                <p>Få poäng för varje disc du hittar. Tävla om att vara största hjälten!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="found-disc-cta">
+    <div class="container">
+        <h2>Har du hittat en disc? 🥏</h2>
+        <p>Skanna QR-koden på discen för att hjälpa ägaren få tillbaka den.</p>
+        <p class="found-note">Det tar 30 sekunder. Du behöver inte lämna några kontaktuppgifter.</p>
+        <a href="#" class="btn-secondary btn-large" onclick="alert('Skanna QR-koden på discen med din kamera!'); return false;">
+            Så här skannar du
+        </a>
+    </div>
+</div>
+
+<style>
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+}
+
+.stat-label {
+    font-size: 1rem;
+<<<<<<< HEAD
+    opacity: 0.9;
+    font-weight: 500;
+}
+
+.stat-arrow {
+    font-size: 1.5rem;
+    opacity: 0.6;
+}
+
+/* Auth Box - oförändrad */
+.auth-box {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    color: #374151;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 10px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.auth-tab:hover {
+    background: #f3f4f6;
+}
+
+.auth-tab.active {
+    background: #2563eb;
+    color: white;
+}
+
+.auth-form .form-group {
+    margin-bottom: 15px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.auth-links a {
+    color: #6b7280;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+/* NYTT: Community Preview */
+.community-preview {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    padding: 60px 0;
+    border-top: 1px solid #bbf7d0;
+    border-bottom: 1px solid #bbf7d0;
+}
+
+.preview-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.preview-badge {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.preview-header h2 {
+    font-size: 2rem;
+    color: #065f46;
+    margin-bottom: 10px;
+}
+
+.preview-lead {
+    color: #047857;
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.preview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: center;
+    max-width: 1000px;
+    margin: 0 auto 40px;
+}
+
+.preview-map-visual {
+    display: flex;
+    justify-content: center;
+}
+
+.map-illustration {
+    width: 350px;
+    height: 250px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-radius: 20px;
+    position: relative;
+    border: 3px solid #93c5fd;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.map-illustration::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    right: 10%;
+    bottom: 20%;
+    background: 
+        linear-gradient(90deg, transparent 48%, #93c5fd 49%, #93c5fd 51%, transparent 52%),
+        linear-gradient(0deg, transparent 48%, #93c5fd 49%, #93c5fd 51%, transparent 52%);
+    background-size: 40px 40px;
+    opacity: 0.3;
+}
+
+.map-pin {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: bounce 2s infinite;
+}
+
+.map-pin.pin-1 { top: 20%; left: 25%; animation-delay: 0s; }
+.map-pin.pin-2 { top: 40%; left: 60%; animation-delay: 0.5s; }
+.map-pin.pin-3 { top: 60%; left: 30%; animation-delay: 1s; }
+.map-pin.pin-4 { top: 35%; left: 40%; animation-delay: 1.5s; font-size: 2rem; }
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.map-legend {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.95);
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 0.85rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot.blue { background: #2563eb; }
+.dot.red { background: #ef4444; }
+
+.preview-features {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.feature-item h3 {
+    color: #065f46;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.feature-item p {
+    color: #047857;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.preview-cta {
+    text-align: center;
+}
+
+.preview-note {
+    color: #047857;
+    margin-top: 15px;
+    font-size: 0.95rem;
+}
+
+/* Benefits bar - uppdaterad */
+.benefits-bar {
+    background: #f9fafb;
+    padding: 30px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.benefits-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 25px;
+    background: white;
+    border-radius: 50px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.benefit-icon {
+    font-size: 1.5rem;
+}
+
+.benefit-text {
+    color: #374151;
+    font-size: 0.95rem;
+}
+
+.benefit-text strong {
+    color: #2563eb;
+}
+
+/* NYTT: Pricing Preview */
+.pricing-preview {
+    padding: 60px 0;
+    background: white;
+}
+
+.pricing-preview h2 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.pricing-intro {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+}
+
+.pricing-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 800px;
+    margin: 0 auto 40px;
+}
+
+.pricing-card {
+    background: #f9fafb;
+    padding: 30px;
+    border-radius: 20px;
+    border: 2px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+}
+
+.pricing-card.premium {
+    border-color: #2563eb;
+    position: relative;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.pricing-card.highlighted {
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+}
+
+.pilot-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.pricing-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.pricing-header h3 {
+    color: #374151;
+    margin-bottom: 15px;
+}
+
+.price {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #374151;
+    line-height: 1;
+}
+
+.old-price {
+    font-size: 1.5rem;
+    color: #9ca3af;
+    text-decoration: line-through;
+    margin-right: 10px;
+}
+
+.current-price {
+    color: #10b981;
+}
+
+.price-note {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 25px 0;
+    flex: 1;
+}
+
+.pricing-features li {
+    padding: 10px 0;
+    color: #4b5563;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pricing-features li:last-child {
+    border-bottom: none;
+}
+
+.pricing-features li strong {
+    color: #2563eb;
+}
+
+.pilot-info {
+    max-width: 700px;
+    margin: 0 auto;
+    background: #fef3c7;
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.info-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.pilot-info p {
+    color: #92400e;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Steps - oförändrad */
+.how-it-works {
+    padding: 60px 0;
+    background: #f9fafb;
+}
+
+.how-it-works h2 {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.steps {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.step {
+=======
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.steps-simple {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+
+.step-simple {
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 280px;
+    text-align: center;
+}
+
+<<<<<<< HEAD
+.step.highlighted {
+=======
+.step-simple.highlight {
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: scale(1.05);
+}
+
+<<<<<<< HEAD
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto 15px;
+}
+
+.step.highlighted .step-number {
+    background: white;
+    color: #667eea;
+}
+
+.step h3 {
+    margin-bottom: 10px;
+=======
+.step-simple.highlight p {
+    color: rgba(255,255,255,0.9);
+}
+
+.step-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+}
+
+.step-note {
+    font-size: 0.9rem;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+<<<<<<< HEAD
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-stats {
+        gap: 15px;
+    }
+    
+    .stat-arrow {
+        display: none;
+    }
+    
+    .preview-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .map-illustration {
+        width: 100%;
+        max-width: 300px;
+        height: 200px;
+    }
+    
+    .pricing-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .pricing-card.highlighted {
+        transform: none;
+    }
+    
+    .benefits-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .benefit-item {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .steps {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .step.highlighted {
+=======
+.step-arrow {
+    font-size: 2rem;
+    color: #9ca3af;
+}
+
+.benefit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.benefit {
+    text-align: center;
+    padding: 30px;
+}
+
+.benefit-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.found-disc-cta {
+    background: #f3f4f6;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.found-note {
+    color: #6b7280;
+    margin: 15px 0;
+}
+
+@media (max-width: 768px) {
+    .steps-simple {
+        flex-direction: column;
+    }
+    
+    .step-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .step-simple.highlight {
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+        transform: none;
+    }
+}
+</style>
+{% endblock %}

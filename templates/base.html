@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ReturnaDisc{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{ url_for('auth.index') }}" class="logo">🥏 ReturnaDisc</a>
+            
+            <div class="nav-links">
+                {% if current_user %}
+                    <a href="{{ url_for('disc.dashboard') }}">Min sida</a>
+<<<<<<< HEAD
+                    <a href="{{ url_for('missing.community_map') }}">🗺️ Community-karta</a>
+                    <a href="{{ url_for('missing.my_missing_discs') }}">🎯 Mina saknade discar</a>
+                    <a href="{{ url_for('auth.buy_stickers') }}" class="nav-highlight">🛒 Köp stickers</a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn-secondary">Logga ut</a>
+                {% else %}
+                    <a href="{{ url_for('auth.how_it_works') }}">Så funkar det</a>
+=======
+                    <a href="{{ url_for('disc.view_qr') }}">Min QR</a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn-secondary">Logga ut</a>
+                {% else %}
+                    <a href="{{ url_for('auth.how_it_works') }}">Så funkar det</a>
+                    <a href="{{ url_for('auth.login') }}">Logga in</a>
+                    <a href="{{ url_for('auth.signup') }}" class="btn-primary">Skapa konto</a>
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+                {% endif %}
+            </div>
+            
+            <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+        </div>
+    </nav>
+    
+    <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            <button onclick="this.parentElement.remove()">×</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 ReturnaDisc. Hjälp discar hitta hem. 🥏</p>
+        </div>
+    </footer>
+    
+    <script>
+        function toggleMenu() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

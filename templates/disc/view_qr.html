@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Min QR-kod - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="view-qr-page">
+    <div class="container">
+        <div class="card">
+            <h1>Din QR-kod</h1>
+            <p class="subtitle">Sätt denna på <strong>alla</strong> dina discar</p>
+            
+            <div class="qr-display">
+                <div class="qr-frame">
+                    <img src="{{ qr_path }}" alt="Din QR-kod" class="qr-image">
+                </div>
+                <p class="qr-id">ID: <code>{{ qr.qr_id }}</code></p>
+            </div>
+            
+            <div class="download-section">
+                <a href="{{ qr_path }}" download="returnadisc-{{ qr.qr_id }}.png" class="btn-secondary">
+                    📥 Ladda ner bild
+                </a>
+            </div>
+            
+            <div class="instructions">
+                <h3>📝 Så sätter du koden</h3>
+                <div class="instruction-steps">
+                    <div class="inst-step">
+                        <span class="inst-num">1</span>
+                        <p>Ladda ner bilden ovan</p>
+                    </div>
+                    <div class="inst-step">
+                        <span class="inst-num">2</span>
+                        <p>Skriv ut på etikettpapper eller vanligt papper</p>
+                    </div>
+                    <div class="inst-step">
+                        <span class="inst-num">3</span>
+                        <p>Sätt på discen med tejp, eller laminera först</p>
+                    </div>
+                    <div class="inst-step">
+                        <span class="inst-num">4</span>
+                        <p>Alternativ: Skriv <code>{{ qr.qr_id }}</code> med permanent tusch</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="placement-guide">
+                <h3>🎯 Var ska koden sitta?</h3>
+                <div class="placement-image">
+                    [Bild: Placering av QR-kod på disc]
+                </div>
+                <ul class="placement-tips">
+                    <li>Syns tydligt för upphittaren</li>
+                    <li>Stör inte ditt grepp</li>
+                    <li>Undvik området där discen slår i marken</li>
+                    <li>Inner circle eller rim är ofta bäst</li>
+                </ul>
+            </div>
+            
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary btn-full">← Tillbaka till min sida</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.view-qr-page {
+    padding: 20px 0;
+}
+
+.qr-display {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.qr-frame {
+    display: inline-block;
+    padding: 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.qr-image {
+    max-width: 280px;
+    border-radius: 12px;
+}
+
+.qr-id {
+    margin-top: 20px;
+    font-size: 1.3rem;
+}
+
+.qr-id code {
+    background: #f3f4f6;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: #2563eb;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+.download-section {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.instructions {
+    background: #f9fafb;
+    padding: 25px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+}
+
+.instructions h3 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.instruction-steps {
+    display: grid;
+    gap: 15px;
+}
+
+.inst-step {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.inst-num {
+    width: 32px;
+    height: 32px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.inst-step p {
+    margin: 0;
+    color: #4b5563;
+}
+
+.placement-guide {
+    margin-bottom: 30px;
+}
+
+.placement-guide h3 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.placement-image {
+    background: #f3f4f6;
+    padding: 60px;
+    border-radius: 16px;
+    text-align: center;
+    color: #9ca3af;
+    border: 2px dashed #d1d5db;
+    margin-bottom: 20px;
+}
+
+.placement-tips {
+    background: #fef3c7;
+    padding: 20px 20px 20px 40px;
+    border-radius: 12px;
+    margin: 0;
+}
+
+.placement-tips li {
+    margin-bottom: 8px;
+    color: #78350f;
+}
+
+.btn-full {
+    width: 100%;
+}
+</style>
+{% endblock %}

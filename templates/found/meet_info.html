@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Mötesförfrågan - ReturnaDisc{% endblock %}
+
+{% block content %}
+<div class="meet-info-page">
+    <div class="container">
+        <div class="card">
+            <div class="warning-icon">⚠️</div>
+            <h1>Varför inte gömma discen istället?</h1>
+            
+            <div class="comparison">
+                <div class="option recommended">
+                    <div class="option-badge">✅ REKOMMENDERAS</div>
+                    <h3>Göm discen</h3>
+                    <ul>
+                        <li>✅ Tar 30 sekunder</li>
+                        <li>✅ Anonymt för båda</li>
+                        <li>✅ Ingen planering</li>
+                        <li>✅ Ingen frakt</li>
+                        <li>✅ Ägaren hämtar när det passar</li>
+                    </ul>
+                    <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="btn-primary">
+                        Jag gömmer istället →
+                    </a>
+                </div>
+                
+                <div class="option not-recommended">
+                    <div class="option-badge">⚠️ MER JOBB</div>
+                    <h3>Mötas upp</h3>
+                    <ul>
+                        <li>❌ Lämna kontaktuppgifter</li>
+                        <li>❌ Planera tid och plats</li>
+                        <li>❌ Vänta på varandra</li>
+                        <li>❌ Kanske åka långt</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="still-want">
+                <p>Du vill fortfarande mötas?</p>
+<<<<<<< HEAD
+                <button onclick="showMeetForm()" class="btn-secondary">
+                    Jag förstår, men vill ändå mötas
+                </button>
+            </div>
+            
+            <!-- Mötesformulär (dolt initialt) -->
+            <div id="meet-form" style="display: none; margin-top: 30px; padding-top: 30px; border-top: 2px solid #e5e7eb;">
+                <h3>Fyll i dina kontaktuppgifter</h3>
+                <form method="post" action="{{ url_for('found.found_meet', qr_id=qr_id) }}">
+                    <div class="form-group">
+                        <label for="finder_email">Email *</label>
+                        <input type="email" id="finder_email" name="finder_email" required
+                               placeholder="din@email.se">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="finder_phone">Telefonnummer</label>
+                        <input type="tel" id="finder_phone" name="finder_phone"
+                               placeholder="07X-XXX XX XX">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note">Meddelande till ägaren</label>
+                        <textarea id="note" name="note" rows="3"
+                                  placeholder="Förslag på tid och plats för möte..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary btn-large btn-full">
+                        Skicka mötesförfrågan
+                    </button>
+                </form>
+=======
+                <a href="#" onclick="alert('Funktionen är avaktiverad. Använd Göm istället!'); return false;" class="btn-secondary">
+                    Jag förstår, men vill ändå mötas
+                </a>
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+            </div>
+        </div>
+    </div>
+</div>
+
+<<<<<<< HEAD
+<script>
+function showMeetForm() {
+    document.getElementById('meet-form').style.display = 'block';
+    document.querySelector('.still-want').style.display = 'none';
+}
+</script>
+
+=======
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+<style>
+.meet-info-page {
+    padding: 20px 0;
+}
+
+.warning-icon {
+    font-size: 4rem;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.comparison {
+    display: grid;
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.option {
+    padding: 25px;
+    border-radius: 16px;
+}
+
+.option.recommended {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.option.not-recommended {
+    background: #f3f4f6;
+    opacity: 0.7;
+}
+
+.option-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.option.recommended .option-badge {
+    background: rgba(255,255,255,0.2);
+}
+
+.option.not-recommended .option-badge {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.option h3 {
+    margin-bottom: 15px;
+}
+
+.option ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.option li {
+    margin-bottom: 10px;
+}
+
+.still-want {
+    text-align: center;
+    padding-top: 20px;
+<<<<<<< HEAD
+=======
+    border-top: 1px solid #e5e7eb;
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+}
+
+.still-want p {
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+<<<<<<< HEAD
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+=======
+>>>>>>> 9429973fcd56ea78bdf3b3958182bb9ff21391be
+</style>
+{% endblock %}
