@@ -2,130 +2,868 @@
 
 {% block title %}Community-karta - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ==================== COMMUNITY MAP PAGE ==================== */
+    .community-map-page {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* HERO SECTION - Samma stil som index.html och dashboard.html */
+    .map-hero {
+        min-height: 100vh;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 100px 20px 40px;
+    }
+
+    .map-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .map-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .map-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1400px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER */
+    .map-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 25px;
+    }
+
+    .map-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .map-header h1 span {
+        color: #fbbf24;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* PREMIUM BADGE */
+    .premium-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #1a1a1a;
+        padding: 10px 24px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        animation: pulseBadge 2s infinite;
+    }
+
+    @keyframes pulseBadge {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+    }
+
+    /* ==================== HÖGST UPP: RAPPORTERA KNAPP ==================== */
+    .report-section-top {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .btn-report-main {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 30px;
+        border: none;
+        border-radius: 16px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-report-main:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+    }
+
+    .btn-report-main.active {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    }
+
+    /* REPORT FORM - visas under knappen */
+    .report-form-expanded {
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 2px solid rgba(22, 101, 52, 0.1);
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .report-form-expanded h3 {
+        color: #166534;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 0.8fr;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 14px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .map-hint {
+        background: #fef3c7;
+        padding: 15px;
+        border-radius: 12px;
+        margin: 20px 0;
+        text-align: center;
+        color: #92400e;
+        font-weight: 500;
+    }
+
+    .map-hint.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .btn-primary {
+        flex: 1;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 16px 24px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary {
+        padding: 16px 24px;
+        background: #f3f4f6;
+        color: #374151;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #e5e7eb;
+    }
+
+    /* ==================== MAIN CONTENT GRID ==================== */
+    .map-content {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 25px;
+        align-items: start;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .sidebar-card {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .sidebar-card h3 {
+        font-size: 1.1rem;
+        color: #166534;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* STATS BAR */
+    .stats-bar {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 16px;
+        margin-bottom: 20px;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #166534;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: rgba(22, 101, 52, 0.2);
+    }
+
+    /* FILTER */
+    .filter-group {
+        margin-bottom: 20px;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.9rem;
+    }
+
+    .filter-group select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 10px;
+        font-size: 1rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .btn-gps {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .btn-gps:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(22, 101, 52, 0.3);
+    }
+
+    /* MY DISCS BUTTON */
+    .btn-my-discs {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #1a1a1a;
+        padding: 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-my-discs:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
+    }
+
+    /* MAP WRAPPER */
+    .map-wrapper {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .map-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn-map-layer {
+        padding: 10px 18px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-map-layer:hover {
+        background: #e5e7eb;
+    }
+
+    .btn-map-layer.active {
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+    }
+
+    #map {
+        height: 600px;
+        border-radius: 16px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        background: #f3f4f6;
+    }
+
+    /* MODALS */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 24px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    }
+
+    .modal-header {
+        padding: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        border-radius: 24px 24px 0 0;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+
+    .modal-close {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: white;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-body {
+        padding: 25px;
+    }
+
+    .disc-info-box {
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+    }
+
+    .course-info {
+        color: #166534;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .description-text {
+        color: #4b5563;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .date-info {
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
+
+    .action-choices {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .choice-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 18px;
+        border-radius: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .choice-card.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        position: relative;
+    }
+
+    .choice-card.secondary {
+        background: white;
+        color: #374151;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+    }
+
+    .choice-card.secondary:hover {
+        border-color: #166534;
+        background: #f0fdf4;
+    }
+
+    .choice-icon {
+        font-size: 1.8rem;
+    }
+
+    .badge-recommended {
+        position: absolute;
+        top: -8px;
+        right: 15px;
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .divider {
+        text-align: center;
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
+
+    .own-disc-actions {
+        text-align: center;
+        padding: 20px;
+        background: #f0fdf4;
+        border-radius: 16px;
+    }
+
+    .own-disc-note {
+        color: #166534;
+        margin-bottom: 15px;
+    }
+
+    /* LEAFLET STYLES */
+    .leaflet-popup-content-wrapper {
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 12px;
+    }
+
+    .disc-popup h3 {
+        color: #166534;
+        margin-bottom: 8px;
+    }
+
+    .report-marker {
+        z-index: 1000 !important;
+    }
+
+    .marker-new {
+        font-size: 28px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+        .map-content {
+            grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+            order: 2;
+        }
+
+        .map-wrapper {
+            order: 1;
+        }
+
+        #map {
+            height: 400px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .map-hero {
+            padding: 80px 15px 30px;
+        }
+
+        .map-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .btn-report-main {
+            font-size: 1.1rem;
+            padding: 18px 20px;
+        }
+
+        .stats-bar {
+            padding: 15px;
+        }
+
+        .stat-number {
+            font-size: 1.6rem;
+        }
+
+        .map-controls {
+            justify-content: center;
+        }
+
+        #map {
+            height: 350px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="community-map-page">
-    <div class="container">
-        <div class="map-header">
-            <div>
-                <h1>🗺️ Community-karta</h1>
+    <section class="map-hero">
+        <div class="map-hero-bg" style="background-image: url('{{ url_for('static', filename='images/community-map-bg.png') }}');" id="mapHeroBg"></div>
+        <div class="map-hero-overlay"></div>
+        
+        <div class="map-container">
+            <!-- HEADER -->
+            <div class="map-header">
+                <div class="premium-badge">🎁 PREMIUM PÅ</div>
+                <h1>Community <span>Kartan</span></h1>
                 <p class="subtitle">Hjälp discar hitta hem - se och rapportera saknade discar</p>
             </div>
-        </div>
-        
-        <!-- Info-ruta om gratis/premium -->
-        <div class="premium-notice">
-            <div class="notice-content">
-                <span class="notice-badge">🎁 PREMIUM PÅ</span>
-                <p>Just nu har alla tillgång till hela community-kartan! 
-                <strong>Vanligtvis är detta en premiumfunktion.</strong></p>
-                <p class="notice-small">Gratis: Rapportera egna saknade discar | Premium: Se och hjälp andras</p>
-            </div>
-        </div>
-        
-        <!-- Filter -->
-        <div class="filter-bar">
-            <div class="filter-group">
-                <label>Visa discar inom:</label>
-                <select id="radiusFilter" onchange="applyFilters()">
-                    <option value="all">Hela Sverige</option>
-                    <option value="1">1 km</option>
-                    <option value="3" selected>3 km</option>
-                    <option value="5">5 km</option>
-                    <option value="10">10 km</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Max ålder:</label>
-                <select id="ageFilter" onchange="applyFilters()">
-                    <option value="1">1 månad</option>
-                    <option value="3">3 månader</option>
-                    <option value="6" selected>6 månader</option>
-                    <option value="12">1 år</option>
-                    <option value="all">Alla</option>
-                </select>
-            </div>
-            <button type="button" class="btn-gps" onclick="centerOnMe()">📍 Hitta mig</button>
-        </div>
-        
-        <!-- Mina saknade discar - snabbknapp -->
-        <div class="my-discs-bar">
-            <a href="{{ url_for('missing.my_missing_discs') }}" class="btn-my-discs">
-                🎯 Mina saknade discar
-            </a>
-        </div>
-        
-        <!-- Rapport-formulär -->
-        <div class="report-section" id="reportSection">
-            <button type="button" class="btn-toggle-report" onclick="toggleReport()">
-                <span id="reportToggleText">+ Jag har tappat en disc</span>
-            </button>
-            
-            <div class="report-form-container" id="reportFormContainer" style="display: none;">
-                <form method="post" action="{{ url_for('missing.report') }}" class="report-form" id="reportForm">
-                    <div class="form-row">
+
+            <!-- ==================== HÖGST UPP: RAPPORTERA KNAPP ==================== -->
+            <div class="report-section-top">
+                <button type="button" class="btn-report-main" id="reportToggleBtn" onclick="toggleReportForm()">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    <span id="reportBtnText">Jag har tappat en disc</span>
+                </button>
+
+                <!-- FORM - visas när man klickar -->
+                <div class="report-form-expanded" id="reportFormContainer" style="display: none;">
+                    <h3>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        Fyll i information om din saknade disc
+                    </h3>
+                    
+                    <form method="post" action="{{ url_for('missing.report') }}" id="reportForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="disc_name">Discens namn *</label>
+                                <input type="text" id="disc_name" name="disc_name" required 
+                                       placeholder="t.ex. Gul Destroyer" maxlength="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="course_name">Bana</label>
+                                <input type="text" id="course_name" name="course_name" 
+                                       placeholder="t.ex. Kärsö Discgolf">
+                            </div>
+                            <div class="form-group">
+                                <label for="hole_number">Hål</label>
+                                <input type="text" id="hole_number" name="hole_number" 
+                                       placeholder="3" maxlength="10">
+                            </div>
+                        </div>
+                        
                         <div class="form-group">
-                            <label for="disc_name">Discens namn *</label>
-                            <input type="text" id="disc_name" name="disc_name" required 
-                                   placeholder="t.ex. Gul Destroyer" maxlength="50">
+                            <label for="description">Beskrivning *</label>
+                            <textarea id="description" name="description" rows="2" required
+                                      placeholder="t.ex. Driver i gult plast, troligen i buskaget till höger om fairway"></textarea>
                         </div>
-                        <div class="form-group">
-                            <label for="course_name">Bana</label>
-                            <input type="text" id="course_name" name="course_name" 
-                                   placeholder="t.ex. Kärsö Discgolf">
+
+                        <div class="map-hint" id="positionHint" style="background: #166534; color: white; font-size: 1.1rem; padding: 18px; font-weight: 600; text-align: center; border-radius: 12px; margin: 20px 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 8px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            👆 KLICKA PÅ KARTAN NEDAN FÖR ATT MARKERA VAR DU TAPPADE DISCEN
                         </div>
-                        <div class="form-group small">
-                            <label for="hole_number">Hål</label>
-                            <input type="text" id="hole_number" name="hole_number" 
-                                   placeholder="3" maxlength="10">
+                        
+                        <input type="hidden" name="latitude" id="latitude" required>
+                        <input type="hidden" name="longitude" id="longitude" required>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="submitBtn" disabled>
+                                Rapportera saknad disc
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="toggleReportForm()">
+                                Avbryt
+                            </button>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description">Beskrivning *</label>
-                        <textarea id="description" name="description" rows="2" required
-                                  placeholder="t.ex. Driver i gult plast, troligen i buskaget till höger om fairway"></textarea>
-                    </div>
-                    
-                    <div class="map-hint">
-                        <span id="positionHint">Klicka på kartan för att markera var du tappade discen</span>
-                    </div>
-                    
-                    <input type="hidden" name="latitude" id="latitude" required>
-                    <input type="hidden" name="longitude" id="longitude" required>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary" id="submitBtn" disabled>
-                            Rapportera saknad disc
+                    </form>
+                </div>
+            </div>
+
+            <!-- STATS BAR -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-number" id="visibleCount">0</div>
+                    <div class="stat-label">Synliga</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalCount">0</div>
+                    <div class="stat-label">Totalt</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-number" id="foundCount">0</div>
+                    <div class="stat-label">Hittade</div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="map-content">
+                <!-- SIDEBAR -->
+                <div class="sidebar">
+                    <!-- Filter Card -->
+                    <div class="sidebar-card">
+                        <h3>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            Filter
+                        </h3>
+                        
+                        <div class="filter-group">
+                            <label>Visa discar inom</label>
+                            <select id="radiusFilter" onchange="applyFilters()">
+                                <option value="all">Hela Sverige</option>
+                                <option value="1">1 km</option>
+                                <option value="3" selected>3 km</option>
+                                <option value="5">5 km</option>
+                                <option value="10">10 km</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Max ålder</label>
+                            <select id="ageFilter" onchange="applyFilters()">
+                                <option value="1">1 månad</option>
+                                <option value="3">3 månader</option>
+                                <option value="6" selected>6 månader</option>
+                                <option value="12">1 år</option>
+                                <option value="all">Alla</option>
+                            </select>
+                        </div>
+                        
+                        <button type="button" class="btn-gps" onclick="centerOnMe()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Hitta mig
                         </button>
-                        <button type="button" class="btn-secondary" onclick="toggleReport()">Avbryt</button>
                     </div>
-                </form>
+                    
+                    <!-- Quick Actions -->
+                    <div class="sidebar-card">
+                        <h3>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            Snabbval
+                        </h3>
+                        
+                        <a href="{{ url_for('missing.my_missing_discs') }}" class="btn-my-discs">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Mina saknade discar
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- MAP -->
+                <div class="map-wrapper">
+                    <div class="map-controls">
+                        <button type="button" class="btn-map-layer active" onclick="setMapLayer('satellite')" id="btnSatellite">
+                            🛰️ Satellit
+                        </button>
+                        <button type="button" class="btn-map-layer" onclick="setMapLayer('terrain')" id="btnTerrain">
+                            🏔️ Terräng
+                        </button>
+                        <button type="button" class="btn-map-layer" onclick="setMapLayer('standard')" id="btnStandard">
+                            🗺️ Standard
+                        </button>
+                    </div>
+                    
+                    <div id="map"></div>
+                </div>
             </div>
         </div>
-        
-        <!-- Kart-lager väljare -->
-        <div class="map-controls">
-            <button type="button" class="btn-map-layer active" onclick="setMapLayer('satellite')" id="btnSatellite">
-                🛰️ Satellit
-            </button>
-            <button type="button" class="btn-map-layer" onclick="setMapLayer('terrain')" id="btnTerrain">
-                🏔️ Terräng
-            </button>
-            <button type="button" class="btn-map-layer" onclick="setMapLayer('standard')" id="btnStandard">
-                🗺️ Standard
-            </button>
-        </div>
-        
-        <!-- Karta -->
-        <div id="map"></div>
-        
-        <div class="back-link">
-            <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary">← Tillbaka</a>
-        </div>
-    </div>
+    </section>
 </div>
 
-<!-- Modal för andras discar - "Jag hittade den" -->
+<!-- MODALS (samma som innan) -->
 <div class="modal" id="discModal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
@@ -141,7 +879,6 @@
             
             <div class="found-section">
                 <h3>🎉 Har du hittat denna disc?</h3>
-                <p>Välj hur du vill återlämna den:</p>
                 
                 <div class="action-choices">
                     <a id="hideLink" href="#" class="choice-card primary">
@@ -174,7 +911,6 @@
     </div>
 </div>
 
-<!-- Modal för egen disc - bara info -->
 <div class="modal" id="ownDiscModal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
@@ -190,13 +926,14 @@
             
             <div class="own-disc-actions">
                 <p class="own-disc-note">💡 Detta är din egen rapporterade disc.</p>
-                <a href="{{ url_for('missing.my_missing_discs') }}" class="btn-primary btn-full">
+                <a href="{{ url_for('missing.my_missing_discs') }}" class="btn-primary">
                     Hantera mina discar →
                 </a>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -209,10 +946,9 @@
     var selectedPosition = null;
     var currentLayer = null;
     var currentUserId = {{ current_user.id if current_user else 'null' }};
-    
     var allDiscs = {{ discs|tojson }};
-    
-    // Olika kart-lager
+
+    // Kart-lager
     var layers = {
         satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
@@ -227,46 +963,68 @@
             maxZoom: 19
         })
     };
-    
+
     // Initiera karta
     map = L.map('map', {
         zoomControl: true,
         attributionControl: true
     }).setView([59.3293, 18.0686], 5);
-    
-    // Sätt satellit som default
+
     currentLayer = layers.satellite;
     currentLayer.addTo(map);
-    
-    function setMapLayer(layerName) {
-        // Ta bort nuvarande lager
-        if (currentLayer) {
-            map.removeLayer(currentLayer);
-        }
-        
-        // Lägg till nytt lager
-        currentLayer = layers[layerName];
-        currentLayer.addTo(map);
-        
-        // Uppdatera knappar
-        document.querySelectorAll('.btn-map-layer').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.getElementById('btn' + layerName.charAt(0).toUpperCase() + layerName.slice(1)).classList.add('active');
-    }
-    
+
+    // BUGG-FIX: invalidateSize på zoomend
     map.on('zoomend', function() {
         setTimeout(function() {
             map.invalidateSize();
         }, 100);
     });
-    
+
+    // Klick på kartan för rapport
     map.on('click', function(e) {
         if (document.getElementById('reportFormContainer').style.display !== 'none') {
             setReportPosition(e.latlng.lat, e.latlng.lng);
         }
     });
-    
+
+    // ==================== RAPPORTERA FORM FUNCTIONS ====================
+    function toggleReportForm() {
+        var container = document.getElementById('reportFormContainer');
+        var btn = document.getElementById('reportToggleBtn');
+        var btnText = document.getElementById('reportBtnText');
+        
+        if (container.style.display === 'none') {
+            // Öppna formuläret
+            container.style.display = 'block';
+            btn.classList.add('active');
+            btnText.textContent = 'Stäng formulär';
+            
+            // Scrolla till formuläret
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Om ingen position vald, försök hämta GPS
+            if (!selectedPosition && navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    var lat = pos.coords.latitude;
+                    var lng = pos.coords.longitude;
+                    map.setView([lat, lng], 16);
+                    setReportPosition(lat, lng);
+                });
+            }
+        } else {
+            // Stäng formuläret
+            container.style.display = 'none';
+            btn.classList.remove('active');
+            btnText.textContent = 'Jag har tappat en disc';
+            
+            // Ta bort markör om den finns
+            if (window.reportMarker) {
+                map.removeLayer(window.reportMarker);
+                window.reportMarker = null;
+            }
+        }
+    }
+
     function setReportPosition(lat, lng) {
         selectedPosition = {lat: lat, lng: lng};
         
@@ -286,81 +1044,26 @@
         document.getElementById('latitude').value = lat;
         document.getElementById('longitude').value = lng;
         document.getElementById('submitBtn').disabled = false;
-        document.getElementById('positionHint').textContent = '✅ Position vald! Klicka igen för att ändra.';
-        document.getElementById('positionHint').className = 'map-hint success';
-    }
-    
-    function toggleReport() {
-        var container = document.getElementById('reportFormContainer');
-        var text = document.getElementById('reportToggleText');
         
-        if (container.style.display === 'none') {
-            container.style.display = 'block';
-            text.textContent = '− Dölj formulär';
-            if (!selectedPosition && navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(pos) {
-                    var lat = pos.coords.latitude;
-                    var lng = pos.coords.longitude;
-                    map.setView([lat, lng], 16);
-                    setReportPosition(lat, lng);
-                });
-            }
-        } else {
-            container.style.display = 'none';
-            text.textContent = '+ Jag har tappat en disc';
+        var hint = document.getElementById('positionHint');
+        hint.innerHTML = '✅ Position vald! (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ') Klicka på kartan för att ändra.';
+        hint.className = 'map-hint success';
+    }
+
+    // ==================== KART FUNCTIONS ====================
+    function setMapLayer(layerName) {
+        if (currentLayer) {
+            map.removeLayer(currentLayer);
         }
-    }
-    
-    function openDiscModal(disc) {
-        // Kolla om det är användarens egen disc
-        if (disc.user_id === currentUserId) {
-            openOwnDiscModal(disc);
-            return;
-        }
+        currentLayer = layers[layerName];
+        currentLayer.addTo(map);
         
-        document.getElementById('modalDiscName').textContent = disc.disc_name;
-        document.getElementById('modalCourse').innerHTML = disc.course_name ? 
-            `📍 ${escapeHtml(disc.course_name)}${disc.hole_number ? ' - Hål ' + disc.hole_number : ''}` : '';
-        document.getElementById('modalDescription').textContent = disc.description || '';
-        document.getElementById('modalDate').textContent = 'Rapporterad: ' + new Date(disc.created_at).toLocaleDateString('sv-SE');
-        
-        var baseUrl = '/missing/found-via-map/' + disc.id;
-        document.getElementById('hideLink').href = baseUrl + '?action=hide';
-        document.getElementById('noteLink').href = baseUrl + '?action=note';
-        document.getElementById('meetLink').href = baseUrl + '?action=meet';
-        
-        document.getElementById('discModal').style.display = 'flex';
+        document.querySelectorAll('.btn-map-layer').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById('btn' + layerName.charAt(0).toUpperCase() + layerName.slice(1)).classList.add('active');
     }
-    
-    function openOwnDiscModal(disc) {
-        document.getElementById('ownModalDiscName').textContent = disc.disc_name;
-        document.getElementById('ownModalCourse').innerHTML = disc.course_name ? 
-            `📍 ${escapeHtml(disc.course_name)}${disc.hole_number ? ' - Hål ' + disc.hole_number : ''}` : '';
-        document.getElementById('ownModalDescription').textContent = disc.description || '';
-        document.getElementById('ownModalDate').textContent = 'Rapporterad: ' + new Date(disc.created_at).toLocaleDateString('sv-SE');
-        
-        document.getElementById('ownDiscModal').style.display = 'flex';
-    }
-    
-    function closeModal() {
-        document.getElementById('discModal').style.display = 'none';
-    }
-    
-    function closeOwnModal() {
-        document.getElementById('ownDiscModal').style.display = 'none';
-    }
-    
-    window.onclick = function(event) {
-        var modal = document.getElementById('discModal');
-        var ownModal = document.getElementById('ownDiscModal');
-        if (event.target === modal) {
-            closeModal();
-        }
-        if (event.target === ownModal) {
-            closeOwnModal();
-        }
-    }
-    
+
     function centerOnMe() {
         if (!navigator.geolocation) {
             alert('Din webbläsare stödjer inte GPS');
@@ -392,7 +1095,7 @@
             }
         );
     }
-    
+
     function calculateDistance(lat1, lng1, lat2, lng2) {
         var R = 6371;
         var dLat = (lat2 - lat1) * Math.PI / 180;
@@ -403,7 +1106,7 @@
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c;
     }
-    
+
     function applyFilters() {
         var radius = document.getElementById('radiusFilter').value;
         var maxAge = document.getElementById('ageFilter').value;
@@ -429,6 +1132,9 @@
             
             return true;
         });
+        
+        document.getElementById('visibleCount').textContent = filteredDiscs.length;
+        document.getElementById('totalCount').textContent = allDiscs.length;
         
         filteredDiscs.forEach(function(disc) {
             var popupContent = `
@@ -456,16 +1162,64 @@
             map.fitBounds(group.getBounds().pad(0.1));
         }
     }
-    
+
     function escapeHtml(text) {
         if (!text) return '';
         var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+
+    // ==================== MODAL FUNCTIONS ====================
+    function openDiscModal(disc) {
+        if (disc.user_id === currentUserId) {
+            openOwnDiscModal(disc);
+            return;
+        }
+        
+        document.getElementById('modalDiscName').textContent = disc.disc_name;
+        document.getElementById('modalCourse').innerHTML = disc.course_name ? 
+            `📍 ${escapeHtml(disc.course_name)}${disc.hole_number ? ' - Hål ' + disc.hole_number : ''}` : '';
+        document.getElementById('modalDescription').textContent = disc.description || '';
+        document.getElementById('modalDate').textContent = 'Rapporterad: ' + new Date(disc.created_at).toLocaleDateString('sv-SE');
+        
+        var baseUrl = '/missing/found-via-map/' + disc.id;
+        document.getElementById('hideLink').href = baseUrl + '?action=hide';
+        document.getElementById('noteLink').href = baseUrl + '?action=note';
+        document.getElementById('meetLink').href = baseUrl + '?action=meet';
+        
+        document.getElementById('discModal').style.display = 'flex';
+    }
+
+    function openOwnDiscModal(disc) {
+        document.getElementById('ownModalDiscName').textContent = disc.disc_name;
+        document.getElementById('ownModalCourse').innerHTML = disc.course_name ? 
+            `📍 ${escapeHtml(disc.course_name)}${disc.hole_number ? ' - Hål ' + disc.hole_number : ''}` : '';
+        document.getElementById('ownModalDescription').textContent = disc.description || '';
+        document.getElementById('ownModalDate').textContent = 'Rapporterad: ' + new Date(disc.created_at).toLocaleDateString('sv-SE');
+        
+        document.getElementById('ownDiscModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('discModal').style.display = 'none';
+    }
+
+    function closeOwnModal() {
+        document.getElementById('ownDiscModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        var modal = document.getElementById('discModal');
+        var ownModal = document.getElementById('ownDiscModal');
+        if (event.target === modal) closeModal();
+        if (event.target === ownModal) closeOwnModal();
+    }
+
+    // Initiera
+    document.getElementById('totalCount').textContent = allDiscs.length;
     applyFilters();
-    
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
             userPosition = {
@@ -475,452 +1229,14 @@
             applyFilters();
         });
     }
+
+    // Parallax
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.getElementById('mapHeroBg');
+        if (heroBg && scrolled < window.innerHeight) {
+            heroBg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
+        }
+    });
 </script>
-{% endblock %}
-
-<style>
-.community-map-page {
-    padding: 20px 0;
-}
-
-.map-header {
-    margin-bottom: 20px;
-}
-
-.map-header h1 {
-    margin-bottom: 5px;
-}
-
-.subtitle {
-    color: #6b7280;
-    margin: 0;
-}
-
-/* Premium-notice */
-.premium-notice {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-}
-
-.notice-content {
-    text-align: center;
-}
-
-.notice-badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.2);
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.notice-content p {
-    margin: 5px 0;
-    font-size: 1.1rem;
-}
-
-.notice-small {
-    font-size: 0.9rem !important;
-    opacity: 0.9;
-}
-
-.filter-bar {
-    display: flex;
-    gap: 15px;
-    align-items: flex-end;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f9fafb;
-    border-radius: 12px;
-    flex-wrap: wrap;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.filter-group label {
-    font-size: 0.85rem;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.filter-group select {
-    padding: 10px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: white;
-}
-
-.btn-gps {
-    background: #2563eb;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-left: auto;
-}
-
-/* Mina discar-bar */
-.my-discs-bar {
-    margin-bottom: 20px;
-}
-
-.btn-my-discs {
-    display: inline-block;
-    background: #10b981;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 1.1rem;
-    transition: transform 0.2s;
-}
-
-.btn-my-discs:hover {
-    transform: translateY(-2px);
-    background: #059669;
-}
-
-.report-section {
-    margin-bottom: 20px;
-}
-
-.btn-toggle-report {
-    width: 100%;
-    padding: 15px;
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px dashed #d1d5db;
-    border-radius: 12px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-}
-
-.btn-toggle-report:hover {
-    background: #e5e7eb;
-    border-color: #9ca3af;
-}
-
-.report-form-container {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    margin-top: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 0.8fr;
-    gap: 15px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #374151;
-    font-size: 0.9rem;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-.map-hint {
-    background: #fef3c7;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    text-align: center;
-    color: #92400e;
-}
-
-.map-hint.success {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.form-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* Kart-lager kontroller */
-.map-controls {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.btn-map-layer {
-    padding: 10px 20px;
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-map-layer:hover {
-    background: #e5e7eb;
-}
-
-.btn-map-layer.active {
-    background: #2563eb;
-    color: white;
-    border-color: #2563eb;
-}
-
-#map {
-    height: 450px;
-    border-radius: 16px;
-    border: 2px solid #e5e7eb;
-    margin-bottom: 30px;
-    background: #f3f4f6;
-    position: relative;
-    z-index: 1;
-}
-
-.report-marker {
-    z-index: 1000 !important;
-}
-
-.marker-new {
-    font-size: 24px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-}
-
-.disc-popup h3 {
-    margin-bottom: 8px;
-}
-
-.disc-popup .course {
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-}
-
-.disc-popup .description {
-    color: #4b5563;
-    margin-bottom: 8px;
-    line-height: 1.4;
-    font-size: 0.95rem;
-}
-
-.disc-popup .date {
-    color: #9ca3af;
-    font-size: 0.85rem;
-    margin: 0;
-}
-
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    padding: 20px;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 20px;
-    max-width: 500px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    padding: 25px;
-    border-bottom: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #6b7280;
-}
-
-.modal-body {
-    padding: 25px;
-}
-
-.disc-info-box {
-    background: #f9fafb;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-}
-
-.course-info {
-    color: #6b7280;
-    margin-bottom: 10px;
-}
-
-.description-text {
-    color: #374151;
-    line-height: 1.5;
-    margin-bottom: 10px;
-}
-
-.date-info {
-    color: #9ca3af;
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-.found-section h3 {
-    margin-bottom: 10px;
-}
-
-.found-section > p {
-    color: #6b7280;
-    margin-bottom: 20px;
-}
-
-.action-choices {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.choice-card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    border-radius: 12px;
-    text-decoration: none;
-    color: inherit;
-    transition: transform 0.2s;
-}
-
-.choice-card:hover {
-    transform: translateY(-2px);
-}
-
-.choice-card.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    position: relative;
-}
-
-.choice-card.secondary {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.choice-icon {
-    font-size: 2rem;
-}
-
-.choice-content h3 {
-    margin-bottom: 5px;
-}
-
-.choice-content p {
-    margin: 0;
-    opacity: 0.9;
-    font-size: 0.95rem;
-}
-
-.badge-recommended {
-    position: absolute;
-    top: -8px;
-    right: 15px;
-    background: #10b981;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: bold;
-}
-
-.divider {
-    text-align: center;
-    color: #9ca3af;
-    font-size: 0.9rem;
-}
-
-/* Egen disc modal */
-.own-disc-actions {
-    text-align: center;
-}
-
-.own-disc-note {
-    color: #6b7280;
-    margin-bottom: 20px;
-    font-style: italic;
-}
-
-.back-link {
-    margin-top: 30px;
-}
-
-@media (max-width: 768px) {
-    .filter-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .btn-gps {
-        margin-left: 0;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    #map {
-        height: 350px;
-    }
-    
-    .map-controls {
-        justify-content: center;
-    }
-}
-</style>
 {% endblock %}

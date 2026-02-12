@@ -4,29 +4,311 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ReturnaDisc{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23166534'/%3E%3Ccircle cx='50' cy='50' r='20' fill='none' stroke='white' stroke-width='4'/%3E%3Cpath d='M50 15 L50 25 M50 75 L50 85 M15 50 L25 50 M75 50 L85 50' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
     {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* ==================== BASE STYLES ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #166534;
+            --primary-light: #22c55e;
+            --secondary: #fbbf24;
+            --bg-dark: #000000;
+            --text-light: #ffffff;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --radius: 12px;
+            --radius-lg: 20px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-light);
+            background: var(--bg-dark);
+        }
+
+        /* ==================== NAVBAR - SVART ==================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 0;
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* LOGO */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        /* NAV LINKS */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--secondary);
+        }
+
+        /* NYTT: Highlight för "Återlämna disc med kod" */
+        .nav-links a.nav-found-code {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+        .nav-links a.nav-found-code:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        /* Community Karta - highlightad med gul/grön gradient */
+        .nav-links a.nav-highlight {
+            background: linear-gradient(135deg, var(--secondary) 0%, #f59e0b 100%);
+            color: #1a1a1a;
+        }
+
+        .nav-links a.nav-highlight:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        /* Logga ut - STARK RÖD */
+        .nav-links a.btn-logout {
+            background: #dc2626;
+            color: white;
+        }
+
+        .nav-links a.btn-logout:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 8px;
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        .main {
+            min-height: calc(100vh - 80px);
+            padding-top: 80px;
+            background: var(--bg-dark);
+        }
+
+        /* Flash messages */
+        .flash-messages {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-success {
+            background: #166534;
+            color: white;
+            border: 1px solid #22c55e;
+        }
+
+        .alert-error {
+            background: #dc2626;
+            color: white;
+            border: 1px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #2563eb;
+            color: white;
+            border: 1px solid #3b82f6;
+        }
+
+        .alert button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .alert button:hover {
+            opacity: 1;
+        }
+
+        /* ==================== FOOTER - SVART ==================== */
+        .footer {
+            background: var(--bg-dark);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 40px 0;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        .footer p {
+            font-size: 0.95rem;
+        }
+
+        .footer-icon {
+            font-size: 1.2rem;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: rgba(0, 0, 0, 0.98);
+                backdrop-filter: blur(10px);
+                flex-direction: column;
+                padding: 20px;
+                gap: 8px;
+                transform: translateY(-100%);
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .nav-links.active {
+                transform: translateY(0);
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .nav-links a {
+                width: 100%;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            .logo img {
+                height: 32px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- NAVBAR -->
     <nav class="navbar">
-        <div class="container">
-            <a href="{{ url_for('auth.index') }}" class="logo">🥏 ReturnaDisc</a>
+        <div class="navbar-container">
+            <!-- LOGO - DIN BILD -->
+            <a href="{{ url_for('auth.index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ReturnaDisc">
+            </a>
             
-            <div class="nav-links">
+            <!-- NAV LINKS -->
+            <div class="nav-links" id="navLinks">
                 {% if current_user %}
                     <a href="{{ url_for('disc.dashboard') }}">Min sida</a>
-                    <a href="{{ url_for('missing.community_map') }}" class="nav-highlight">🗺️ Hitta Discar</a>
+                    <a href="{{ url_for('missing.community_map') }}" class="nav-highlight">
+                        🗺️ Community Karta
+                    </a>
                     <a href="{{ url_for('auth.buy_stickers') }}">🛒 Köp stickers</a>
                     <a href="{{ url_for('auth.logout') }}" class="btn-logout">Logga ut</a>
                 {% else %}
-                    <a href="{{ url_for('auth.how_it_works') }}">Så funkar det</a>
+                    <!-- ÄNDRAD TEXT: "Återlämna disc med kod" istället för "Jag har hittat en disc" -->
+                    <a href="{{ url_for('found.found_manual') }}" class="nav-found-code">
+                        🔢 Återlämna disc med kod
+                    </a>
+                    <a href="{{ url_for('auth.login') }}">Logga in</a>
                 {% endif %}
             </div>
             
-            <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+            <!-- MOBILE MENU BUTTON -->
+            <button class="mobile-menu-btn" onclick="toggleMenu()" aria-label="Meny">☰</button>
         </div>
     </nav>
     
+    <!-- MAIN CONTENT -->
     <main class="main">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -34,7 +316,7 @@
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }}">
                             {{ message }}
-                            <button onclick="this.parentElement.remove()">×</button>
+                            <button onclick="this.parentElement.remove()" aria-label="Stäng">×</button>
                         </div>
                     {% endfor %}
                 </div>
@@ -44,17 +326,23 @@
         {% block content %}{% endblock %}
     </main>
     
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2026 ReturnaDisc. Hjälp discar hitta hem. 🥏</p>
-        </div>
-    </footer>
     
+    <!-- SCRIPTS -->
     <script>
         function toggleMenu() {
-            document.querySelector('.nav-links').classList.toggle('active');
+            document.getElementById('navLinks').classList.toggle('active');
         }
+        
+        // Stäng menyn när man klickar utanför
+        document.addEventListener('click', function(e) {
+            const nav = document.getElementById('navLinks');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (!nav.contains(e.target) && !btn.contains(e.target)) {
+                nav.classList.remove('active');
+            }
+        });
     </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

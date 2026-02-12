@@ -2,32 +2,446 @@
 
 {% block title %}Mötesförfrågan - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Hero Section */
+    .hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+    }
+
+    .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .meet-header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+    .meet-icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .meet-header h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .meet-header h1 span {
+        color: #fbbf24;
+    }
+
+    .meet-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Main Card */
+    .meet-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 35px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Info Box */
+    .info-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .info-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .info-text {
+        color: #92400e;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .info-text strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 1.05rem;
+    }
+
+    /* Comparison Cards */
+    .comparison {
+        display: grid;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .option {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        border: 2px solid rgba(22, 101, 52, 0.1);
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .option.recommended {
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        border: none;
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.3);
+    }
+
+    .option.not-recommended {
+        background: white;
+        color: #374151;
+        opacity: 1;
+    }
+
+    .option-badge {
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .option h3 {
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        margin-top: 10px;
+        color: inherit;
+    }
+
+    .option.not-recommended h3 {
+        color: #374151;
+    }
+
+    .option ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .option li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+        color: inherit;
+    }
+
+    .option.not-recommended li {
+        color: #4b5563;
+    }
+
+    .btn-recommended {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #166534;
+        padding: 14px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-recommended:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Still want section */
+    .still-want {
+        text-align: center;
+        padding: 25px;
+        background: #f9fafb;
+        border-radius: 16px;
+        margin-bottom: 25px;
+    }
+
+    .still-want p {
+        color: #4b5563;
+        margin-bottom: 15px;
+        font-weight: 500;
+    }
+
+    .btn-text {
+        background: none;
+        border: none;
+        color: #166534;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: color 0.2s;
+    }
+
+    .btn-text:hover {
+        color: #22c55e;
+    }
+
+    /* Form Section */
+    .form-section {
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 2px solid rgba(22, 101, 52, 0.1);
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-section h3 {
+        color: #166534;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .meet-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 14px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-hint {
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 6px;
+    }
+
+    /* Submit Button */
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    /* Back Link */
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .hero {
+            padding: 80px 15px 30px;
+        }
+
+        .meet-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .meet-card {
+            padding: 25px;
+        }
+
+        .option.recommended {
+            transform: none;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="meet-info-page">
-    <div class="container">
-        <div class="card">
-            <div class="warning-icon">⚠️</div>
-            <h1>Varför inte gömma discen istället?</h1>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content">
+        <!-- Header -->
+        <div class="meet-header">
+            <span class="meet-icon">🤝</span>
+            <h1>Mötes<span>förfrågan</span></h1>
+            <p>Varför inte gömma discen istället?</p>
+        </div>
+        
+        <!-- Main Card -->
+        <div class="meet-card">
+            <!-- Info Box -->
+            <div class="info-box">
+                <span class="info-icon">💡</span>
+                <p class="info-text">
+                    <strong>Smartare sätt att återlämna</strong>
+                    Att mötas upp kräver planering och koordinering. Att gömma discen är snabbt, anonymt och smidigt för båda parter.
+                </p>
+            </div>
             
+            <!-- Comparison -->
             <div class="comparison">
+                <!-- Recommended Option -->
                 <div class="option recommended">
-                    <div class="option-badge">✅ REKOMMENDERAS</div>
-                    <h3>Göm discen</h3>
+                    <span class="option-badge">✅ Rekommenderas</span>
+                    <h3>📍 Göm discen</h3>
                     <ul>
-                        <li>✅ Tar 30 sekunder</li>
-                        <li>✅ Anonymt för båda</li>
-                        <li>✅ Ingen planering</li>
-                        <li>✅ Ingen frakt</li>
-                        <li>✅ Ägaren hämtar när det passar</li>
+                        <li>⚡ Tar bara 30 sekunder</li>
+                        <li>🎭 Helt anonymt för båda</li>
+                        <li>📅 Ingen planering behövs</li>
+                        <li>🚫 Ingen frakt eller resa</li>
+                        <li>✨ Ägaren hämtar när det passar</li>
                     </ul>
-                    <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="btn-primary">
+                    <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="btn-recommended">
                         Jag gömmer istället →
                     </a>
                 </div>
                 
+                <!-- Not Recommended -->
                 <div class="option not-recommended">
-                    <div class="option-badge">⚠️ MER JOBB</div>
-                    <h3>Mötas upp</h3>
+                    <h3>🤝 Mötas upp</h3>
                     <ul>
                         <li>❌ Lämna kontaktuppgifter</li>
                         <li>❌ Planera tid och plats</li>
@@ -37,149 +451,80 @@
                 </div>
             </div>
             
-            <div class="still-want">
-                <p>Du vill fortfarande mötas?</p>
-                <button onclick="showMeetForm()" class="btn-secondary">
+            <!-- Still want to meet -->
+            <div class="still-want" id="stillWantSection">
+                <p>Du vill fortfarande mötas upp?</p>
+                <button onclick="showMeetForm()" class="btn-text">
                     Jag förstår, men vill ändå mötas
                 </button>
             </div>
             
-            <!-- Mötesformulär (dolt initialt) -->
-            <div id="meet-form" style="display: none; margin-top: 30px; padding-top: 30px; border-top: 2px solid #e5e7eb;">
-                <h3>Fyll i dina kontaktuppgifter</h3>
-                <form method="post" action="{{ url_for('found.found_meet', qr_id=qr_id) }}">
+            <!-- Meet Form (hidden initially) -->
+            <div class="form-section" id="meetForm" style="display: none;">
+                <h3>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    Fyll i dina kontaktuppgifter
+                </h3>
+                
+                <form method="post" action="{{ url_for('found.found_meet', qr_id=qr_id) }}" class="meet-form">
                     <div class="form-group">
-                        <label for="finder_email">Email *</label>
-                        <input type="email" id="finder_email" name="finder_email" required
+                        <label for="finder_email">📧 Email</label>
+                        <input type="email" id="finder_email" name="finder_email" 
                                placeholder="din@email.se">
+                        <span class="form-hint">Minst email ELLER telefon måste fyllas i</span>
                     </div>
                     
                     <div class="form-group">
-                        <label for="finder_phone">Telefonnummer</label>
-                        <input type="tel" id="finder_phone" name="finder_phone"
+                        <label for="finder_phone">📱 Telefonnummer</label>
+                        <input type="tel" id="finder_phone" name="finder_phone" 
                                placeholder="07X-XXX XX XX">
                     </div>
                     
                     <div class="form-group">
-                        <label for="note">Meddelande till ägaren</label>
-                        <textarea id="note" name="note" rows="3"
-                                  placeholder="Förslag på tid och plats för möte..."></textarea>
+                        <label for="note">📝 Meddelande till ägaren</label>
+                        <textarea id="note" name="note" rows="3" 
+                                  placeholder="Förslag på tid och plats för möte, eller annan information..."></textarea>
                     </div>
                     
-                    <button type="submit" class="btn-primary btn-large btn-full">
-                        Skicka mötesförfrågan
+                    <button type="submit" class="btn-submit">
+                        ✉️ Skicka mötesförfrågan
                     </button>
                 </form>
             </div>
+            
+            <!-- Back Link -->
+            <div class="back-link">
+                <a href="{{ url_for('found.found_qr', qr_id=qr_id) }}" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Tillbaka
+                </a>
+            </div>
         </div>
     </div>
-</div>
+</section>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-function showMeetForm() {
-    document.getElementById('meet-form').style.display = 'block';
-    document.querySelector('.still-want').style.display = 'none';
-}
+    // Parallax-effekt på bakgrundsbilden
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.getElementById('heroBg');
+        if (heroBg && scrolled < window.innerHeight) {
+            heroBg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
+        }
+    });
+
+    // Visa formulär
+    function showMeetForm() {
+        document.getElementById('meetForm').style.display = 'block';
+        document.getElementById('stillWantSection').style.display = 'none';
+        document.getElementById('meetForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 </script>
-
-<style>
-.meet-info-page {
-    padding: 20px 0;
-}
-
-.warning-icon {
-    font-size: 4rem;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.comparison {
-    display: grid;
-    gap: 20px;
-    margin: 30px 0;
-}
-
-.option {
-    padding: 25px;
-    border-radius: 16px;
-}
-
-.option.recommended {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-}
-
-.option.not-recommended {
-    background: #f3f4f6;
-    opacity: 0.7;
-}
-
-.option-badge {
-    display: inline-block;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
-.option.recommended .option-badge {
-    background: rgba(255,255,255,0.2);
-}
-
-.option.not-recommended .option-badge {
-    background: #e5e7eb;
-    color: #6b7280;
-}
-
-.option h3 {
-    margin-bottom: 15px;
-}
-
-.option ul {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 20px 0;
-}
-
-.option li {
-    margin-bottom: 10px;
-}
-
-.still-want {
-    text-align: center;
-    padding-top: 20px;
-}
-
-.still-want p {
-    color: #6b7280;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1rem;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #2563eb;
-}
-</style>
 {% endblock %}

@@ -2,17 +2,320 @@
 
 {% block title %}Skapa konto - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Hero Section - Samma stil som index.html */
+    .hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+    }
+
+    .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 500px;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo/Icon */
+    .signup-header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+    .signup-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.4);
+    }
+
+    .signup-icon svg {
+        width: 40px;
+        height: 40px;
+        color: white;
+    }
+
+    .signup-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .signup-header h1 span {
+        color: #fbbf24;
+    }
+
+    .signup-header p {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Main Card - Beige stil */
+    .signup-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Form Styling */
+    .signup-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+        padding: 16px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #9ca3af;
+    }
+
+    .help-text {
+        display: block;
+        margin-top: 6px;
+        color: #6b7280;
+        font-size: 0.85rem;
+    }
+
+    /* Primary Button */
+    .btn-signup {
+        width: 100%;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+    }
+
+    .btn-signup:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    /* Divider */
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 25px 0;
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(22, 101, 52, 0.2);
+    }
+
+    /* Login Link */
+    .login-prompt {
+        text-align: center;
+    }
+
+    .login-prompt p {
+        color: #4b5563;
+        margin-bottom: 10px;
+    }
+
+    .btn-login-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #166534;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+
+    .btn-login-link:hover {
+        color: #22c55e;
+        gap: 12px;
+    }
+
+    /* Back Link */
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    /* Error Messages */
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 4px solid #ef4444;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .hero {
+            padding: 80px 15px 30px;
+        }
+
+        .signup-header h1 {
+            font-size: 2rem;
+        }
+
+        .signup-card {
+            padding: 30px 25px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="auth-page">
-    <div class="container">
-        <div class="card auth-card">
-            <div class="auth-header">
-                <div class="auth-icon">🎯</div>
-                <h1>Bli medlem</h1>
-                <p class="subtitle">En QR-kod. Alla dina discar. Gratis.</p>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content">
+        <!-- Header -->
+        <div class="signup-header">
+            <div class="signup-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
             </div>
+            <h1>Bli <span>medlem</span></h1>
+            <p>En QR-kod. Alla dina discar. Gratis.</p>
+        </div>
+        
+        <!-- Main Card -->
+        <div class="signup-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="alert-error">{{ message }}</div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             
-            <form method="post" class="auth-form">
+            <!-- Form -->
+            <form method="post" class="signup-form">
                 <div class="form-group">
                     <label for="name">Ditt namn</label>
                     <input type="text" id="name" name="name" required 
@@ -28,119 +331,53 @@
                 <div class="form-group">
                     <label for="password">Lösenord</label>
                     <input type="password" id="password" name="password" required 
-                           placeholder="Minst 6 tecken" minlength="6" autocomplete="new-password">
+                           placeholder="Välj ett säkert lösenord" 
+                           minlength="6" autocomplete="new-password">
                     <small class="help-text">Minst 6 tecken</small>
                 </div>
                 
-                <button type="submit" class="btn-primary btn-large btn-full">
+                <button type="submit" class="btn-signup">
                     Skapa konto gratis
                 </button>
             </form>
             
-            <div class="benefits-preview">
-                <p>✅ En QR-kod på alla discar</p>
-                <p>✅ Anonym återlämning</p>
-                <p>✅ Hjältepoäng</p>
+            <!-- Divider -->
+            <div class="divider">eller</div>
+            
+            <!-- Login Link -->
+            <div class="login-prompt">
+                <p>Har du redan ett konto?</p>
+                <a href="{{ url_for('auth.login') }}" class="btn-login-link">
+                    Logga in här
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
             </div>
             
-            <div class="auth-links">
-                <span>Har du redan konto?</span>
-                <a href="{{ url_for('auth.login') }}">Logga in</a>
+            <!-- Back Link -->
+            <div class="back-link">
+                <a href="{{ url_for('auth.index') }}" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Tillbaka till startsidan
+                </a>
             </div>
         </div>
     </div>
-</div>
+</section>
+{% endblock %}
 
-<style>
-.auth-page {
-    padding: 40px 0;
-}
-
-.auth-card {
-    max-width: 420px;
-    margin: 0 auto;
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.auth-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.auth-header h1 {
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    color: #6b7280;
-}
-
-.auth-form {
-    margin-bottom: 25px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 14px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1rem;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #2563eb;
-}
-
-.help-text {
-    display: block;
-    margin-top: 6px;
-    color: #6b7280;
-    font-size: 0.85rem;
-}
-
-.benefits-preview {
-    background: #f0fdf4;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-}
-
-.benefits-preview p {
-    margin: 8px 0;
-    color: #166534;
-    font-size: 0.95rem;
-}
-
-.auth-links {
-    text-align: center;
-}
-
-.auth-links span {
-    color: #6b7280;
-}
-
-.auth-links a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 500;
-    margin-left: 5px;
-}
-</style>
+{% block extra_js %}
+<script>
+    // Parallax-effekt på bakgrundsbilden
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.getElementById('heroBg');
+        if (heroBg && scrolled < window.innerHeight) {
+            heroBg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
+        }
+    });
+</script>
 {% endblock %}

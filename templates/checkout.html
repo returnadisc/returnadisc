@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block title %}Beställning - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-page {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+    }
+
+    .checkout-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .checkout-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .checkout-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+    .checkout-header h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .checkout-header h1 span {
+        color: #fbbf24;
+    }
+
+    .checkout-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .order-summary {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        margin-bottom: 30px;
+    }
+
+    .order-summary h3 {
+        color: #166534;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+    }
+
+    .order-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-item-name {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .order-item-detail {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .order-item-price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #166534;
+    }
+
+    .order-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 20px;
+        margin-top: 20px;
+        border-top: 2px solid #166534;
+    }
+
+    .order-total-label {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .order-total-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #166534;
+    }
+
+    .checkout-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 14px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    @media (max-width: 640px) {
+        .checkout-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .checkout-card {
+            padding: 25px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+    <div class="checkout-bg" style="background-image: url('{{ url_for('static', filename='images/buy-stickers-bg.png') }}');" id="checkoutBg"></div>
+    <div class="checkout-overlay"></div>
+    
+    <div class="checkout-content">
+        <div class="checkout-header">
+            <h1>Beställ <span>Stickers</span></h1>
+            <p>Fyll i dina uppgifter</p>
+        </div>
+        
+        <div class="checkout-card">
+            <div class="order-summary">
+                <h3>🛒 Din beställning</h3>
+                <div class="order-item">
+                    <div>
+                        <div class="order-item-name">{{ package_name }}</div>
+                        <div class="order-item-detail">{{ sticker_count }} stickers • Samma QR-kod</div>
+                    </div>
+                    <div class="order-item-price">{{ price }} kr</div>
+                </div>
+                <div class="order-total">
+                    <span class="order-total-label">Totalt</span>
+                    <span class="order-total-price">{{ price }} kr</span>
+                </div>
+            </div>
+            
+            <form method="post" class="checkout-form">
+                <input type="hidden" name="package" value="{{ package }}">
+                <input type="hidden" name="count" value="{{ sticker_count }}">
+                
+                <div class="form-group">
+                    <label for="name">Fullständigt namn *</label>
+                    <input type="text" id="name" name="name" required placeholder="Förnamn Efternamn">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required placeholder="din@email.se">
+                    <small style="color: #6b7280; margin-top: 5px;">Vi skickar aktiveringslänken hit</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Telefonnummer</label>
+                    <input type="tel" id="phone" name="phone" placeholder="07X-XXX XX XX">
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">Leveransadress *</label>
+                    <textarea id="address" name="address" rows="3" required placeholder="Gatuadress, postnummer, ort"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="postal_code">Postnummer *</label>
+                        <input type="text" id="postal_code" name="postal_code" required placeholder="123 45">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">Ort *</label>
+                        <input type="text" id="city" name="city" required placeholder="Stockholm">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    Beställ nu →
+                </button>
+            </form>
+            
+            <div class="back-link">
+                <a href="{{ url_for('auth.buy_stickers') }}" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Tillbaka
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const bg = document.getElementById('checkoutBg');
+        if (bg && scrolled < window.innerHeight) {
+            bg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
+        }
+    });
+</script>
+{% endblock %}

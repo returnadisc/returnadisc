@@ -1,197 +1,407 @@
 {% extends "base.html" %}
 
-{% block title %}Hittat en disc? - ReturnaDisc{% endblock %}
+{% block title %}Återlämna disc med kod - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Hero Section - Samma stil som index.html */
+    .hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+        max-width: 600px;
+        padding: 0 20px;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .hero h1 span {
+        color: #fbbf24;
+    }
+
+    .hero-tagline {
+        font-size: 1.3rem;
+        font-weight: 300;
+        margin-bottom: 40px;
+        opacity: 0.95;
+        line-height: 1.6;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Main Card - Beige stil som index.html:s how-it-works */
+    .main-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        margin-top: 30px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Code Example Section */
+    .code-example {
+        margin-bottom: 35px;
+    }
+
+    .code-example p {
+        color: #4b5563;
+        font-size: 1rem;
+        margin-bottom: 20px;
+    }
+
+    .example-box {
+        background: white;
+        border: 3px solid #166534;
+        padding: 25px 40px;
+        border-radius: 16px;
+        display: inline-block;
+        box-shadow: 0 8px 25px rgba(22, 101, 52, 0.15);
+    }
+
+    .example-text {
+        font-family: 'Courier New', monospace;
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #166534;
+        letter-spacing: 8px;
+    }
+
+    .hint {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-top: 15px;
+    }
+
+    /* Form Styling */
+    .manual-form {
+        margin-top: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 12px;
+        font-weight: 700;
+        color: #1a1a1a;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 20px;
+        border: 3px solid rgba(22, 101, 52, 0.2);
+        border-radius: 16px;
+        font-size: 1.8rem;
+        text-align: center;
+        letter-spacing: 6px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        color: #166534;
+        background: white;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 4px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #9ca3af;
+        font-weight: 400;
+        letter-spacing: 4px;
+    }
+
+    /* Primary Button - Gul som index.html */
+    .btn-primary {
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 18px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        display: inline-block;
+        border: 2px solid #fbbf24;
+        cursor: pointer;
+        width: 100%;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-primary:hover {
+        background: transparent;
+        color: #fbbf24;
+        transform: translateY(-2px);
+    }
+
+    /* Help Section */
+    .help-section {
+        margin-top: 35px;
+        padding-top: 30px;
+        border-top: 2px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .help-section h3 {
+        color: #166534;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .help-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .help-list li {
+        color: #4b5563;
+        font-size: 1rem;
+        padding: 12px 20px;
+        background: white;
+        border-radius: 12px;
+        border-left: 4px solid #fbbf24;
+    }
+
+    /* Back Link */
+    .back-link {
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1rem;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    .btn-back svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Error Message */
+    .alert-error {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        border-left: 4px solid #ef4444;
+        font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .hero h1 {
+            font-size: 2.2rem;
+        }
+
+        .hero-tagline {
+            font-size: 1.1rem;
+        }
+
+        .main-card {
+            padding: 25px;
+        }
+
+        .example-text {
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+        }
+
+        .form-group input {
+            font-size: 1.4rem;
+            padding: 16px;
+            letter-spacing: 4px;
+        }
+
+        .example-box {
+            padding: 20px 30px;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="found-manual-page">
-    <div class="container">
-        <div class="card">
-            <div class="header">
-                <div class="icon">🥏</div>
-                <h1>Hittat en disc?</h1>
-                <p class="subtitle">Skriv in koden som står på discen</p>
-            </div>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content">
+        <span class="hero-icon">🔢</span>
+        <h1>Återlämna disc <span>med kod</span></h1>
+        <p class="hero-tagline">Skriv in koden som står på discen för att återlämna den anonymt</p>
+        
+        <!-- Main Card -->
+        <div class="main-card">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
             
+            <!-- Code Example -->
             <div class="code-example">
-                <p>Exempel på hur det kan se ut:</p>
+                <p>Så här kan koden se ut:</p>
                 <div class="example-box">
                     <span class="example-text">A7B9X</span>
                 </div>
-                <p class="hint">(5-6 tecken med bokstäver och siffror)</p>
+                <p class="hint">5-6 tecken med bokstäver och siffror</p>
             </div>
             
+            <!-- Form -->
             <form method="post" class="manual-form">
                 <div class="form-group">
-                    <label for="qr_id">Discens kod</label>
+                    <label for="qr_id">🔤 Discens kod</label>
                     <input type="text" 
                            id="qr_id" 
                            name="qr_id" 
                            required 
                            maxlength="6"
-                           placeholder="t.ex. A7B9X"
+                           placeholder="T.EX. A7B9X"
                            autocomplete="off"
-                           style="text-transform: uppercase;">
+                           autofocus>
                 </div>
                 
-                <button type="submit" class="btn-primary btn-large btn-full">
+                <button type="submit" class="btn-primary">
                     Fortsätt →
                 </button>
             </form>
             
+            <!-- Help Section -->
             <div class="help-section">
-                <h3>🤔 Var hittar jag koden?</h3>
-                <ul>
-                    <li>Står ofta på en liten QR-sticker på discen</li>
-                    <li>Kan vara skrivet med permanent tusch</li>
-                    <li>Är vanligtvis 5-6 tecken (t.ex. "A7B9X")</li>
+                <h3>
+                    <span>🤔</span>
+                    Var hittar jag koden?
+                </h3>
+                <ul class="help-list">
+                    <li>📍 På en liten QR-sticker på discen</li>
+                    <li>✍️ Skrivet med permanent tusch på undersidan</li>
+                    <li>🏷️ På ett klistermärke från ReturnaDisc</li>
                 </ul>
             </div>
             
+            <!-- Back Link -->
             <div class="back-link">
-                <a href="{{ url_for('auth.index') }}" class="btn-text">← Tillbaka till startsidan</a>
+                <a href="{{ url_for('auth.index') }}" class="btn-back">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Tillbaka till startsidan
+                </a>
             </div>
         </div>
     </div>
-</div>
+</section>
+{% endblock %}
 
-<style>
-.found-manual-page {
-    padding: 40px 0;
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-}
+{% block extra_js %}
+<script>
+    // Parallax-effekt på bakgrundsbilden
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.getElementById('heroBg');
+        if (heroBg && scrolled < window.innerHeight) {
+            heroBg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
+        }
+    });
 
-.card {
-    max-width: 450px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.header {
-    margin-bottom: 30px;
-}
-
-.icon {
-    font-size: 4rem;
-    margin-bottom: 15px;
-}
-
-.header h1 {
-    margin-bottom: 10px;
-    font-size: 1.8rem;
-}
-
-.subtitle {
-    color: #6b7280;
-    font-size: 1.1rem;
-}
-
-.code-example {
-    background: #f9fafb;
-    padding: 25px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-}
-
-.code-example p {
-    color: #6b7280;
-    margin-bottom: 15px;
-    font-size: 0.95rem;
-}
-
-.example-box {
-    background: white;
-    border: 2px solid #2563eb;
-    padding: 20px;
-    border-radius: 12px;
-    display: inline-block;
-    margin-bottom: 10px;
-}
-
-.example-text {
-    font-family: monospace;
-    font-size: 2rem;
-    font-weight: bold;
-    color: #2563eb;
-    letter-spacing: 4px;
-}
-
-.hint {
-    font-size: 0.85rem !important;
-    color: #9ca3af !important;
-}
-
-.manual-form {
-    margin-bottom: 30px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 10px;
-    font-weight: 600;
-    color: #374151;
-    text-align: left;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 16px;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    font-size: 1.5rem;
-    text-align: center;
-    letter-spacing: 4px;
-    font-weight: 600;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #2563eb;
-}
-
-.help-section {
-    background: #fef3c7;
-    padding: 25px;
-    border-radius: 16px;
-    margin-bottom: 30px;
-    text-align: left;
-}
-
-.help-section h3 {
-    color: #92400e;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.help-section ul {
-    margin: 0;
-    padding-left: 20px;
-    color: #78350f;
-}
-
-.help-section li {
-    margin-bottom: 10px;
-    line-height: 1.5;
-}
-
-.back-link {
-    margin-top: 20px;
-}
-
-.btn-text {
-    color: #6b7280;
-    text-decoration: none;
-    font-size: 0.95rem;
-}
-
-.btn-text:hover {
-    color: #2563eb;
-}
-</style>
+    // Auto-focus på input
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('qr_id').focus();
+    });
+</script>
 {% endblock %}

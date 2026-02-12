@@ -1,149 +1,352 @@
 {% extends "base.html" %}
 
-{% block title %}Hittad disc - ReturnaDisc{% endblock %}
+{% block title %}Du har hittat en disc - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    /* Hero Section */
+    .hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+    }
+
+    .hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        animation: fadeInUp 1s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .found-header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+    .found-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .found-header h1 span {
+        color: #fbbf24;
+    }
+
+    .found-header p {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Main Card */
+    .choices-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Primary Choice - Hide */
+    .choice-primary {
+        display: block;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 20px;
+        text-decoration: none;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.3);
+    }
+
+    .choice-primary:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(22, 101, 52, 0.4);
+    }
+
+    /* REKOMMENDERAS badge - fixad position */
+    .rekommenderas-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 8px 16px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom-left-radius: 16px;
+    }
+
+    .choice-main {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .choice-icon-big {
+        font-size: 3rem;
+        flex-shrink: 0;
+    }
+
+    .choice-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+
+    .choice-content p {
+        opacity: 0.95;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+    }
+
+    .time-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.2);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* Divider */
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 25px 0;
+        color: #6b7280;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(22, 101, 52, 0.2);
+    }
+
+    /* Secondary Choices Grid */
+    .choices-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 10px;
+    }
+
+    .choice-secondary {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: white;
+        color: #374151;
+        padding: 25px 20px;
+        border-radius: 16px;
+        text-decoration: none;
+        border: 2px solid rgba(22, 101, 52, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .choice-secondary:hover {
+        border-color: #166534;
+        background: #f0fdf4;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(22, 101, 52, 0.15);
+    }
+
+    .choice-icon-small {
+        font-size: 2.5rem;
+    }
+
+    .choice-secondary h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1a1a1a;
+    }
+
+    /* Back Link */
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .hero {
+            padding: 80px 15px 30px;
+        }
+
+        .found-header h1 {
+            font-size: 2rem;
+        }
+
+        .choices-card {
+            padding: 25px;
+        }
+
+        .choice-main {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .choices-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .rekommenderas-badge {
+            padding: 6px 12px;
+            font-size: 0.65rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="found-page">
-    <div class="container">
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-bg" style="background-image: url('{{ url_for('static', filename='images/found-bg.png') }}'), url('{{ url_for('static', filename='images/hero-bg.png') }}');" id="heroBg"></div>
+    <div class="hero-overlay"></div>
+    
+    <div class="hero-content">
+        <!-- Header - utan emoji -->
         <div class="found-header">
-            <div class="found-icon">🥏</div>
-            <h1>Du har hittat en disc!</h1>
+            <h1>Du har hittat en <span>disc!</span></h1>
+            <p>Tack för att du vill hjälpa till. Vad vill du göra?</p>
         </div>
         
-        <div class="choices">
-            <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="choice-card primary">
+        <!-- Choices Card -->
+        <div class="choices-card">
+            <!-- Primary Choice: Hide -->
+            <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="choice-primary">
+                <span class="rekommenderas-badge">Rekommenderas</span>
                 <div class="choice-main">
-                    <div class="choice-icon">📍</div>
+                    <span class="choice-icon-big">📍</span>
                     <div class="choice-content">
                         <h3>Jag gömmer discen</h3>
-                        <p>Bild + Position skickas</p>
-                        <span class="time">⚡ 30 sekunder</span>
+                        <p>Bild + Position skickas anonymt till ägaren</p>
+                        <span class="time-badge">⚡ 30 sekunder</span>
                     </div>
                 </div>
-                <div class="choice-badge">Rekommenderas</div>
             </a>
             
-            <div class="divider">eller</div>
+            <!-- Divider -->
+            <div class="divider">andra alternativ</div>
             
-            <a href="{{ url_for('found.found_note', qr_id=qr_id) }}" class="choice-card secondary">
-                <div class="choice-icon">✍️</div>
-                <div class="choice-content">
-                    <h3>Lämna meddelande</h3>
-                </div>
-            </a>
+            <!-- Secondary Choices -->
+            <div class="choices-grid">
+                <a href="{{ url_for('found.found_note', qr_id=qr_id) }}" class="choice-secondary">
+                    <span class="choice-icon-small">✍️</span>
+                    <h4>Lämna meddelande</h4>
+                </a>
+                
+                <a href="{{ url_for('found.found_meet', qr_id=qr_id) }}" class="choice-secondary">
+                    <span class="choice-icon-small">🤝</span>
+                    <h4>Jag vill mötas</h4>
+                </a>
+            </div>
             
-            <a href="{{ url_for('found.found_meet', qr_id=qr_id) }}" class="choice-card secondary">
-                <div class="choice-icon">🤝</div>
-                <div class="choice-content">
-                    <h3>Jag vill mötas</h3>
-                </div>
-            </a>
-        </div>
-        
-        <div class="privacy-note">
-            <p>🔒 Du behöver inte lämna några kontaktuppgifter</p>
+            <!-- Back Link -->
+            <div class="back-link">
+                <a href="{{ url_for('auth.index') }}" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Tillbaka till startsidan
+                </a>
+            </div>
         </div>
     </div>
-</div>
+</section>
+{% endblock %}
 
-<style>
-.found-page {
-    padding: 40px 20px;
-    background: #f3f4f6;
-    min-height: 100vh;
-}
-
-.found-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.found-icon {
-    font-size: 4rem;
-    margin-bottom: 10px;
-}
-
-.found-header h1 {
-    font-size: 1.6rem;
-    color: #1f2937;
-}
-
-.choices {
-    max-width: 450px;
-    margin: 0 auto;
-}
-
-.choice-card {
-    display: block;
-    padding: 20px;
-    border-radius: 12px;
-    text-decoration: none;
-    margin-bottom: 12px;
-}
-
-.choice-card.primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    position: relative;
-    text-align: center;
-}
-
-.choice-main {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    text-align: left;
-}
-
-.choice-icon {
-    font-size: 2rem;
-}
-
-.choice-content h3 {
-    font-size: 1.2rem;
-    margin-bottom: 4px;
-}
-
-.choice-content p {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    margin: 0 0 4px 0;
-}
-
-.time {
-    font-size: 0.85rem;
-    opacity: 0.8;
-}
-
-.choice-badge {
-    display: inline-block;
-    background: rgba(255,255,255,0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    margin-top: 10px;
-}
-
-.choice-card.secondary {
-    background: white;
-    color: #374151;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.divider {
-    text-align: center;
-    color: #9ca3af;
-    margin: 15px 0;
-    font-size: 0.9rem;
-}
-
-.privacy-note {
-    text-align: center;
-    margin-top: 30px;
-    color: #6b7280;
-    font-size: 0.9rem;
-}
-</style>
+{% block extra_js %}
+<script>
+    // Parallax-effekt på bakgrundsbilden
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.getElementById('heroBg');
+        if (heroBg && scrolled < window.innerHeight) {
+            heroBg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
+        }
+    });
+</script>
 {% endblock %}

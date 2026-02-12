@@ -394,23 +394,28 @@ class Database:
             """, (name, email.lower(), password_hash))
             user_id = cur.lastrowid
             
-            # 2. Generera unik QR-kod
+            # 2. Generera unik QR-kod med transaktionsskydd
             max_attempts = 10
+            qr_id = None
             for _ in range(max_attempts):
-                qr_id = generate_random_qr_id()
+                candidate = generate_random_qr_id()
                 
-                # Kolla om QR redan finns
-                cur.execute("SELECT 1 FROM qr_codes WHERE qr_id = ?", (qr_id,))
-                if not cur.fetchone():
+                # Försök infoga - om UNIQUE constraint failar, fångas det
+                try:
+                    cur.execute("""
+                        INSERT INTO qr_codes (qr_id, user_id, is_active, activated_at, created_at)
+                        VALUES (?, ?, 1, datetime('now'), datetime('now'))
+                    """, (candidate, user_id))
+                    qr_id = candidate
                     break
+                except sqlite3.IntegrityError:
+                    # QR-kod finns redan, försök igen
+                    continue
             
-            # 3. Skapa QR i databasen (aktiverad direkt)
-            cur.execute("""
-                INSERT INTO qr_codes (qr_id, user_id, is_active, activated_at, created_at)
-                VALUES (?, ?, 1, datetime('now'), datetime('now'))
-            """, (qr_id, user_id))
+            if not qr_id:
+                raise Exception("Kunde inte generera unik QR-kod efter flera försök")
             
-            # 4. Generera QR-bild
+            # 3. Generera QR-bild
             qr_filename = create_qr_code(qr_id, user_id)
             
             return user_id, qr_id, qr_filename

@@ -2,35 +2,425 @@
 
 {% block title %}Rapportera saknad disc - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ==================== REPORT PAGE ==================== */
+    .report-page {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    /* HERO BACKGROUND - Samma stil som index.html och dashboard.html */
+    .report-hero-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .report-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .report-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 900px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER */
+    .report-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .report-icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+    }
+
+    .report-header h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* MAIN CARD - Samma beige stil */
+    .report-card {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* GPS SECTION */
+    .gps-section {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        text-align: center;
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .gps-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+
+    .gps-text {
+        color: #4b5563;
+        margin-bottom: 20px;
+        font-size: 1rem;
+    }
+
+    .btn-gps {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 14px 28px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-gps:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .btn-gps:disabled {
+        opacity: 0.6;
+        cursor: wait;
+    }
+
+    .gps-status {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .gps-status.success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .gps-status.error {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    /* FORM STYLES */
+    .report-form {
+        display: grid;
+        gap: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 14px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* MAP SECTION */
+    .map-section {
+        background: white;
+        padding: 25px;
+        border-radius: 16px;
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .map-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .map-section label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .map-controls {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-map-layer {
+        padding: 8px 16px;
+        background: #f3f4f6;
+        color: #374151;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-map-layer:hover {
+        background: #e5e7eb;
+    }
+
+    .btn-map-layer.active {
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+    }
+
+    .map-hint {
+        color: #6b7280;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .map-hint.success {
+        color: #059669;
+        font-weight: 600;
+    }
+
+    #map {
+        height: 400px;
+        border-radius: 12px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        background: #f3f4f6;
+    }
+
+    /* SUBMIT BUTTON */
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* BACK LINK */
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    /* LEAFLET POPUP STYLES */
+    .leaflet-popup-content-wrapper {
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .leaflet-popup-content {
+        margin: 12px;
+        font-family: inherit;
+    }
+
+    /* CUSTOM MARKER */
+    .custom-marker {
+        z-index: 1000 !important;
+    }
+
+    .marker-pin {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+        .report-card {
+            padding: 25px;
+        }
+
+        .report-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .map-header-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .map-controls {
+            justify-content: center;
+        }
+
+        #map {
+            height: 300px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="report-page">
-    <div class="container">
-        <div class="card">
-            <div class="report-header">
-                <div class="report-icon">🎯</div>
-                <h1>Rapportera saknad disc</h1>
-                <p class="subtitle">Markera var du tappade den så andra kan hjälpa till att leta</p>
-            </div>
-            
-            <div class="gps-controls">
-                <button type="button" class="btn-gps" id="gpsBtn" onclick="getGPSPosition()">
-                    📍 Hämta min position
-                </button>
-                <span class="gps-status-text" id="gpsText">Klicka för att hämta GPS</span>
-            </div>
-            
-            <form method="post" class="report-form" id="reportForm">
-                <div class="form-group">
-                    <label for="disc_name">Discens namn *</label>
-                    <input type="text" id="disc_name" name="disc_name" required 
-                           placeholder="t.ex. Gul Destroyer" maxlength="50">
-                </div>
+    <!-- BAKGRUNDSBILD - Samma stil som andra sidor -->
+    <div class="report-hero-bg" style="background-image: url('{{ url_for('static', filename='images/community-map-bg.png') }}');" id="reportBg"></div>
+    <div class="report-overlay"></div>
+    
+    <div class="report-container">
+        <!-- HEADER -->
+        <div class="report-header">
+            <div class="report-icon">🎯</div>
+            <h1>Rapportera saknad disc</h1>
+            <p class="subtitle">Markera var du tappade den så andra kan hjälpa till att leta</p>
+        </div>
+        
+        <!-- MAIN CARD -->
+        <div class="report-card">
+            <!-- GPS SECTION -->
+            <div class="gps-section">
+                <div class="gps-icon">📍</div>
+                <p class="gps-text">Börja med att hämta din position eller klicka på kartan</p>
                 
+                <button type="button" class="btn-gps" id="gpsBtn" onclick="getGPSPosition()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Hämta min position
+                </button>
+                
+                <div class="gps-status" id="gpsStatus" style="display: none;"></div>
+            </div>
+            
+            <!-- FORM -->
+            <form method="post" class="report-form" id="reportForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="course_name">Bana (valfritt)</label>
-                        <input type="text" id="course_name" name="course_name" 
-                               placeholder="t.ex. Kärsö Discgolf">
+                        <label for="disc_name">Discens namn *</label>
+                        <input type="text" id="disc_name" name="disc_name" required 
+                               placeholder="t.ex. Gul Destroyer" maxlength="50">
                     </div>
                     
                     <div class="form-group">
@@ -41,28 +431,75 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="course_name">Bana (valfritt)</label>
+                    <input type="text" id="course_name" name="course_name" 
+                           placeholder="t.ex. Kärsö Discgolf">
+                </div>
+                
+                <div class="form-group">
                     <label for="description">Beskrivning *</label>
                     <textarea id="description" name="description" rows="3" required
                               placeholder="t.ex. Driver i gult plast, troligen i buskaget till höger om fairway"></textarea>
                 </div>
                 
+                <!-- MAP SECTION med layer controls -->
                 <div class="map-section">
-                    <label>Var tappade du discen? *</label>
-                    <p class="map-hint" id="mapHint">Klicka på "Hämta min position" eller klicka på kartan</p>
+                    <div class="map-header-row">
+                        <label>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
+                                <polygon points="1 6 1 22 8 18 16 22 21 18 21 2 16 6 8 2 1 6"></polygon>
+                                <line x1="8" y1="2" x2="8" y2="18"></line>
+                                <line x1="16" y1="6" x2="16" y2="22"></line>
+                            </svg>
+                            Var tappade du discen? *
+                        </label>
+                        
+                        <div class="map-controls">
+                            <button type="button" class="btn-map-layer active" onclick="setMapLayer('satellite')" id="btnSatellite">
+                                🛰️
+                            </button>
+                            <button type="button" class="btn-map-layer" onclick="setMapLayer('terrain')" id="btnTerrain">
+                                🏔️
+                            </button>
+                            <button type="button" class="btn-map-layer" onclick="setMapLayer('standard')" id="btnStandard">
+                                🗺️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p class="map-hint" id="mapHint">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Klicka på "Hämta min position" eller klicka på kartan för att markera
+                    </p>
+                    
                     <div id="map"></div>
+                    
                     <input type="hidden" name="latitude" id="latitude" required>
                     <input type="hidden" name="longitude" id="longitude" required>
                 </div>
                 
-                <button type="submit" class="btn-primary btn-large btn-full" id="submitBtn" disabled>
+                <button type="submit" class="btn-submit" id="submitBtn" disabled>
                     Rapportera saknad disc
                 </button>
-                
-                <a href="{{ url_for('disc.dashboard') }}" class="btn-text">← Avbryt</a>
             </form>
+        </div>
+        
+        <!-- BACK LINK -->
+        <div class="back-link">
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Tillbaka till min sida
+            </a>
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -71,14 +508,58 @@
 <script>
     var map;
     var marker = null;
+    var currentLayer = null;
     
-    // Initiera karta (Sverige som default)
-    map = L.map('map').setView([59.3293, 18.0686], 5);
+    // Olika kart-lager - SAMMA som community-kartan
+    var layers = {
+        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19
+        }),
+        terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap',
+            maxZoom: 17
+        }),
+        standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+        })
+    };
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
+    // Initiera karta - SAMMA inställningar som community-kartan
+    map = L.map('map', {
+        zoomControl: true,
+        attributionControl: true
+    }).setView([59.3293, 18.0686], 5);
+    
+    // Sätt satellit som default
+    currentLayer = layers.satellite;
+    currentLayer.addTo(map);
+    
+    // VIKTIGT: Fixa för att kartan inte ska försvinna vid zoom
+    map.on('zoomend', function() {
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 100);
+    });
+    
+    // Funktion för att byta kartlager
+    function setMapLayer(layerName) {
+        // Ta bort nuvarande lager
+        if (currentLayer) {
+            map.removeLayer(currentLayer);
+        }
+        
+        // Lägg till nytt lager
+        currentLayer = layers[layerName];
+        currentLayer.addTo(map);
+        
+        // Uppdatera knappar
+        document.querySelectorAll('.btn-map-layer').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById('btn' + layerName.charAt(0).toUpperCase() + layerName.slice(1)).classList.add('active');
+    }
     
     // Funktion för att sätta markör
     function setMarker(lat, lng, zoomIn) {
@@ -99,6 +580,11 @@
         document.getElementById('longitude').value = lng;
         document.getElementById('submitBtn').disabled = false;
         
+        // Uppdatera hint-text
+        var hintEl = document.getElementById('mapHint');
+        hintEl.innerHTML = '✅ Position vald! Klicka på kartan för att ändra.';
+        hintEl.className = 'map-hint success';
+        
         if (zoomIn) {
             map.setView([lat, lng], 17);
         }
@@ -107,13 +593,16 @@
     // Hämta GPS-position
     function getGPSPosition() {
         var btn = document.getElementById('gpsBtn');
-        var txt = document.getElementById('gpsText');
+        var statusEl = document.getElementById('gpsStatus');
         
         btn.disabled = true;
-        txt.textContent = 'Hämtar...';
+        statusEl.style.display = 'block';
+        statusEl.className = 'gps-status';
+        statusEl.textContent = '⏳ Hämtar din position...';
         
         if (!navigator.geolocation) {
-            txt.textContent = 'GPS stöds inte';
+            statusEl.className = 'gps-status error';
+            statusEl.textContent = '❌ Din webbläsare stödjer inte GPS';
             btn.disabled = false;
             return;
         }
@@ -125,19 +614,18 @@
                 
                 setMarker(lat, lng, true);
                 
-                txt.textContent = '✅ Position hittad!';
-                txt.className = 'gps-status-text success';
-                document.getElementById('mapHint').textContent = 'Klicka på kartan för att justera';
+                statusEl.className = 'gps-status success';
+                statusEl.textContent = '✅ Position hittad! Klicka på kartan för att justera.';
                 btn.disabled = false;
             },
             function(error) {
-                var msg = 'Kunde inte hämta';
-                if (error.code === 1) msg = 'Tillåt platsåtkomst';
-                if (error.code === 2) msg = 'Position ej tillgänglig';
-                if (error.code === 3) msg = 'Timeout';
+                var msg = 'Kunde inte hämta position';
+                if (error.code === 1) msg = '❌ Tillåt platsåtkomst i webbläsaren';
+                if (error.code === 2) msg = '❌ Position ej tillgänglig';
+                if (error.code === 3) msg = '❌ Timeout - försök igen';
                 
-                txt.textContent = '❌ ' + msg;
-                txt.className = 'gps-status-text error';
+                statusEl.className = 'gps-status error';
+                statusEl.textContent = msg;
                 btn.disabled = false;
             },
             {
@@ -151,146 +639,20 @@
     // Klick på kartan
     map.on('click', function(e) {
         setMarker(e.latlng.lat, e.latlng.lng, false);
-        document.getElementById('gpsText').textContent = '✅ Position vald manuellt';
-        document.getElementById('gpsText').className = 'gps-status-text success';
+        
+        var statusEl = document.getElementById('gpsStatus');
+        statusEl.style.display = 'block';
+        statusEl.className = 'gps-status success';
+        statusEl.textContent = '✅ Position vald manuellt på kartan';
+    });
+    
+    // Parallax-effekt på bakgrundsbilden
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const bg = document.getElementById('reportBg');
+        if (bg && scrolled < window.innerHeight) {
+            bg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
+        }
     });
 </script>
-{% endblock %}
-
-<style>
-.report-page {
-    padding: 20px 0;
-}
-
-.report-header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.report-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.gps-controls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f3f4f6;
-    border-radius: 10px;
-}
-
-.btn-gps {
-    background: #2563eb;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.btn-gps:hover:not(:disabled) {
-    background: #1d4ed8;
-}
-
-.btn-gps:disabled {
-    opacity: 0.6;
-    cursor: wait;
-}
-
-.gps-status-text {
-    color: #6b7280;
-    font-size: 0.95rem;
-}
-
-.gps-status-text.success {
-    color: #059669;
-    font-weight: 600;
-}
-
-.gps-status-text.error {
-    color: #dc2626;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 15px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1rem;
-}
-
-.map-section {
-    margin-bottom: 25px;
-}
-
-.map-section label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.map-hint {
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-bottom: 10px;
-}
-
-#map {
-    height: 350px;
-    border-radius: 12px;
-    border: 2px solid #e5e7eb;
-}
-
-.marker-pin {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #ef4444;
-    border: 3px solid white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-
-.btn-text {
-    display: block;
-    text-align: center;
-    margin-top: 20px;
-    color: #6b7280;
-    text-decoration: none;
-}
-
-@media (max-width: 640px) {
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .gps-controls {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-</style>
 {% endblock %}

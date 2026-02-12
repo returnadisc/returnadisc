@@ -2,20 +2,367 @@
 
 {% block title %}Min sida - ReturnaDisc{% endblock %}
 
-{% block content %}
-<div class="dashboard">
-    <div class="container">
+{% block extra_css %}
+<style>
+    .dashboard-hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
 
-        <div class="welcome-section">
-            <h1>Välkommen, {{ user.name }}! 👋</h1>
-            <p class="subtitle">Din QR-kod är redo att användas</p>
+    .dashboard-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .dashboard-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .dashboard-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1200px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dashboard-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .dashboard-header h1 span {
+        color: #fbbf24;
+    }
+
+    .dashboard-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Stats bar */
+    .stats-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 40px;
+        margin-bottom: 40px;
+        padding: 25px;
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #166534;
+        line-height: 1;
+    }
+
+    .stat-number.found {
+        color: #22c55e;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #4b5563;
+        margin-top: 5px;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 50px;
+        background: rgba(22, 101, 52, 0.2);
+    }
+
+    /* Main content grid */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    /* QR Card */
+    .qr-card {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .qr-header {
+        margin-bottom: 25px;
+    }
+
+    .qr-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+    }
+
+    .qr-header h2 {
+        font-size: 1.5rem;
+        color: #1a1a1a;
+        margin: 0;
+    }
+
+    .qr-image-container {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .qr-image {
+        max-width: 250px;
+        width: 100%;
+        border-radius: 12px;
+    }
+
+    .qr-id {
+        font-family: monospace;
+        font-size: 1.3rem;
+        color: #166534;
+        font-weight: bold;
+        letter-spacing: 2px;
+        margin-top: 15px;
+    }
+
+    .btn-download {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 14px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-download:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    /* Info Cards */
+    .info-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .info-card {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .info-card h3 {
+        font-size: 1.1rem;
+        color: #166534;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card h3 svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .info-card p {
+        color: #4b5563;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .info-card ol,
+    .info-card ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #4b5563;
+        font-size: 0.95rem;
+    }
+
+    .info-card li {
+        margin-bottom: 8px;
+    }
+
+    .info-card code {
+        background: rgba(22, 101, 52, 0.1);
+        padding: 3px 8px;
+        border-radius: 4px;
+        color: #166534;
+        font-weight: bold;
+    }
+
+    /* Stickers promo */
+    .stickers-promo {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 20px;
+        padding: 25px 35px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .stickers-text {
+        color: #1a1a1a;
+    }
+
+    .stickers-text h3 {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+
+    .stickers-text p {
+        margin: 0;
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    .btn-sticker {
+        background: white;
+        color: #1a1a1a;
+        padding: 12px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: all 0.3s ease;
+    }
+
+    .btn-sticker:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-bar {
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .stickers-promo {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .qr-card {
+            padding: 25px;
+        }
+
+        .info-card {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <!-- BAKGRUNDSBILD: Döp till "dashboard-bg.jpg" -->
+    <div class="dashboard-bg" style="background-image: url('{{ url_for('static', filename='images/dashboard-bg.png') }}');" id="dashboardBg"></div>
+    <div class="dashboard-overlay"></div>
+    
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Välkommen, {{ user.name }}!</h1>
+            <p>Din QR-kod är redo att användas</p>
         </div>
         
-        <!-- NYTT: Statistik-kort -->
+        <!-- Stats -->
         <div class="stats-bar">
             <div class="stat-item">
                 <div class="stat-number">{{ missing_stats.missing }}</div>
-                <div class="stat-label">Saknade discar</div>
+                <div class="stat-label">Saknade</div>
             </div>
             <div class="stat-divider"></div>
             <div class="stat-item">
@@ -30,328 +377,111 @@
         </div>
         
         {% if not qr %}
-            <div class="activate-cta">
-                <div class="cta-icon">🎯</div>
+            <div class="qr-card">
                 <h2>Genererar din QR-kod...</h2>
                 <p>Ladda om sidan om ett ögonblick.</p>
             </div>
         {% else %}
-            <!-- QR-kort -->
-            <div class="qr-section">
-                <div class="qr-card">
-                    <div class="qr-header">
-                        <h2>Din QR-kod</h2>
-                        <span class="qr-badge">AKTIV</span>
-                    </div>
-                    
-                    <div class="qr-image-container">
-                        <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
-                             alt="Din QR-kod" 
-                             class="qr-image"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                        <div class="qr-fallback" style="display: none;">
-                            <p>QR-kod: <strong>{{ qr.qr_id }}</strong></p>
-                        </div>
-                    </div>
-                    
-                    <div class="qr-actions">
-                        <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
-                           download="returnadisc-{{ qr.qr_id }}.png"
-                           class="btn-primary btn-large">
-                            ⬇️ Ladda ner QR-kod
-                        </a>
-                    </div>
+        <!-- Main Grid -->
+        <div class="dashboard-grid">
+            <!-- QR Card -->
+            <div class="qr-card">
+                <div class="qr-header">
+                    <div class="qr-badge">AKTIV</div>
+                    <h2>Din QR-kod</h2>
+                </div>
+                
+                <div class="qr-image-container">
+                    <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                         alt="Din QR-kod" 
+                         class="qr-image"
+                         onerror="this.style.display='none'; this.parentElement.innerHTML='<p>QR-kod: <strong>{{ qr.qr_id }}</strong></p>'">
+                    <div class="qr-id">{{ qr.qr_id }}</div>
+                </div>
+                
+                <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                   download="returnadisc-{{ qr.qr_id }}.png"
+                   class="btn-download">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Ladda ner QR-kod
+                </a>
+            </div>
+            
+            <!-- Info Cards -->
+            <div class="info-cards">
+                <div class="info-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Så här fungerar det
+                    </h3>
+                    <ol>
+                        <li>Ladda ner QR-koden</li>
+                        <li>Skriv ut på papper eller etikett</li>
+                        <li>Sätt på alla dina discar</li>
+                        <li>Klart!</li>
+                    </ol>
+                </div>
+                
+                <div class="info-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <polyline points="2 17 12 22 22 17"></polyline>
+                            <polyline points="2 12 12 17 22 12"></polyline>
+                        </svg>
+                        Tips för placering
+                    </h3>
+                    <ul>
+                        <li>Undersidan av discen</li>
+                        <li>Innerkanten (rim)</li>
+                        <li>Syns tydligt men slits inte</li>
+                        <li>Tejp över för skydd</li>
+                    </ul>
+                </div>
+                
+                <div class="info-card">
+                    <h3>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        PDGA Tävling
+                    </h3>
+                    <p>Enligt <strong>PDGA 813.01</strong> måste discar vara identifierbara. Skriv <code>{{ qr.qr_id }}</code> med tusch = regelföljd + anonymt!</p>
                 </div>
             </div>
             
-            <!-- Köp klistermärken - egen sektion -->
+            <!-- Stickers Promo -->
             <div class="stickers-promo">
-                <div class="promo-content">
-                    <span class="promo-icon">🛒</span>
-                    <div class="promo-text">
-                        <h3>Vill du ha proffsiga klistermärken?</h3>
-                        <p>Vattentåliga, UV-beständiga, perfekt storlek (2.5×2.5 cm)</p>
-                    </div>
-                    <a href="{{ url_for('auth.buy_stickers') }}" class="btn-secondary">
-                        Beställ här
-                    </a>
+                <div class="stickers-text">
+                    <h3>Vill du ha proffsiga klistermärken?</h3>
+                    <p>Vattentåliga, UV-beständiga, perfekt storlek</p>
                 </div>
+                <a href="{{ url_for('auth.buy_stickers') }}" class="btn-sticker">Beställ här</a>
             </div>
-            
-            <!-- Info i symmetriskt grid -->
-            <div class="info-section">
-                <div class="info-grid">
-                    <div class="info-card">
-                        <h3>🎯 Så här fungerar det</h3>
-                        <ol>
-                            <li>Ladda ner QR-koden</li>
-                            <li>Skriv ut på papper eller etikett</li>
-                            <li>Sätt på dina discar</li>
-                            <li>Klart!</li>
-                        </ol>
-                    </div>
-                    
-                    <div class="info-card">
-                        <h3>💡 Tips för placering</h3>
-                        <ul>
-                            <li>Undersidan av discen</li>
-                            <li>Innerkanten</li>
-                            <li>Syns tydligt men slits inte</li>
-                            <li>Tejp över för skydd</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="info-card">
-                        <h3>⚙️ Dina uppgifter</h3>
-                        <div class="user-info">
-                            <p><strong>Namn:</strong> {{ user.name }}</p>
-                            <p><strong>Email:</strong> {{ user.email }}</p>
-                            <p><strong>QR-ID:</strong> <code>{{ qr.qr_id }}</code></p>
-                        </div>
-                    </div>
-                    
-                    <div class="info-card">
-                        <h3>🏆 PDGA Tävling</h3>
-                        <p>Enligt <strong>PDGA 813.01</strong> måste discar vara identifierbara.</p>
-                            <p>Skriv <code>{{ qr.qr_id }}</code> med tusch = regelföljd + anonymt!</p>
-                    </div>
-                </div>
-            </div>
+        </div>
         {% endif %}
     </div>
 </div>
 
-<style>
-.dashboard {
-    padding: 20px 0;
-}
-
-.welcome-section {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.welcome-section h1 {
-    font-size: 1.8rem;
-    margin-bottom: 8px;
-}
-
-.subtitle {
-    color: #6b7280;
-}
-
-/* NYTT: Stats bar */
-.stats-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 30px;
-    margin-bottom: 30px;
-    padding: 25px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px;
-    color: white;
-}
-
-.stat-item {
-    text-align: center;
-    min-width: 120px;
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.stat-number.found {
-    color: #10b981;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    opacity: 0.9;
-}
-
-.stat-divider {
-    width: 1px;
-    height: 50px;
-    background: rgba(255,255,255,0.3);
-}
-
-/* QR-kort */
-.qr-section {
-    margin-bottom: 30px;
-}
-
-.qr-card {
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    text-align: center;
-    max-width: 450px;
-    margin: 0 auto;
-}
-
-.qr-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.qr-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-}
-
-.qr-badge {
-    background: #10b981;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: bold;
-}
-
-.qr-image-container {
-    background: #f9fafb;
-    padding: 20px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-}
-
-.qr-image {
-    max-width: 280px;
-    width: 100%;
-    border-radius: 12px;
-}
-
-.qr-fallback {
-    padding: 40px;
-    background: white;
-    border-radius: 12px;
-}
-
-.qr-actions {
-    display: flex;
-    justify-content: center;
-}
-
-/* Stickers promo - egen sektion */
-.stickers-promo {
-    margin-bottom: 30px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.promo-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 25px 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 16px;
-}
-
-.promo-icon {
-    font-size: 2.5rem;
-}
-
-.promo-text {
-    flex: 1;
-}
-
-.promo-text h3 {
-    margin-bottom: 5px;
-    font-size: 1.1rem;
-}
-
-.promo-text p {
-    margin: 0;
-    opacity: 0.9;
-    font-size: 0.95rem;
-}
-
-/* Info grid - symmetriskt */
-.info-section {
-    margin-bottom: 30px;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.info-card {
-    background: white;
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.info-card h3 {
-    margin-bottom: 15px;
-    color: #374151;
-    font-size: 1.1rem;
-}
-
-.info-card ol,
-.info-card ul {
-    padding-left: 20px;
-    color: #4b5563;
-    margin: 0;
-}
-
-.info-card li {
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-}
-
-.user-info p {
-    margin: 10px 0;
-    color: #4b5563;
-    font-size: 0.95rem;
-}
-
-.user-info code {
-    background: #f3f4f6;
-    padding: 3px 8px;
-    border-radius: 4px;
-    color: #2563eb;
-    font-weight: bold;
-}
-
-@media (max-width: 768px) {
-    .stats-bar {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .stat-divider {
-        width: 80%;
-        height: 1px;
-    }
-    
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .promo-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .qr-card {
-        padding: 20px;
-    }
-}
-</style>
+<script>
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const dashboardBg = document.getElementById('dashboardBg');
+        if (dashboardBg) {
+            dashboardBg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
+        }
+    });
+</script>
 {% endblock %}
