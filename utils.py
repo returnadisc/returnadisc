@@ -106,12 +106,17 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     
     os.makedirs(qr_folder, exist_ok=True)
     
-    # Skapa QR-kod - ANVÄND EXAKT SAMMA INSTÄLLNINGAR SOM FUNKAR LOKALT
+    # Hitta font - först i projektmappen, sedan systemet
+    font_path = 'static/fonts/arial.ttf'
+    if not os.path.exists(font_path):
+        font_path = 'C:/Windows/Fonts/arial.ttf'
+    
+    # Skapa QR-kod
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=1,
+        box_size=20,
+        border=2,
     )
     
     qr_url = f"{public_url}/found/{qr_id}"
@@ -123,100 +128,62 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     if qr_img.mode != 'RGB':
         qr_img = qr_img.convert('RGB')
     
-    # Konvertera till RGBA för att kunna hantera text bättre
-    qr_img = qr_img.convert('RGBA')
-    
     try:
-        from PIL import ImageFont, ImageDraw
-        
-        # FÖRSÖK hitta systemfont, men använd alltid SAMMA storleksberäkning
-        font_large = None
-        font_small = None
-        
-        font_paths = [
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-            "/System/Library/Fonts/Helvetica.ttc",
-            "C:/Windows/Fonts/arial.ttf",
-            "arial.ttf",
-        ]
-        
-        for font_path in font_paths:
-            try:
-                # ANVÄND MINDRE FONTS för att matcha din lokala bild
-                font_large = ImageFont.truetype(font_path, 36)
-                font_small = ImageFont.truetype(font_path, 24)
-                break
-            except:
-                continue
-        
-        # Om ingen font hittas, använd default MEN skala upp QR-koden först
-        if font_large is None:
-            # Skala upp hela bilden så default-font blir läsbar
-            scale_factor = 3
-            new_size = (qr_img.width * scale_factor, qr_img.height * scale_factor)
-            qr_img = qr_img.resize(new_size, Image.Resampling.NEAREST)
-            font_large = ImageFont.load_default()
-            font_small = ImageFont.load_default()
-        
-        # Beräkna allt baserat på faktisk bildstorlek
-        width, height = qr_img.size
+        # Ladda samma font lokalt och online
+        font_large = ImageFont.truetype(font_path, 112)
+        font_small = ImageFont.truetype(font_path, 72)
         
         draw = ImageDraw.Draw(qr_img)
         
         text_se = "returnadisc.se"
         text_id = qr_id
         
-        # Mät text
-        try:
-            bbox_se = draw.textbbox((0, 0), text_se, font=font_small)
-            width_se = bbox_se[2] - bbox_se[0]
-            height_se = bbox_se[3] - bbox_se[1]
-            bbox_id = draw.textbbox((0, 0), text_id, font=font_large)
-            width_id = bbox_id[2] - bbox_id[0]
-            height_id = bbox_id[3] - bbox_id[1]
-        except:
-            width_se = 150
-            height_se = 24
-            width_id = 100
-            height_id = 36
+        bbox_se = draw.textbbox((0, 0), text_se, font=font_small)
+        width_se = bbox_se[2] - bbox_se[0]
+        height_se = bbox_se[3] - bbox_se[1]
+        bbox_id = draw.textbbox((0, 0), text_id, font=font_large)
+        width_id = bbox_id[2] - bbox_id[0]
+        height_id = bbox_id[3] - bbox_id[1]
         
-        # Beräkna ny höjd med text
-        margin_top = 10
-        line_gap = 5
-        margin_bottom = 10
+        width, height = qr_img.size
         
-        text_area_height = margin_top + height_se + line_gap + height_id + margin_bottom
+        margin_top = 16
+        line_spacing = 10
+        margin_bottom = 30
         
-        # Skapa ny bild med vit bakgrund
-        new_img = Image.new('RGBA', (width, height + text_area_height), (255, 255, 255, 255))
+        total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
+        
+        new_height = height + int(total_text_height)
+        new_img = Image.new('RGB', (width, new_height), 'white')
         new_img.paste(qr_img, (0, 0))
         
         draw = ImageDraw.Draw(new_img)
         
-        # Rita text centreras
-        x_se = (width - width_se) // 2
+        x_se = (width - int(width_se)) // 2
         y_se = height + margin_top
         draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
         
-        x_id = (width - width_id) // 2
-        y_id = y_se + height_se + line_gap
+        x_id = (width - int(width_id)) // 2
+        y_id = y_se + height_se + line_spacing
         draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
         
-        # Konvertera tillbaka till RGB
-        qr_img = new_img.convert('RGB')
+        # Skala till 400px
+        final_width = 400
+        current_width, current_height = new_img.size
+        scale = final_width / current_width
+        final_height = int(current_height * scale)
+        
+        qr_img = new_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
         
     except Exception as e:
-        logger.error(f"Fel vid QR-text: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
+        logger.error(f"Font fel: {e}")
+        raise  # Kasta felet så du ser vad som gick snett
     
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
-    
     qr_img.save(filepath, quality=95)
     
+    logger.info(f"Created QR code: {filename}")
     return filename
 
 
