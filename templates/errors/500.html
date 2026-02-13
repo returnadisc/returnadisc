@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serverfel - ReturnaDisc</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .error-container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+
+        .error-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .error-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .support-text {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .support-text a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .support-text a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .error-container {
+                padding: 40px 25px;
+            }
+            
+            .error-code {
+                font-size: 80px;
+            }
+            
+            .error-title {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">🔧</div>
+        <div class="error-code">500</div>
+        <h1 class="error-title">Oj, något gick fel!</h1>
+        <p class="error-message">
+            Vi beklagar, men ett oväntat fel uppstod på servern. 
+            Vårt team har notifierats och arbetar på att åtgärda problemet.
+            Försök igen om en stund.
+        </p>
+        <a href="{{ url_for('auth.index') }}" class="btn">Tillbaka till startsidan</a>
+        <p class="support-text">
+            Behöver du hjälp? <a href="mailto:support@returnadisc.se">Kontakta vår support</a>
+        </p>
+    </div>
+</body>
+</html>

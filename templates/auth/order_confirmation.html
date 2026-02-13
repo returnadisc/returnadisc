@@ -18,6 +18,7 @@
         align-items: center;
         justify-content: center;
         padding: 100px 20px 40px;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
     }
 
     .confirmation-bg {
@@ -347,7 +348,6 @@
         color: #166534;
     }
 
-    /* NYTT: QR-koder lista för aktivering senare */
     .qr-list-section {
         background: white;
         padding: 25px;
@@ -385,8 +385,21 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.8rem;
+        font-size: 1.5rem;
         color: #6b7280;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .qr-code-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+
+    .qr-code-thumb img.hidden {
+        display: none;
     }
 
     .qr-code-details h4 {
@@ -519,7 +532,7 @@
 
 {% block content %}
 <div class="confirmation-page">
-    <div class="confirmation-bg" style="background-image: url('{{ url_for('static', filename='images/buy-stickers-bg.png') }}');" id="confirmationBg"></div>
+    <div class="confirmation-bg" style="background-image: url('{{ url_for('static', filename='images/buy-stickers-bg.png') }}');"></div>
     <div class="confirmation-overlay"></div>
     
     <div class="confirmation-container">
@@ -555,7 +568,7 @@
                 </p>
             </div>
             
-            <!-- NYTT: Hur det fungerar -->
+            <!-- Hur det fungerar -->
             <div class="how-it-works-mini">
                 <h3>🎯 Så här fungerar det</h3>
                 <div class="steps-mini">
@@ -583,10 +596,11 @@
                 {% for qr in qr_codes %}
                 <div class="qr-code-item">
                     <div class="qr-code-info">
-                        <div class="qr-code-thumb">
+                        <div class="qr-code-thumb" id="qrThumb-{{ loop.index }}">
                             <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                                  alt="QR {{ qr.qr_id }}"
-                                 style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                                 loading="lazy"
+                                 data-qr-id="{{ qr.qr_id }}">
                         </div>
                         <div class="qr-code-details">
                             <h4>{{ qr.qr_id }}</h4>
@@ -612,7 +626,7 @@
                 </a>
             </div>
             
-            <!-- NYTT: Aktivera nu ELLER senare -->
+            <!-- Aktivera nu ELLER senare -->
             <div class="activation-box">
                 <h3>🚀 Redan redo att aktivera?</h3>
                 <p>Du kan aktivera din QR-kod direkt nu, eller vänta tills senare. 
@@ -638,7 +652,7 @@
                 </a>
             </div>
             
-            <!-- NYTT: Aktivera senare -->
+            <!-- Aktivera senare -->
             <div class="activate-later-box">
                 <h3>⏰ Vill du aktivera senare?</h3>
                 <p>Inga problem! Spara din orderbekräftelse och kom tillbaka när du vill. 
@@ -663,12 +677,12 @@
 
 {% block extra_js %}
 <script>
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const bg = document.getElementById('confirmationBg');
-        if (bg && scrolled < window.innerHeight) {
-            bg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
-        }
+    // QR bild fallback
+    document.querySelectorAll('.qr-code-thumb img').forEach(img => {
+        img.addEventListener('error', function() {
+            this.classList.add('hidden');
+            this.parentElement.textContent = '📱';
+        });
     });
 </script>
 {% endblock %}

@@ -304,11 +304,13 @@
         
         <!-- Main Card -->
         <div class="signup-card">
+            <!-- FEL: Duplicerad flash-hantering - base.html hanterar redan detta -->
+            <!-- Men vi behöver specifik styling för error inuti kortet -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
                         {% if category == 'error' %}
-                            <div class="alert-error">{{ message }}</div>
+                            <div class="alert-error">{{ message | e }}</div>
                         {% endif %}
                     {% endfor %}
                 {% endif %}
@@ -371,7 +373,7 @@
 
 {% block extra_js %}
 <script>
-    // Parallax-effekt på bakgrundsbilden
+    // FEL: Samma problem som i andra filer - konflikt med CSS-animation
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
         const heroBg = document.getElementById('heroBg');

@@ -503,7 +503,6 @@
         <div class="buy-container">
             <!-- HEADER -->
             <div class="buy-header">
-                <span class="buy-icon">🏷️</span>
                 <h1>Köp <span>Stickers</span></h1>
                 <p class="subtitle">Samma QR-kod på alla dina discar</p>
             </div>
@@ -572,9 +571,8 @@
                             <div class="price-note">Fri frakt</div>
                         </div>
                         <div class="price-features">
-                            <div class="feature-highlight">10 stickers</div>
-                            <p>Tillräckligt för 10 discar</p>
-                            <p>Samma QR-kod på alla</p>
+                            <div class="feature-highlight">12 stickers</div>
+                            <p>För nybörjaren</p>
                         </div>
                         <form method="post" action="{{ url_for('auth.buy_stickers_checkout') }}">
                             <input type="hidden" name="package" value="start">
@@ -594,9 +592,8 @@
                             <div class="price-note">Fri frakt</div>
                         </div>
                         <div class="price-features">
-                            <div class="feature-highlight">20 stickers</div>
+                            <div class="feature-highlight">24 stickers</div>
                             <p>För den aktiva spelaren</p>
-                            <p>Samma QR-kod på alla</p>
                         </div>
                         <form method="post" action="{{ url_for('auth.buy_stickers_checkout') }}">
                             <input type="hidden" name="package" value="standard">
@@ -615,9 +612,8 @@
                             <div class="price-note">Fri frakt</div>
                         </div>
                         <div class="price-features">
-                            <div class="feature-highlight">40 stickers</div>
+                            <div class="feature-highlight">48 stickers</div>
                             <p>För seriösa discgolfare</p>
-                            <p>Samma QR-kod på alla</p>
                         </div>
                         <form method="post" action="{{ url_for('auth.buy_stickers_checkout') }}">
                             <input type="hidden" name="package" value="pro">
@@ -630,7 +626,7 @@
             
             <!-- INFO -->
             <div class="simple-info">
-                <p>Enligt <strong>PDGA-reglerna</strong> kan du skriva QR-koden med permanent tusch istället för klistermärke vid tävling.</p>
+                <p>Enligt <strong>PDGA 813.01</strong> kan du skriva QR-koden med permanent tusch istället för klistermärke vid tävling.</p>
             </div>
         </div>
     </section>

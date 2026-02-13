@@ -12,6 +12,7 @@
         align-items: center;
         justify-content: center;
         padding: 100px 20px 40px;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
     }
 
     .checkout-bg {
@@ -173,6 +174,7 @@
         font-size: 1rem;
         background: white;
         transition: all 0.3s ease;
+        font-family: inherit;
     }
 
     .form-group input:focus,
@@ -180,6 +182,17 @@
         outline: none;
         border-color: #166534;
         box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .form-hint {
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 5px;
     }
 
     .form-row {
@@ -249,7 +262,7 @@
 
 {% block content %}
 <section class="checkout-page">
-    <div class="checkout-bg" style="background-image: url('{{ url_for('static', filename='images/buy-stickers-bg.png') }}');" id="checkoutBg"></div>
+    <div class="checkout-bg" style="background-image: url('{{ url_for('static', filename='images/buy-stickers-bg.png') }}');"></div>
     <div class="checkout-overlay"></div>
     
     <div class="checkout-content">
@@ -274,39 +287,45 @@
                 </div>
             </div>
             
-            <form method="post" class="checkout-form">
+            <form method="post" class="checkout-form" autocomplete="on">
                 <input type="hidden" name="package" value="{{ package }}">
                 <input type="hidden" name="count" value="{{ sticker_count }}">
                 
                 <div class="form-group">
                     <label for="name">Fullständigt namn *</label>
-                    <input type="text" id="name" name="name" required placeholder="Förnamn Efternamn">
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Förnamn Efternamn" autocomplete="name">
                 </div>
                 
                 <div class="form-group">
                     <label for="email">Email *</label>
-                    <input type="email" id="email" name="email" required placeholder="din@email.se">
-                    <small style="color: #6b7280; margin-top: 5px;">Vi skickar aktiveringslänken hit</small>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="din@email.se" autocomplete="username email">
+                    <span class="form-hint">Vi skickar aktiveringslänken hit</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="phone">Telefonnummer</label>
-                    <input type="tel" id="phone" name="phone" placeholder="07X-XXX XX XX">
+                    <input type="tel" id="phone" name="phone" 
+                           placeholder="07X-XXX XX XX" autocomplete="tel">
                 </div>
                 
                 <div class="form-group">
                     <label for="address">Leveransadress *</label>
-                    <textarea id="address" name="address" rows="3" required placeholder="Gatuadress, postnummer, ort"></textarea>
+                    <textarea id="address" name="address" required 
+                              placeholder="Gatuadress, postnummer, ort" autocomplete="street-address"></textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="postal_code">Postnummer *</label>
-                        <input type="text" id="postal_code" name="postal_code" required placeholder="123 45">
+                        <input type="text" id="postal_code" name="postal_code" required 
+                               placeholder="123 45" autocomplete="postal-code">
                     </div>
                     <div class="form-group">
                         <label for="city">Ort *</label>
-                        <input type="text" id="city" name="city" required placeholder="Stockholm">
+                        <input type="text" id="city" name="city" required 
+                               placeholder="Stockholm" autocomplete="address-level2">
                     </div>
                 </div>
                 
@@ -329,13 +348,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const bg = document.getElementById('checkoutBg');
-        if (bg && scrolled < window.innerHeight) {
-            bg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
-        }
-    });
-</script>
+<!-- Borttagen parallax-kod som konfliktade med CSS animation -->
 {% endblock %}

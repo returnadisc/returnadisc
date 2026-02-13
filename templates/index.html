@@ -18,6 +18,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
     }
 
     .hero-bg {
@@ -215,6 +216,10 @@
         box-shadow: 0 15px 40px rgba(0,0,0,0.2);
     }
 
+    .step-image.hidden {
+        display: none;
+    }
+
     .step-placeholder {
         width: 100%;
         height: 220px;
@@ -260,7 +265,7 @@
         font-size: 0.95rem;
     }
 
-    /* FEATURES - 4 KORT MED NYA IKONER */
+    /* FEATURES - 4 KORT */
     .features-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -461,6 +466,10 @@
         height: 350px;
         object-fit: cover;
         display: block;
+    }
+
+    .news-image.hidden {
+        display: none;
     }
 
     .news-image-placeholder {
@@ -723,6 +732,7 @@
                     <img src="{{ url_for('static', filename='images/step1-disc-found.png') }}" 
                          alt="Discen blir hittad" 
                          class="step-image"
+                         loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">🥏</div>
                 </div>
@@ -739,6 +749,7 @@
                     <img src="{{ url_for('static', filename='images/step2-scan-qr.png') }}" 
                          alt="Scannar QR-kod" 
                          class="step-image"
+                         loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">📱</div>
                 </div>
@@ -755,6 +766,7 @@
                     <img src="{{ url_for('static', filename='images/step3-hide-disc.png') }}" 
                          alt="Gömmer discen" 
                          class="step-image"
+                         loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">📍</div>
                 </div>
@@ -771,6 +783,7 @@
                     <img src="{{ url_for('static', filename='images/step4-walk-away.png') }}" 
                          alt="Hämta discen" 
                          class="step-image"
+                         loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">✅</div>
                 </div>
@@ -909,45 +922,15 @@
             <img src="{{ url_for('static', filename='images/community-map-sweden.png') }}" 
                  alt="Community-karta över Sverige med borttappade discar" 
                  class="news-image"
+                 loading="lazy"
                  onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'news-image-placeholder\'><span class=\'map-icon\'>🗺️</span><p>Community-karta</p></div>'">
         </div>
     </div>
 </section>
-
-<!-- Footer -->
-<footer class="footer-new">
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>ReturnaDisc</h4>
-                <a href="{{ url_for('auth.buy_stickers') }}">Köp klistermärken</a>
-                <a href="{{ url_for('missing.community_map') }}">Community-kartan</a>
-            </div>
-            <div class="footer-section">
-                <h4>Hjälp</h4>
-                <a href="#">Vanliga frågor</a>
-                <a href="#">Kontakta oss</a>
-            </div>
-            <div class="footer-section">
-                <h4>Om du hittat en disc</h4>
-                <a href="{{ url_for('found.found_manual') }}">Återlämna disc</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 ReturnaDisc. Hjälp discar hitta hem.</p>
-        </div>
-    </div>
-</footer>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const heroBg = document.getElementById('heroBg');
-        if (heroBg && scrolled < window.innerHeight) {
-            heroBg.style.transform = `translateY(${scrolled * 0.5}px) scale(1.1)`;
-        }
-    });
+    // Borttagen parallax-kod som konfliktade med CSS animation
 </script>
 {% endblock %}

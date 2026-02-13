@@ -1,14 +1,14 @@
 """ReturnaDisc - Flask-applikation."""
 import os
+import sys
 import logging
 
-from flask import Flask, request
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from flask import Flask, request, render_template, g, session
 
-from config import config
-from database import db
-from blueprints import auth_bp, disc_bp, found_bp, admin_bp, missing_bp
+# Lägg till projektmappen i path
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 # Setup logging
 logging.basicConfig(
@@ -18,63 +18,103 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def create_app(config_name=None):
-    """Application factory."""
-    if config_name is None:
-        config_name = os.environ.get('FLASK_ENV', 'development')
+def create_app():
+    """Skapa Flask-applikation."""
+    from config import config
+    
+    env = os.environ.get('FLASK_ENV', 'development')
+    if env not in config:
+        env = 'development'
     
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
-    
-    # Säkerhet: Rate limiting
-    limiter = Limiter(
-        app=app,
-        key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"]
-    )
-    
-    # Säkerhet: Stricter limits for auth endpoints
-    limiter.limit("5 per minute")(auth_bp)
+    app.config.from_object(config[env])
     
     # Initiera databas
+    from database import db
     db.init_tables()
     
-    # Skapa folders om de inte finns
-    for folder in [app.config['UPLOAD_FOLDER'], 
-                   app.config['QR_FOLDER'],
-                   app.config['PDF_FOLDER']]:
-        os.makedirs(folder, exist_ok=True)
+    # Skapa foldrar
+    for folder in ['UPLOAD_FOLDER', 'QR_FOLDER', 'PDF_FOLDER']:
+        path = app.config.get(folder)
+        if path:
+            os.makedirs(path, exist_ok=True)
     
-    # Registrera blueprints
+    # ============================================================================
+    # REGISTRERA BLUEPRINTS - NU ENKLARE!
+    # ============================================================================
+    
+    from blueprints import auth_bp, disc_bp, found_bp, missing_bp, admin_bp
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(disc_bp)
     app.register_blueprint(found_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(missing_bp)
+    app.register_blueprint(missing_bp, url_prefix='/missing')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
     
-    # Global error handlers
+    logger.info("✓ All blueprints registered")
+    
+    # Logga alla routes
+    logger.info("Registered routes:")
+    for rule in app.url_map.iter_rules():
+        if rule.endpoint != 'static':
+            logger.info(f"  {rule.endpoint}: {rule.rule}")
+    
+    # ============================================================================
+    # ERROR HANDLERS
+    # ============================================================================
+    
     @app.errorhandler(404)
-    def not_found(error):
-        return "Sidan finns inte", 404
+    def handle_404(error):
+        user = None
+        user_id = session.get('user_id')
+        if user_id:
+            user = db.get_user_by_id(user_id)
+        return render_template('errors/404.html', current_user=user), 404
     
     @app.errorhandler(500)
-    def internal_error(error):
-        logger.error(f"Server error: {error}")
-        return "Ett fel uppstod", 500
+    def handle_500(error):
+        logger.error(f"Server error: {error}", exc_info=True)
+        user = None
+        user_id = session.get('user_id')
+        if user_id:
+            user = db.get_user_by_id(user_id)
+        return render_template('errors/500.html', current_user=user), 500
     
-    # Context processor för templates - MÅSTE vara INUTI create_app
+    # ============================================================================
+    # CONTEXT PROCESSOR
+    # ============================================================================
+    
     @app.context_processor
     def inject_globals():
-        from flask import session
+        user = None
+        user_id = session.get('user_id')
+        if user_id:
+            user = db.get_user_by_id(user_id)
         return {
-            'current_user': db.get_user_by_id(session.get('user_id')),
-            'base_url': app.config.get('BASE_URL', request.host_url.rstrip('/'))
+            'current_user': user,
+            'is_logged_in': user is not None
         }
     
-    return app
+    # ============================================================================
+    # REQUEST LOGGING
+    # ============================================================================
     
+    @app.before_request
+    def log_request():
+        g.start_time = __import__('time').time()
+    
+    @app.after_request
+    def log_response(response):
+        if hasattr(g, 'start_time'):
+            duration = f" ({(__import__('time').time() - g.start_time)*1000:.1f}ms)"
+        else:
+            duration = ""
+        logger.info(f"{request.method} {request.path} - {response.status_code}{duration}")
+        return response
+    
+    return app
 
-# Skapa app-instans
+
 app = create_app()
 
 

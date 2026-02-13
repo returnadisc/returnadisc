@@ -1,455 +1,408 @@
-﻿"""Utils."""
+﻿"""Utility-funktioner för ReturnaDisc."""
 import logging
+import secrets
 import os
 import re
-import secrets
+import threading
 import base64
-import qrcode
+import io
 from datetime import datetime
-from threading import Thread
-from PIL import Image, ImageDraw, ImageFont
+from typing import Optional, List, Dict, Tuple
 
-from flask import current_app
-from werkzeug.utils import secure_filename
-from reportlab.pdfgen import canvas
+import qrcode
+from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import cm
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+
+from config import Config
 
 logger = logging.getLogger(__name__)
 
 
-def send_email_async(to_email, subject, html_content, attachments=None):
-    """Skicka email asynkront via SendGrid med valfria bilagor."""
-    def send():
-        try:
-            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-            
-            message = Mail(
-                from_email='noreply@returnadisc.se',
-                to_emails=to_email,
-                subject=subject,
-                html_content=html_content
-            )
-            
-            # Lägg till bilagor om det finns
-            if attachments:
-                for file_path in attachments:
-                    if os.path.exists(file_path):
-                        with open(file_path, 'rb') as f:
-                            data = f.read()
-                            
-                        # Bestäm filtyp baserat på filändelse
-                        if file_path.lower().endswith('.pdf'):
-                            file_type = "application/pdf"
-                        elif file_path.lower().endswith('.png'):
-                            file_type = "image/png"
-                        elif file_path.lower().endswith(('.jpg', '.jpeg')):
-                            file_type = "image/jpeg"
-                        else:
-                            file_type = "application/octet-stream"
-                        
-                        encoded = base64.b64encode(data).decode()
-                        attachment = Attachment()
-                        attachment.file_content = FileContent(encoded)
-                        attachment.file_name = FileName(os.path.basename(file_path))
-                        attachment.file_type = FileType(file_type)
-                        attachment.disposition = Disposition('attachment')
-                        message.add_attachment(attachment)
-            
-            response = sg.send(message)
-            logger.info(f"Email sent to {to_email}: {response.status_code}")
-            
-        except Exception as e:
-            logger.error(f"Failed to send email to {to_email}: {str(e)}")
+# ============================================================================
+# Email Service
+# ============================================================================
+
+class EmailService:
+    """Service för att skicka email."""
     
-    Thread(target=send).start()
-    return True
-
-
-def save_uploaded_photo(photo, prefix):
-    """Spara uppladdad bild."""
-    if not photo or photo.filename == '':
-        return None
+    def __init__(self):
+        # Hantera saknade config-värden
+        self.enabled = getattr(Config, 'EMAIL_ENABLED', False)
+        self.smtp_server = getattr(Config, 'SMTP_SERVER', None)
+        self.smtp_port = getattr(Config, 'SMTP_PORT', 587)
+        self.email_from = getattr(Config, 'EMAIL_FROM', None)
+        self.email_user = getattr(Config, 'EMAIL_USER', None)
+        self.email_password = getattr(Config, 'EMAIL_PASSWORD', None)
     
-    filename = secure_filename(f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg")
-    filepath = os.path.join('static', 'uploads', filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    photo.save(filepath)
-    return '/' + filepath.replace('\\', '/')
+    def send_async(self, to_email: str, subject: str, html_content: str) -> None:
+        """Skicka email asynkront."""
+        if not self.enabled:
+            logger.info(f"Email disabled. Would send to {to_email}: {subject}")
+            return
+        
+        if not all([self.smtp_server, self.email_from, self.email_user, self.email_password]):
+            logger.warning("Email config incomplete, cannot send email")
+            return
+        
+        def send():
+            try:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart
+                
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = subject
+                msg['From'] = self.email_from
+                msg['To'] = to_email
+                
+                msg.attach(MIMEText(html_content, 'html'))
+                
+                with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                    server.starttls()
+                    server.login(self.email_user, self.email_password)
+                    server.sendmail(self.email_from, [to_email], msg.as_string())
+                
+                logger.info(f"Email sent to {to_email}")
+            except Exception as e:
+                logger.error(f"Failed to send email: {e}")
+        
+        thread = threading.Thread(target=send)
+        thread.daemon = True
+        thread.start()
 
 
-def sanitize_input(text):
-    """Rensa input."""
-    if not text:
-        return ''
-    text = re.sub(r'[<>\"\'%;()&+]', '', text)
-    return text.strip()
+# Global email service instance
+email_service = EmailService()
 
 
-def generate_random_qr_id(length=5):
-    """Generera slumpmässig QR-kod. Undvik Q, I, O, 0, 1."""
-    alphabet = 'ABCDEFGHJKLMNPRSTUVWXYZ23456789'
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+def send_email_async(to_email: str, subject: str, html_content: str) -> None:
+    """Helper funktion för att skicka email."""
+    email_service.send_async(to_email, subject, html_content)
 
 
-def crop_qr_tight(qr_img):
-    """Beskär QR-kod aggressivt - ta bort ALLT vitt runt kanterna."""
+# ============================================================================
+# QR Code Generation
+# ============================================================================
+
+def generate_random_qr_id(length: int = 5) -> str:
+    """Generera ett slumpmässigt QR-ID."""
+    import random
+    import string
+    
+    # Använd versaler och siffror, undvik I, O, 0 för att undvika förväxling
+    chars = ''.join(c for c in (string.ascii_uppercase + string.digits) 
+                   if c not in 'IO0')
+    return ''.join(random.choices(chars, k=length))
+
+
+def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
+    """
+    Skapa QR-kod bild och spara den.
+    
+    Returns:
+        Filnamnet på den skapade QR-koden
+    """
+    # Hämta QR folder från config eller använd default
+    qr_folder = getattr(Config, 'QR_FOLDER', 'static/qr')
+    public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
+    
+    # Skapa QR-kod
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    
+    # Data att koda
+    qr_url = f"{public_url}/found/{qr_id}"
+    qr.add_data(qr_url)
+    qr.make(fit=True)
+    
+    # Skapa bild
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
     # Konvertera till RGB om nödvändigt
     if qr_img.mode != 'RGB':
         qr_img = qr_img.convert('RGB')
     
-    width, height = qr_img.size
+    # Lägg till text med QR-ID
+    try:
+        # Försök använda en standardfont
+        from PIL import ImageFont
+        try:
+            font = ImageFont.truetype("arial.ttf", 40)
+        except:
+            font = ImageFont.load_default()
+        
+        # Skapa ny bild med plats för text
+        width, height = qr_img.size
+        new_height = height + 80
+        new_img = Image.new('RGB', (width, new_height), 'white')
+        new_img.paste(qr_img, (0, 0))
+        
+        # Rita text
+        draw = ImageDraw.Draw(new_img)
+        text = f"ID: {qr_id}"
+        
+        # Centrera texten
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_x = (width - text_width) // 2
+        
+        draw.text((text_x, height + 20), text, fill='black', font=font)
+        qr_img = new_img
+        
+    except Exception as e:
+        logger.warning(f"Could not add text to QR code: {e}")
     
-    # Hitta bounds genom att scanna pixlar
-    left = width
-    right = 0
-    top = height
-    bottom = 0
+    # Spara filen
+    filename = f"qr_{qr_id}.png"
+    filepath = os.path.join(qr_folder, filename)
     
-    # Ladda pixeldata
-    pixels = qr_img.load()
+    # Skapa mappen om den inte finns
+    os.makedirs(qr_folder, exist_ok=True)
     
-    # Hitta första och sista raden med svart (eller mörk)
-    for y in range(height):
-        for x in range(width):
-            r, g, b = pixels[x, y]
-            # Om pixeln är mörk (inte vit)
-            if r < 200 or g < 200 or b < 200:
-                if y < top:
-                    top = y
-                if y > bottom:
-                    bottom = y
-                if x < left:
-                    left = x
-                if x > right:
-                    right = x
+    qr_img.save(filepath)
     
-    # Om vi hittade något, beskär
-    if left < right and top < bottom:
-        # Lägg till liten padding (2 pixlar)
-        left = max(0, left - 2)
-        top = max(0, top - 2)
-        right = min(width, right + 2)
-        bottom = min(height, bottom + 2)
-        return qr_img.crop((left, top, right, bottom))
-    
-    return qr_img
+    logger.info(f"Created QR code: {filename}")
+    return filename
 
 
-def create_qr_code(qr_id, user_id=None):
+def create_small_qr_for_pdf(qr_id: str, size: int = 100) -> io.BytesIO:
     """
-    Skapa QR-kod bild för skärmvisning:
-    - QR-kod i mitten (tight crop)
-    - returnadisc.se direkt under
-    - ID underst (blått)
+    Skapa en liten QR-kod för PDF-användning.
+    
+    Args:
+        qr_id: QR-kodens ID
+        size: Storlek i pixlar (default 100)
+    
+    Returns:
+        BytesIO objekt med PNG-bilden
     """
-    from config import Config
+    public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
-    url = f"{Config.PUBLIC_URL}/found/{qr_id}"
-    
-    # Skapa QR med INGEN border för tightaste möjliga
+    # Skapa QR-kod
     qr = qrcode.QRCode(
-        version=2,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=0,  # INGEN border - vi hanterar allt själva
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=5,
+        border=2,
     )
-    qr.add_data(url)
+    
+    qr_url = f"{public_url}/found/{qr_id}"
+    qr.add_data(qr_url)
     qr.make(fit=True)
     
-    # Generera QR-bild
+    # Skapa bild
     qr_img = qr.make_image(fill_color="black", back_color="white")
-    qr_img = qr_img.convert('RGB')
     
-    # BESKÄR bort allt vitt runt QR-koden
-    qr_cropped = crop_qr_tight(qr_img)
+    # Konvertera till RGB om nödvändigt
+    if qr_img.mode != 'RGB':
+        qr_img = qr_img.convert('RGB')
     
-    # Nu bygger vi slutbilden med beskärdd QR + text
-    # QR-storlek: ca 280x280 för bra kvalitet
-    qr_display_size = 280
-    qr_resized = qr_cropped.resize((qr_display_size, qr_display_size), Image.Resampling.LANCZOS)
+    # Resize till önskad storlek
+    qr_img = qr_img.resize((size, size), Image.Resampling.LANCZOS)
     
-    # Typsnitt
-    try:
-        font_url = ImageFont.truetype("arial.ttf", 28)
-        font_id = ImageFont.truetype("arial.ttf", 48)
-    except:
-        font_url = ImageFont.load_default()
-        font_id = ImageFont.load_default()
+    # Spara till BytesIO
+    img_buffer = io.BytesIO()
+    qr_img.save(img_buffer, format='PNG')
+    img_buffer.seek(0)
     
-    # Mät text för att beräkna bildstorlek
-    test_img = Image.new('RGB', (600, 400), 'white')
-    test_draw = ImageDraw.Draw(test_img)
+    return img_buffer
+
+
+def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
+    """
+    Generera PDF med QR-koder för en order.
     
-    url_bbox = test_draw.textbbox((0, 0), "returnadisc.se", font=font_url)
-    id_bbox = test_draw.textbbox((0, 0), qr_id, font=font_id)
+    Args:
+        qr_codes: Lista med dicts innehållande 'qr_id' och 'qr_filename'
+        base_url: Bas-URL för applikationen
     
-    url_height = url_bbox[3] - url_bbox[1]
-    id_height = id_bbox[3] - id_bbox[1]
-    url_width = url_bbox[2] - url_bbox[0]
-    id_width = id_bbox[2] - id_bbox[1]
+    Returns:
+        Sökväg till genererad PDF
+    """
+    # Hämta folders från config eller använd default
+    qr_folder = getattr(Config, 'QR_FOLDER', 'static/qr')
+    pdf_folder = getattr(Config, 'PDF_FOLDER', 'static/pdfs')
     
-    # Beräkna total bildstorlek - justerad padding
-    top_padding = 20        # ÄNDRAT: Tidigare 0, nu 20 pixlar padding i toppen
-    qr_to_url_gap = 12      # Mellan QR och URL
-    url_to_id_gap = 6       # Mellan URL och ID
-    bottom_padding = 20     # Under ID
+    # Skapa PDF
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    pdf_filename = f"returnadisc_order_{timestamp}.pdf"
     
-    total_width = max(qr_display_size, url_width, id_width) + 40  # 20px padding vardera sida
-    total_height = (top_padding +
-                    qr_display_size + 
-                    qr_to_url_gap + 
-                    url_height + 
-                    url_to_id_gap + 
-                    id_height + 
-                    bottom_padding)
+    # Skapa mappen om den inte finns
+    os.makedirs(pdf_folder, exist_ok=True)
     
-    # Skapa slutgiltig bild
-    img = Image.new('RGB', (total_width, total_height), 'white')
-    draw = ImageDraw.Draw(img)
+    pdf_path = os.path.join(pdf_folder, pdf_filename)
     
-    # QR centrerad med padding i toppen
-    qr_x = (total_width - qr_display_size) // 2
-    qr_y = top_padding  # ÄNDRAT: Använder top_padding istället för 0
-    img.paste(qr_resized, (qr_x, qr_y))
+    c = canvas.Canvas(pdf_path, pagesize=A4)
+    width, height = A4
     
-    # returnadisc.se - centrerad under QR
-    url_x = (total_width - url_width) // 2
-    url_y = qr_y + qr_display_size + qr_to_url_gap
-    draw.text((url_x, url_y), "returnadisc.se", fill='#6b7280', font=font_url)
+    # Marginaler och layout
+    margin = 50
+    qr_size = 200
+    cols = 2
+    rows = 3
+    x_spacing = (width - 2 * margin - cols * qr_size) / (cols - 1) if cols > 1 else 0
+    y_spacing = 50
     
-    # ID - centrerad underst, blått
-    id_x = (total_width - id_width) // 2
-    id_y = url_y + url_height + url_to_id_gap
-    draw.text((id_x, id_y), qr_id, fill='#2563eb', font=font_id)
+    x_positions = [margin + i * (qr_size + x_spacing) for i in range(cols)]
+    y_start = height - margin - qr_size
     
-    # Spara
-    filename = f"qr_{qr_id}.png"
-    filepath = os.path.join('static', 'qr', filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    img.save(filepath, 'PNG', quality=95)
+    for i, qr_data in enumerate(qr_codes):
+        col = i % cols
+        row = i // cols
+        
+        # Ny sida om nödvändigt
+        if i > 0 and i % (cols * rows) == 0:
+            c.showPage()
+        
+        x = x_positions[col]
+        y = y_start - (row % rows) * (qr_size + y_spacing + 40)
+        
+        qr_id = qr_data['qr_id']
+        qr_filename = qr_data.get('qr_filename', f"qr_{qr_id}.png")
+        qr_path = os.path.join(qr_folder, qr_filename)
+        
+        # Rita QR-kod
+        if os.path.exists(qr_path):
+            c.drawImage(qr_path, x, y, width=qr_size, height=qr_size)
+        
+        # Rita ID under QR-koden
+        c.setFont("Helvetica-Bold", 14)
+        c.drawCentredString(x + qr_size/2, y - 20, f"ID: {qr_id}")
+        
+        # Rita URL
+        c.setFont("Helvetica", 10)
+        url_text = f"{base_url}/found/{qr_id}"
+        c.drawCentredString(x + qr_size/2, y - 35, url_text)
+    
+    c.save()
+    logger.info(f"Created PDF: {pdf_path}")
+    
+    return pdf_path
+
+
+# ============================================================================
+# Validation Utilities
+# ============================================================================
+
+def is_valid_email(email: str) -> bool:
+    """Validera email-format."""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+
+def sanitize_input(text: str, max_length: int = 500) -> str:
+    """Sanera användarinput."""
+    if not text:
+        return ""
+    
+    # Ta bort farliga tecken
+    text = text.strip()
+    text = text.replace('<', '&lt;').replace('>', '&gt;')
+    
+    # Begränsa längd
+    return text[:max_length]
+
+
+# ============================================================================
+# File Utilities
+# ============================================================================
+
+def allowed_file(filename: str, allowed_extensions: set = None) -> bool:
+    """Kontrollera om filändelse är tillåten."""
+    if allowed_extensions is None:
+        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+    
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
+def save_uploaded_file(file, folder: str, filename: str = None) -> str:
+    """Spara uppladdad fil."""
+    if filename is None:
+        from werkzeug.utils import secure_filename
+        filename = secure_filename(file.filename)
+    
+    # Lägg till timestamp för att undvika kollisioner
+    name, ext = os.path.splitext(filename)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{name}_{timestamp}{ext}"
+    
+    filepath = os.path.join(folder, filename)
+    file.save(filepath)
     
     return filename
 
 
-def create_small_qr_for_pdf(qr_id, base_url):
+def save_uploaded_photo(file, folder: str = None) -> Optional[str]:
     """
-    Skapa liten QR-kod för utskrift (2.5 cm):
-    - QR-kod 2.5 cm (tight crop)
-    - returnadisc.se (liten text)
-    - ID (tydlig text)
+    Spara uppladdad foto-fil.
+    
+    Args:
+        file: Flask file object
+        folder: Mapp att spara i (default: UPLOAD_FOLDER från config)
+    
+    Returns:
+        Filnamnet på den sparade filen, eller None om fel
     """
-    from config import Config
+    if folder is None:
+        folder = getattr(Config, 'UPLOAD_FOLDER', 'static/uploads')
     
-    url = f"{base_url}/found/{qr_id}"
+    # Kontrollera att filen är tillåten
+    if not allowed_file(file.filename):
+        logger.warning(f"Invalid file type: {file.filename}")
+        return None
     
-    # Skapa QR med INGEN border
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=12,
-        border=0,
-    )
-    qr.add_data(url)
-    qr.make(fit=True)
-    
-    # Generera bild
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    qr_img = qr_img.convert('RGB')
-    
-    # BESKÄR aggressivt
-    qr_cropped = crop_qr_tight(qr_img)
-    
-    # Resize till exakt 2.5 cm (236 pixlar vid 240 DPI)
-    target_qr_size = 236
-    qr_resized = qr_cropped.resize((target_qr_size, target_qr_size), Image.Resampling.LANCZOS)
-    
-    # Skapa bild med QR + text, minimal padding
-    padding = 8
-    
-    # Typsnitt
     try:
-        font_url = ImageFont.truetype("arial.ttf", 12)
-        font_id = ImageFont.truetype("arial.ttf", 20)
-    except:
-        font_url = ImageFont.load_default()
-        font_id = ImageFont.load_default()
-    
-    # Mät text för att beräkna slutgiltig storlek
-    test_img = Image.new('RGB', (400, 200), 'white')
-    test_draw = ImageDraw.Draw(test_img)
-    
-    url_bbox = test_draw.textbbox((0, 0), "returnadisc.se", font=font_url)
-    id_bbox = test_draw.textbbox((0, 0), qr_id, font=font_id)
-    
-    url_height = url_bbox[3] - url_bbox[1]
-    id_height = id_bbox[3] - id_bbox[1]
-    
-    # Beräkna total storlek
-    text_gap = 2
-    qr_to_text_gap = 4
-    
-    content_height = target_qr_size + qr_to_text_gap + url_height + text_gap + id_height
-    total_width = target_qr_size + (padding * 2)
-    total_height = content_height + padding + 4
-    
-    # Skapa slutgiltig bild
-    img = Image.new('RGB', (total_width, total_height), 'white')
-    draw = ImageDraw.Draw(img)
-    
-    # Klistra in QR
-    qr_x = padding
-    qr_y = padding
-    img.paste(qr_resized, (qr_x, qr_y))
-    
-    # URL-text centrerad
-    url_text = "returnadisc.se"
-    url_width = url_bbox[2] - url_bbox[0]
-    url_x = (total_width - url_width) // 2
-    url_y = qr_y + target_qr_size + qr_to_text_gap
-    draw.text((url_x, url_y), url_text, fill='#6b7280', font=font_url)
-    
-    # ID-text centrerad
-    id_width = id_bbox[2] - id_bbox[0]
-    id_x = (total_width - id_width) // 2
-    id_y = url_y + url_height + text_gap
-    draw.text((id_x, id_y), qr_id, fill='#2563eb', font=font_id)
-    
-    return img
+        # Skapa mappen om den inte finns
+        os.makedirs(folder, exist_ok=True)
+        
+        # Spara filen
+        filename = save_uploaded_file(file, folder)
+        logger.info(f"Saved photo: {filename}")
+        return filename
+        
+    except Exception as e:
+        logger.error(f"Failed to save photo: {e}")
+        return None
 
 
-def generate_qr_pdf(count, base_url):
-    """Generera PDF med flera QR-koder för utskrift (2.5 cm per QR)."""
-    from database import db
+# ============================================================================
+# Date/Time Utilities
+# ============================================================================
+
+def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M") -> str:
+    """Formatera datetime till läsbar sträng."""
+    if dt is None:
+        return "N/A"
+    return dt.strftime(format_str)
+
+
+def time_ago(dt: datetime) -> str:
+    """Returnera 'för X tid sedan' sträng."""
+    if dt is None:
+        return "N/A"
     
-    pdf_path = "static/pdfs/qr_batch.pdf"
-    os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
+    now = datetime.now()
+    diff = now - dt
     
-    # Generera nya QR-koder
-    qr_codes = []
-    for _ in range(count):
-        qr_id = generate_random_qr_id()
-        
-        # Spara i databasen
-        try:
-            db.create_qr(qr_id)
-            # Skapa vanlig QR-bild för webben
-            create_qr_code(qr_id)
-            qr_codes.append(qr_id)
-        except Exception as e:
-            logger.error(f"Failed to create QR {qr_id}: {e}")
-            continue
+    seconds = diff.total_seconds()
+    minutes = seconds / 60
+    hours = minutes / 60
+    days = hours / 24
     
-    if not qr_codes:
-        raise Exception("Inga QR-koder kunde skapas")
-    
-    # Skapa PDF
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    width, height = A4
-    
-    # Exakt storlek 2.5 cm
-    qr_size = 2.5 * cm
-    gap = 0.8 * cm
-    
-    x_start = 1.5 * cm
-    y_start = height - 2 * cm
-    
-    qr_index = 0
-    
-    for qr_id in qr_codes:
-        # Beräkna position
-        col = qr_index % 5
-        row = qr_index // 5
-        
-        x = x_start + col * (qr_size + gap)
-        y = y_start - row * (qr_size + gap + 0.5 * cm)
-        
-        if y < 2 * cm:
-            c.showPage()
-            qr_index = 0
-            col = 0
-            row = 0
-            x = x_start
-            y = y_start
-        
-        # Skapa liten QR-bild för PDF
-        qr_img = create_small_qr_for_pdf(qr_id, base_url)
-        
-        # Spara temporärt
-        temp_path = f"static/pdfs/temp_{qr_id}.png"
-        qr_img.save(temp_path, 'PNG')
-        
-        # Rita i PDF
-        c.drawImage(temp_path, x, y - qr_size, width=qr_size, height=qr_size)
-        
-        # Rensa temporär fil
-        os.remove(temp_path)
-        
-        qr_index += 1
-    
-    c.save()
-    return pdf_path
-    
-    
-def generate_qr_pdf_for_order(qr_codes, base_url):
-    """
-    Generera PDF för en specifik order med färdiga QR-koder.
-    qr_codes: lista med dicts innehållande 'qr_id'
-    """
-    import os
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.units import cm
-    
-    pdf_path = "static/pdfs/order_qr_batch.pdf"
-    os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
-    
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    width, height = A4
-    
-    # Exakt storlek 2.5 cm
-    qr_size = 2.5 * cm
-    gap = 0.8 * cm
-    
-    x_start = 1.5 * cm
-    y_start = height - 2 * cm
-    
-    qr_index = 0
-    
-    for qr_item in qr_codes:
-        qr_id = qr_item['qr_id'] if isinstance(qr_item, dict) else qr_item
-        
-        # Beräkna position
-        col = qr_index % 5
-        row = qr_index // 5
-        
-        x = x_start + col * (qr_size + gap)
-        y = y_start - row * (qr_size + gap + 0.5 * cm)
-        
-        if y < 2 * cm:
-            c.showPage()
-            qr_index = 0
-            col = 0
-            row = 0
-            x = x_start
-            y = y_start
-        
-        # Skapa liten QR-bild för PDF
-        qr_img = create_small_qr_for_pdf(qr_id, base_url)
-        
-        # Spara temporärt
-        temp_path = f"static/pdfs/temp_{qr_id}.png"
-        qr_img.save(temp_path, 'PNG')
-        
-        # Rita i PDF
-        c.drawImage(temp_path, x, y - qr_size, width=qr_size, height=qr_size)
-        
-        # Rensa temporär fil
-        os.remove(temp_path)
-        
-        qr_index += 1
-    
-    c.save()
-    return pdf_path
+    if seconds < 60:
+        return "nyss"
+    elif minutes < 60:
+        return f"för {int(minutes)} minuter sedan"
+    elif hours < 24:
+        return f"för {int(hours)} timmar sedan"
+    elif days < 30:
+        return f"för {int(days)} dagar sedan"
+    else:
+        return format_datetime(dt)

@@ -11,6 +11,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
     }
 
     .login-bg {
@@ -214,8 +215,8 @@
 
 {% block content %}
 <div class="login-page">
-    <!-- BAKGRUNDSBILD: Döp filen till "login-bg.jpg" och lägg i static/images/ -->
-    <div class="login-bg" style="background-image: url('{{ url_for('static', filename='images/login-bg.png') }}');" id="loginBg"></div>
+    <!-- BAKGRUNDSBILD -->
+    <div class="login-bg" style="background-image: url('{{ url_for('static', filename='images/login-bg.png') }}');"></div>
     <div class="login-overlay"></div>
     
     <div class="login-container">
@@ -232,11 +233,11 @@
                 <p>Logga in för att se din QR-kod</p>
             </div>
             
-            <form method="post" class="login-form">
+            <form method="post" class="login-form" autocomplete="on">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="email">
+                           placeholder="din@email.se" autocomplete="username email">
                 </div>
                 
                 <div class="form-group">
@@ -268,13 +269,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const loginBg = document.getElementById('loginBg');
-        if (loginBg) {
-            loginBg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
-        }
-    });
-</script>
+<!-- Borttagen parallax-kod som konfliktade med CSS animation -->
 {% endblock %}

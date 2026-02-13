@@ -35,16 +35,13 @@ class Config:
     MAIL_DEFAULT_SENDER = "noreply@returnadisc.se"
     
     # URL:er - VIKTIGA FÖR PRODUKTION
-    # BASE_URL = för appen (localhost vid utveckling, returnadisc.se i produktion)
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
-    
-    # PUBLIC_URL = för bilder i mail (samma som BASE_URL i produktion)
     PUBLIC_URL = os.environ.get('PUBLIC_URL', BASE_URL)
     
-    # Admin
-    ADMIN_KEY = os.environ.get('ADMIN_KEY', 'admin123')
+    # Admin - sätts av subklasser
+    ADMIN_KEY = None
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@returnadisc.se')
-    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH', '')
+    ADMIN_PASSWORD_HASH = None
     
     # QR/PDF
     QR_FOLDER = 'static/qr'
@@ -53,16 +50,45 @@ class Config:
 
 
 class DevelopmentConfig(Config):
-    """Utvecklings-konfig."""
+    """Utvecklings-konfig - tillåter säkra defaults."""
     DEBUG = True
     TESTING = False
+    
+    # Tillåt osäkra defaults i utveckling MEN logga varning
+    _admin_key = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
+    if _admin_key == 'dev-admin-key-change-in-prod':
+        import logging
+        logging.warning("WARNING: Using default ADMIN_KEY in development!")
+    ADMIN_KEY = _admin_key
+    
+    _admin_hash = os.environ.get('ADMIN_PASSWORD_HASH', '')
+    if not _admin_hash:
+        import logging
+        logging.warning("WARNING: ADMIN_PASSWORD_HASH not set! Admin login disabled.")
+        # Sätt en ogiltig hash så inloggning misslyckas men appen startar
+        from werkzeug.security import generate_password_hash
+        ADMIN_PASSWORD_HASH = generate_password_hash('invalid-fallback-do-not-use')
+    else:
+        ADMIN_PASSWORD_HASH = _admin_hash
 
 
 class ProductionConfig(Config):
-    """Produktions-konfig."""
+    """Produktions-konfig - kräver alla miljövariabler."""
     DEBUG = False
     TESTING = False
     SESSION_COOKIE_SECURE = True
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
+    
+    # Hämta från miljövariabler
+    ADMIN_KEY = os.environ.get('ADMIN_KEY')
+    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
+    
+    def __init__(self):
+        # Validera att alla krävda variabler är satta
+        if not self.ADMIN_KEY:
+            raise ValueError("ADMIN_KEY måste sättas i miljövariabler!")
+        if not self.ADMIN_PASSWORD_HASH:
+            raise ValueError("ADMIN_PASSWORD_HASH måste sättas i miljövariabler!")
 
 
 config = {
