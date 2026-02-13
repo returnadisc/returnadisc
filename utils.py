@@ -108,12 +108,12 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     qr_folder = getattr(Config, 'QR_FOLDER', 'static/qr')
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
-    # Skapa QR-kod
+    # Skapa QR-kod - använd större box_size för bättre kvalitet vid resize
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=10,
-        border=1,
+        box_size=20,  # Större för bättre kvalitet
+        border=2,     # Proportionellt större border
     )
     
     # Data att koda
@@ -132,60 +132,59 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     try:
         from PIL import ImageFont
         
-        # Försök hitta en bra font - testa flera alternativ i prioritetsordning
+        # Försök hitta en bra font
         font_paths = [
-            # Linux/Server (vanliga på Heroku, DigitalOcean, etc)
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
             "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
             "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
-            # Ubuntu/Debian
             "/usr/share/fonts/truetype/ubuntu/Ubuntu-Bold.ttf",
-            "/usr/share/fonts/truetype/ubuntu/Ubuntu-Regular.ttf",
-            # Alpine Linux (Docker)
             "/usr/share/fonts/ttf-dejavu/DejaVuSans-Bold.ttf",
-            "/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf",
-            # macOS
             "/System/Library/Fonts/Helvetica.ttc",
             "/System/Library/Fonts/Arial.ttf",
             "/Library/Fonts/Arial.ttf",
-            # Windows
             "C:/Windows/Fonts/arial.ttf",
             "C:/Windows/Fonts/Arial.ttf",
-            # Lokala
             "arial.ttf",
             "Arial.ttf",
             "DejaVuSans.ttf",
         ]
         
-        # Försök ladda font
         font_large = None
         font_small = None
-        using_default_font = False
         
         for font_path in font_paths:
             try:
-                font_large = ImageFont.truetype(font_path, 56)
-                font_small = ImageFont.truetype(font_path, 36)
+                font_large = ImageFont.truetype(font_path, 112)  # Dubbelt så stor (för vi skalar ner sen)
+                font_small = ImageFont.truetype(font_path, 72)   # Dubbelt så stor
                 break
             except:
                 continue
         
-        # Om ingen font hittades, använd default men förstora den
         if font_large is None:
-            font_large = ImageFont.load_default()
-            font_small = ImageFont.load_default()
-            using_default_font = True
+            # Sista utväg: ladda ner en font till en temporär fil
+            try:
+                import urllib.request
+                import tempfile
+                
+                # Använd en Google Font (Roboto är gratis och bra)
+                font_url = "https://github.com/googlefonts/roboto/raw/main/src/hinted/Roboto-Bold.ttf"
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.ttf') as tmp:
+                    urllib.request.urlretrieve(font_url, tmp.name)
+                    font_large = ImageFont.truetype(tmp.name, 112)
+                    font_small = ImageFont.truetype(tmp.name, 72)
+            except:
+                font_large = ImageFont.load_default()
+                font_small = ImageFont.load_default()
         
-        # Beräkna textstorlekar för korrekt centrering
+        # Beräkna textstorlekar
         draw = ImageDraw.Draw(qr_img)
         
         text_se = "returnadisc.se"
         text_id = qr_id
         
-        # Mät textbredder
         try:
             bbox_se = draw.textbbox((0, 0), text_se, font=font_small)
             width_se = bbox_se[2] - bbox_se[0]
@@ -194,68 +193,43 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
             height_se = bbox_se[3] - bbox_se[1]
             height_id = bbox_id[3] - bbox_id[1]
         except AttributeError:
-            # Fallback för äldre PIL
-            width_se = draw.textlength(text_se, font=font_small) if hasattr(draw, 'textlength') else 200
-            width_id = draw.textlength(text_id, font=font_large) if hasattr(draw, 'textlength') else 200
-            height_se = 36
-            height_id = 56
+            width_se = draw.textlength(text_se, font=font_small) if hasattr(draw, 'textlength') else 400
+            width_id = draw.textlength(text_id, font=font_large) if hasattr(draw, 'textlength') else 400
+            height_se = 72
+            height_id = 112
         
         width, height = qr_img.size
         
-        # Om vi använder default font, skala upp allt för att kompensera
-        scale_factor = 3 if using_default_font else 1
-        
-        if using_default_font:
-            # Förstora QR-koden
-            new_qr_size = (width * scale_factor, height * scale_factor)
-            qr_img = qr_img.resize(new_qr_size, Image.Resampling.NEAREST)
-            width, height = qr_img.size
-            
-            # Förstora font-storlekar (approximation)
-            height_se = height_se * scale_factor
-            height_id = height_id * scale_factor
-            width_se = width_se * scale_factor
-            width_id = width_id * scale_factor
-        
-        # Tightare layout - mindre marginaler
-        margin_top = 8 * scale_factor
-        line_spacing = 5 * scale_factor
-        margin_bottom = 15 * scale_factor
+        # Marginaler (dubbla eftersom vi skapar större)
+        margin_top = 16
+        line_spacing = 10
+        margin_bottom = 30
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
-        # Skapa ny bild med exakt utrymme för text
+        # Skapa ny bild med utrymme för text
         new_height = height + int(total_text_height)
         new_img = Image.new('RGB', (width, new_height), 'white')
         new_img.paste(qr_img, (0, 0))
         
         draw = ImageDraw.Draw(new_img)
         
-        # Centrera och rita "returnadisc.se" i grått
+        # Rita text
         x_se = (width - int(width_se)) // 2
         y_se = height + margin_top
+        draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
         
-        if using_default_font:
-            # Rita flera gånger för att göra texten tjockare (simulera fetstil)
-            for dx in range(-1, 2):
-                for dy in range(-1, 2):
-                    draw.text((x_se + dx, y_se + dy), text_se, fill='#888888', font=font_small)
-        else:
-            draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
-        
-        # Centrera och rita QR-koden i blått
         x_id = (width - int(width_id)) // 2
         y_id = y_se + height_se + line_spacing
+        draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
         
-        if using_default_font:
-            # Rita flera gånger för att göra texten tjockare
-            for dx in range(-1, 2):
-                for dy in range(-1, 2):
-                    draw.text((x_id + dx, y_id + dy), text_id, fill='#0066CC', font=font_large)
-        else:
-            draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
+        # NU: Skala ner hela bilden till önskad storlek (hög kvalitet)
+        final_width = 400  # Målbredd i pixlar
+        current_width, current_height = new_img.size
+        scale = final_width / current_width
+        final_height = int(current_height * scale)
         
-        qr_img = new_img
+        qr_img = new_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
         
     except Exception as e:
         logger.warning(f"Could not add text to QR code: {e}")
@@ -266,10 +240,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
     
-    # Skapa mappen om den inte finns
     os.makedirs(qr_folder, exist_ok=True)
-    
-    # Spara med högre kvalitet
     qr_img.save(filepath, quality=95)
     
     logger.info(f"Created QR code: {filename}")
