@@ -200,10 +200,10 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         width, height = qr_img.size
         
-        # Justerade marginaler för tightare layout
-        margin_top = 12      # Minskat från 16 till 12
-        line_spacing = 8     # Minskat från 10 till 8
-        margin_bottom = 20   # Minskat från 30 till 20
+        # Tillbaka till ursprungliga marginaler som funkade bra
+        margin_top = 16
+        line_spacing = 10
+        margin_bottom = 30
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
