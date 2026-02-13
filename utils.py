@@ -134,12 +134,19 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         # Försök hitta en bra font - testa flera alternativ i prioritetsordning
         font_paths = [
-            # Linux/Server
+            # Linux/Server (vanliga på Heroku, DigitalOcean, etc)
             "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
             "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+            # Ubuntu/Debian
+            "/usr/share/fonts/truetype/ubuntu/Ubuntu-Bold.ttf",
+            "/usr/share/fonts/truetype/ubuntu/Ubuntu-Regular.ttf",
+            # Alpine Linux (Docker)
+            "/usr/share/fonts/ttf-dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/ttf-dejavu/DejaVuSans.ttf",
             # macOS
             "/System/Library/Fonts/Helvetica.ttc",
             "/System/Library/Fonts/Arial.ttf",
@@ -153,9 +160,10 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
             "DejaVuSans.ttf",
         ]
         
-        # Försök ladda font, fallback till default
+        # Försök ladda font
         font_large = None
         font_small = None
+        using_default_font = False
         
         for font_path in font_paths:
             try:
@@ -165,9 +173,11 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
             except:
                 continue
         
+        # Om ingen font hittades, använd default men förstora den
         if font_large is None:
             font_large = ImageFont.load_default()
             font_small = ImageFont.load_default()
+            using_default_font = True
         
         # Beräkna textstorlekar för korrekt centrering
         draw = ImageDraw.Draw(qr_img)
@@ -192,10 +202,25 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         width, height = qr_img.size
         
+        # Om vi använder default font, skala upp allt för att kompensera
+        scale_factor = 3 if using_default_font else 1
+        
+        if using_default_font:
+            # Förstora QR-koden
+            new_qr_size = (width * scale_factor, height * scale_factor)
+            qr_img = qr_img.resize(new_qr_size, Image.Resampling.NEAREST)
+            width, height = qr_img.size
+            
+            # Förstora font-storlekar (approximation)
+            height_se = height_se * scale_factor
+            height_id = height_id * scale_factor
+            width_se = width_se * scale_factor
+            width_id = width_id * scale_factor
+        
         # Tightare layout - mindre marginaler
-        margin_top = 8
-        line_spacing = 5
-        margin_bottom = 15
+        margin_top = 8 * scale_factor
+        line_spacing = 5 * scale_factor
+        margin_bottom = 15 * scale_factor
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
@@ -209,12 +234,26 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         # Centrera och rita "returnadisc.se" i grått
         x_se = (width - int(width_se)) // 2
         y_se = height + margin_top
-        draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
+        
+        if using_default_font:
+            # Rita flera gånger för att göra texten tjockare (simulera fetstil)
+            for dx in range(-1, 2):
+                for dy in range(-1, 2):
+                    draw.text((x_se + dx, y_se + dy), text_se, fill='#888888', font=font_small)
+        else:
+            draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
         
         # Centrera och rita QR-koden i blått
         x_id = (width - int(width_id)) // 2
         y_id = y_se + height_se + line_spacing
-        draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
+        
+        if using_default_font:
+            # Rita flera gånger för att göra texten tjockare
+            for dx in range(-1, 2):
+                for dy in range(-1, 2):
+                    draw.text((x_id + dx, y_id + dy), text_id, fill='#0066CC', font=font_large)
+        else:
+            draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
         
         qr_img = new_img
         
