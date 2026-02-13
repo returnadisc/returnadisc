@@ -113,7 +113,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=10,
-        border=4,
+        border=1,
     )
     
     # Data att koda
@@ -128,35 +128,100 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     if qr_img.mode != 'RGB':
         qr_img = qr_img.convert('RGB')
     
-    # Lägg till text med QR-ID
+    # Lägg till text med returnadisc.se och QR-ID
     try:
-        # Försök använda en standardfont
         from PIL import ImageFont
-        try:
-            font = ImageFont.truetype("arial.ttf", 40)
-        except:
-            font = ImageFont.load_default()
         
-        # Skapa ny bild med plats för text
+        # Försök hitta en bra font - testa flera alternativ i prioritetsordning
+        font_paths = [
+            # Linux/Server
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+            # macOS
+            "/System/Library/Fonts/Helvetica.ttc",
+            "/System/Library/Fonts/Arial.ttf",
+            "/Library/Fonts/Arial.ttf",
+            # Windows
+            "C:/Windows/Fonts/arial.ttf",
+            "C:/Windows/Fonts/Arial.ttf",
+            # Lokala
+            "arial.ttf",
+            "Arial.ttf",
+            "DejaVuSans.ttf",
+        ]
+        
+        # Försök ladda font, fallback till default
+        font_large = None
+        font_small = None
+        
+        for font_path in font_paths:
+            try:
+                font_large = ImageFont.truetype(font_path, 56)
+                font_small = ImageFont.truetype(font_path, 36)
+                break
+            except:
+                continue
+        
+        if font_large is None:
+            font_large = ImageFont.load_default()
+            font_small = ImageFont.load_default()
+        
+        # Beräkna textstorlekar för korrekt centrering
+        draw = ImageDraw.Draw(qr_img)
+        
+        text_se = "returnadisc.se"
+        text_id = qr_id
+        
+        # Mät textbredder
+        try:
+            bbox_se = draw.textbbox((0, 0), text_se, font=font_small)
+            width_se = bbox_se[2] - bbox_se[0]
+            bbox_id = draw.textbbox((0, 0), text_id, font=font_large)
+            width_id = bbox_id[2] - bbox_id[0]
+            height_se = bbox_se[3] - bbox_se[1]
+            height_id = bbox_id[3] - bbox_id[1]
+        except AttributeError:
+            # Fallback för äldre PIL
+            width_se = draw.textlength(text_se, font=font_small) if hasattr(draw, 'textlength') else 200
+            width_id = draw.textlength(text_id, font=font_large) if hasattr(draw, 'textlength') else 200
+            height_se = 36
+            height_id = 56
+        
         width, height = qr_img.size
-        new_height = height + 80
+        
+        # Tightare layout - mindre marginaler
+        margin_top = 8
+        line_spacing = 5
+        margin_bottom = 15
+        
+        total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
+        
+        # Skapa ny bild med exakt utrymme för text
+        new_height = height + int(total_text_height)
         new_img = Image.new('RGB', (width, new_height), 'white')
         new_img.paste(qr_img, (0, 0))
         
-        # Rita text
         draw = ImageDraw.Draw(new_img)
-        text = f"ID: {qr_id}"
         
-        # Centrera texten
-        bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_x = (width - text_width) // 2
+        # Centrera och rita "returnadisc.se" i grått
+        x_se = (width - int(width_se)) // 2
+        y_se = height + margin_top
+        draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
         
-        draw.text((text_x, height + 20), text, fill='black', font=font)
+        # Centrera och rita QR-koden i blått
+        x_id = (width - int(width_id)) // 2
+        y_id = y_se + height_se + line_spacing
+        draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
+        
         qr_img = new_img
         
     except Exception as e:
         logger.warning(f"Could not add text to QR code: {e}")
+        import traceback
+        logger.debug(traceback.format_exc())
     
     # Spara filen
     filename = f"qr_{qr_id}.png"
@@ -165,7 +230,8 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     # Skapa mappen om den inte finns
     os.makedirs(qr_folder, exist_ok=True)
     
-    qr_img.save(filepath)
+    # Spara med högre kvalitet
+    qr_img.save(filepath, quality=95)
     
     logger.info(f"Created QR code: {filename}")
     return filename
