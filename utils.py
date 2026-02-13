@@ -200,10 +200,10 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         width, height = qr_img.size
         
-        # Marginaler (dubbla eftersom vi skapar större)
-        margin_top = 16
-        line_spacing = 10
-        margin_bottom = 30
+        # Justerade marginaler för tightare layout
+        margin_top = 12      # Minskat från 16 till 12
+        line_spacing = 8     # Minskat från 10 till 8
+        margin_bottom = 20   # Minskat från 30 till 20
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
@@ -223,7 +223,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         y_id = y_se + height_se + line_spacing
         draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
         
-        # NU: Skala ner hela bilden till önskad storlek (hög kvalitet)
+        # Skala ner hela bilden till önskad storlek (hög kvalitet)
         final_width = 400  # Målbredd i pixlar
         current_width, current_height = new_img.size
         scale = final_width / current_width
