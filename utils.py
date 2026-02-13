@@ -91,9 +91,9 @@ def generate_random_qr_id(length: int = 5) -> str:
     import random
     import string
     
-    # Använd versaler och siffror, undvik I, O, 0 för att undvika förväxling
+    # Använd versaler och siffror, undvik I, O, Q, 1, 0 för att undvika förväxling
     chars = ''.join(c for c in (string.ascii_uppercase + string.digits) 
-                   if c not in 'IO0')
+                   if c not in 'IOQ10')
     return ''.join(random.choices(chars, k=length))
 
 
@@ -104,9 +104,12 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     Returns:
         Filnamnet på den skapade QR-koden
     """
-    # Hämta QR folder från config eller använd default
-    qr_folder = getattr(Config, 'QR_FOLDER', 'static/qr')
+    # Hämta QR folder från miljövariabel eller config
+    qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
+    
+    # Skapa mappen om den inte finns (viktigt för Railway!)
+    os.makedirs(qr_folder, exist_ok=True)
     
     # Skapa QR-kod - använd större box_size för bättre kvalitet vid resize
     qr = qrcode.QRCode(
@@ -193,6 +196,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
             height_se = bbox_se[3] - bbox_se[1]
             height_id = bbox_id[3] - bbox_id[1]
         except AttributeError:
+            # Fallback för äldre PIL
             width_se = draw.textlength(text_se, font=font_small) if hasattr(draw, 'textlength') else 400
             width_id = draw.textlength(text_id, font=font_large) if hasattr(draw, 'textlength') else 400
             height_se = 72
@@ -200,10 +204,10 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         width, height = qr_img.size
         
-        # Tillbaka till ursprungliga marginaler som funkade bra
-        margin_top = 16
-        line_spacing = 10
-        margin_bottom = 30
+        # JUSTERADE MARGINALER för tightare layout
+        margin_top = 10      # Minskat från 16 till 10
+        line_spacing = 6     # Minskat från 10 till 6
+        margin_bottom = 20   # Minskat från 30 till 20
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
@@ -240,7 +244,6 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
     
-    os.makedirs(qr_folder, exist_ok=True)
     qr_img.save(filepath, quality=95)
     
     logger.info(f"Created QR code: {filename}")
@@ -302,7 +305,7 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
         Sökväg till genererad PDF
     """
     # Hämta folders från config eller använd default
-    qr_folder = getattr(Config, 'QR_FOLDER', 'static/qr')
+    qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     pdf_folder = getattr(Config, 'PDF_FOLDER', 'static/pdfs')
     
     # Skapa PDF
