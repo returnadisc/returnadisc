@@ -2,6 +2,8 @@
 import logging
 import secrets
 import os
+import random
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional, Dict, List, Callable
 from functools import wraps
@@ -118,7 +120,7 @@ class SessionService:
         return OrderData(
             order_id=order_id,
             package=session.get('order_package', 'standard'),
-            count=session.get('order_count', 20),
+            count=session.get('order_count', 24),
             price=session.get('order_price', 99.0),
             qr_codes=session.get('order_qr_codes', []),
             email=session.get('order_email', ''),
@@ -141,9 +143,9 @@ class ValidationService:
     """Validering av input."""
     
     PACKAGE_CONFIG = {
-        'start': {'count': 10, 'price': 59},
-        'standard': {'count': 20, 'price': 99},
-        'pro': {'count': 40, 'price': 179}
+        'start': {'count': 12, 'price': 59},
+        'standard': {'count': 24, 'price': 99},
+        'pro': {'count': 48, 'price': 179}
     }
     
     @classmethod
@@ -341,17 +343,12 @@ def forgot_password():
             flash('Ange din email-adress.', 'error')
             return redirect(url_for('auth.forgot_password'))
         
-        # Kolla om användaren finns (visa inte om den inte finns - säkerhet)
         user = db.get_user_by_email(email)
         
         if user:
-            # Generera reset-token
             reset_token = secrets.token_urlsafe(32)
-            
-            # Spara token i databasen
             db.set_reset_token(email, reset_token)
             
-            # Skicka email med reset-länk
             reset_url = url_for('auth.reset_password', token=reset_token, _external=True)
             
             subject = "Återställ ditt lösenord - ReturnaDisc"
@@ -370,7 +367,6 @@ def forgot_password():
             send_email_async(email, subject, html_content)
             logger.info(f"Password reset requested for: {email}")
         
-        # Visa alltid samma meddelande oavsett om användaren finns (säkerhet)
         flash('Om det finns ett konto med den emailen har vi skickat en återställningslänk.', 'info')
         return redirect(url_for('auth.login'))
     
@@ -381,7 +377,6 @@ def forgot_password():
 @handle_auth_errors
 def reset_password(token):
     """Återställ lösenord med token."""
-    # Verifiera token
     user = db.get_user_by_token(token)
     
     if not user:
@@ -400,7 +395,6 @@ def reset_password(token):
             flash('Lösenorden matchar inte.', 'error')
             return redirect(request.url)
         
-        # Uppdatera lösenord och rensa token
         password_hash = generate_password_hash(password)
         db.update_password(user['id'], password_hash)
         
@@ -419,15 +413,9 @@ def checkout():
     """Stripe checkout för stickers."""
     try:
         package = request.form.get('package')
-        count = int(request.form.get('count', 10))
-        
-        prices = {
-            'start': 5900,
-            'standard': 9900,
-            'pro': 17900
-        }
-        
-        price = prices.get(package, 5900)
+        config = ValidationService.validate_package(package)
+        count = config['count']
+        price = config['price'] * 100  # Öre
         
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -473,23 +461,30 @@ def order_confirmation_stripe():
         
         if checkout_session.payment_status == 'paid':
             package = checkout_session.metadata.get('package')
-            count = int(checkout_session.metadata.get('count', 10))
+            count = int(checkout_session.metadata.get('count', 24))
             customer_email = checkout_session.customer_details.email if checkout_session.customer_details else 'okänd'
             
             # Generera QR-koder
             qr_service = QRGenerationService(db)
             qr_codes = qr_service.generate_batch(count)
             
-            order_id = f"STRIPE-{session_id[:8].upper()}"
+            # GENERERA RIKTIGT ORDERNUMMER
+            date_str = datetime.now().strftime('%y%m%d')
+            random_suffix = ''.join([str(random.randint(0, 9)) for _ in range(4)])
+            order_id = f"RD-{date_str}-{random_suffix}"
             
-            # Mail till admin (dig)
+            # Rätt antal baserat på paket
+            package_counts = {'start': 12, 'standard': 24, 'pro': 48}
+            display_count = package_counts.get(package, count)
+            
+            # Mail till admin (med QR-koder)
             admin_email = os.environ.get('ADMIN_EMAIL', 'din-email@example.com')
             admin_subject = f"NY BETALNING - ReturnaDisc Order #{order_id}"
             admin_html = f"""
             <h2>Ny betalning mottagen!</h2>
             <p><strong>Order:</strong> #{order_id}</p>
             <p><strong>Kund:</strong> {customer_email}</p>
-            <p><strong>Paket:</strong> {package} ({count} stickers)</p>
+            <p><strong>Paket:</strong> {package} ({display_count} stickers)</p>
             <p><strong>Betalat:</strong> {checkout_session.amount_total / 100} kr</p>
             <p><strong>QR-koder:</strong></p>
             <ul>
@@ -499,24 +494,23 @@ def order_confirmation_stripe():
             """
             send_email_async(admin_email, admin_subject, admin_html)
             
-            # Mail till kund
+            # Mail till kund (UTAN QR-koder - säkerhet!)
             customer_subject = "Din ReturnaDisc beställning är bekräftad!"
             customer_html = f"""
             <h2>Tack för din beställning!</h2>
-            <p>Du har beställt {count} QR-klistermärken.</p>
-            <p>Dina QR-koder:</p>
-            <ul>
-                {''.join([f'<li>{qr["qr_id"]}</li>' for qr in qr_codes])}
-            </ul>
+            <p>Du har beställt <strong>{display_count} QR-klistermärken</strong> ({package}).</p>
+            <p>Din order: <strong>#{order_id}</strong></p>
             <p>Vi skickar dina klistermärken inom 2-3 arbetsdagar.</p>
+            <p>Du får ett mail med spårningslänk när paketet är på väg.</p>
+            <br>
+            <p>Med vänliga hälsningar,<br>ReturnaDisc-teamet</p>
             """
             send_email_async(customer_email, customer_subject, customer_html)
             
             return render_template('auth/order_confirmation_stripe.html', 
                                  package=package,
-                                 count=count,
+                                 count=display_count,
                                  order_id=order_id,
-                                 qr_codes=qr_codes,
                                  email=customer_email)
         else:
             flash('Betalningen är inte slutförd', 'warning')
