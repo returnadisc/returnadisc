@@ -574,7 +574,7 @@
                             <div class="feature-highlight">12 stickers</div>
                             <p>För nybörjaren</p>
                         </div>
-                        <form method="post" action="{{ url_for('auth.buy_stickers_checkout') }}">
+                        <form method="post" action="{{ url_for('auth.checkout') }}">
                             <input type="hidden" name="package" value="start">
                             <input type="hidden" name="count" value="10">
                             <button type="submit" class="btn-select">Välj</button>
@@ -595,7 +595,7 @@
                             <div class="feature-highlight">24 stickers</div>
                             <p>För den aktiva spelaren</p>
                         </div>
-                        <form method="post" action="{{ url_for('auth.buy_stickers_checkout') }}">
+                        <form method="post" action="{{ url_for('auth.checkout') }}">
                             <input type="hidden" name="package" value="standard">
                             <input type="hidden" name="count" value="20">
                             <button type="submit" class="btn-select">Välj</button>
@@ -615,7 +615,7 @@
                             <div class="feature-highlight">48 stickers</div>
                             <p>För seriösa discgolfare</p>
                         </div>
-                        <form method="post" action="{{ url_for('auth.buy_stickers_checkout') }}">
+                        <form method="post" action="{{ url_for('auth.checkout') }}">
                             <input type="hidden" name="package" value="pro">
                             <input type="hidden" name="count" value="40">
                             <button type="submit" class="btn-select">Välj</button>
