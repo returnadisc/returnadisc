@@ -426,7 +426,7 @@ def time_ago(dt: datetime) -> str:
         
 def notify_admin_new_order(user_data: dict, qr_id: str):
     """Skicka email till admin vid ny beställning."""
-    admin_email = "robert.winterqvist@gmail.com"  # Byt till din riktiga email
+    admin_email = "info@returnadisc.se"  # Byt till din riktiga email
     
     subject = f"Ny ReturnaDisc beställning - {user_data['name']}"
     

@@ -2,15 +2,290 @@
 
 {% block title %}Betalning bekräftad - ReturnaDisc{% endblock %}
 
-{% block content %}
-<div class="container mt-5 text-center">
-    <h1>🎉 Tack för din betalning!</h1>
-    <p>Du har beställt <strong>{{ count }} stickers</strong> ({{ package }})</p>
-    <p>En bekräftelse har skickats till {{ email }}</p>
-    <p>Vi skickar dina QR-klistermärken inom 2-3 arbetsdagar.</p>
-    
+{% block extra_css %}
+<style>
+    .confirmation-page {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
+    }
 
+    .confirmation-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .confirmation-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .confirmation-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        padding: 20px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .confirmation-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 50px 40px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        text-align: center;
+    }
+
+    .confirmation-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 25px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.3);
+    }
+
+    .confirmation-icon svg {
+        width: 40px;
+        height: 40px;
+        fill: none;
+        stroke: white;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .confirmation-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 15px;
+    }
+
+    .confirmation-subtitle {
+        color: #6b7280;
+        font-size: 1.1rem;
+        margin-bottom: 35px;
+        line-height: 1.6;
+    }
+
+    .order-details {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        border: 2px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .order-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .order-row:last-child {
+        border-bottom: none;
+    }
+
+    .order-label {
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.95rem;
+    }
+
+    .order-value {
+        color: #166534;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .order-value.highlight {
+        color: #fbbf24;
+        background: #1a1a1a;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+
+    .confirmation-message {
+        background: linear-gradient(135deg, rgba(22, 101, 52, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-left: 4px solid #166534;
+    }
+
+    .confirmation-message p {
+        color: #374151;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 16px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .qr-preview {
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 2px dashed rgba(22, 101, 52, 0.2);
+    }
+
+    .qr-preview h3 {
+        font-size: 1.1rem;
+        color: #166534;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .qr-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .qr-item {
+        background: white;
+        border-radius: 8px;
+        padding: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: #166534;
+        border: 1px solid rgba(22, 101, 52, 0.2);
+    }
+
+    @media (max-width: 480px) {
+        .confirmation-card {
+            padding: 35px 25px;
+        }
+
+        .confirmation-header h1 {
+            font-size: 1.6rem;
+        }
+
+        .order-details {
+            padding: 20px;
+        }
+
+        .order-row {
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-page">
+    <div class="confirmation-bg" style="background-image: url('{{ url_for('static', filename='images/login-bg.png') }}');"></div>
+    <div class="confirmation-overlay"></div>
     
-    <a href="{{ url_for('auth.index') }}" class="btn btn-primary mt-4">Tillbaka till startsidan</a>
+    <div class="confirmation-container">
+        <div class="confirmation-card">
+            <div class="confirmation-icon">
+                <svg viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            
+            <div class="confirmation-header">
+                <h1>Tack for din betalning!</h1>
+                <p class="confirmation-subtitle">Din order ar bekraftad och vi har skickat en bekriftelse till din e-post.</p>
+            </div>
+            
+            <div class="order-details">
+                <div class="order-row">
+                    <span class="order-label">Ordernummer</span>
+                    <span class="order-value highlight">{{ order_id }}</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Paket</span>
+                    <span class="order-value">{{ package.capitalize() }}</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">Antal stickers</span>
+                    <span class="order-value">{{ count }} st</span>
+                </div>
+                <div class="order-row">
+                    <span class="order-label">E-post</span>
+                    <span class="order-value">{{ email }}</span>
+                </div>
+            </div>
+            
+            <div class="confirmation-message">
+                <p>Vi skickar dina QR-klistermarken inom <strong>2-3 arbetsdagar</strong>. Du far ett mail med sparbar lank nar paketet ar pa vag.</p>
+            </div>
+            
+            {% if qr_codes %}
+            <div class="qr-preview">
+                <h3>Dina QR-koder</h3>
+                <div class="qr-grid">
+                    {% for qr in qr_codes[:5] %}
+                    <div class="qr-item">{{ qr.qr_id }}</div>
+                    {% endfor %}
+                    {% if qr_codes|length > 5 %}
+                    <div class="qr-item">+{{ qr_codes|length - 5 }} till</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <a href="{{ url_for('auth.index') }}" class="btn-primary">Tillbaka till startsidan</a>
+        </div>
+    </div>
 </div>
 {% endblock %}
