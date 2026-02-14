@@ -810,3 +810,236 @@ def activate_existing():
     
     qr_id = request.args.get('qr_id', '')
     return render_template('auth/activate_qr_page.html', prefilled_qr=qr_id)
+    
+    
+    
+import stripe
+import os
+
+# Stripe konfiguration
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
+@bp.route('/checkout', methods=['POST'])
+def checkout():
+    """Stripe checkout session."""
+    try:
+        package = request.form.get('package')
+        count = int(request.form.get('count', 10))
+        
+        # Priser i ören (SEK)
+        prices = {
+            'start': 5900,      # 59 kr
+            'standard': 9900,   # 99 kr
+            'pro': 17900        # 179 kr
+        }
+        
+        price = prices.get(package, 5900)
+        
+        # Skapa Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'sek',
+                    'product_data': {
+                        'name': f'ReturnaDisc Stickers - {package.capitalize()}',
+                        'description': f'{count} st QR-klistermärken',
+                    },
+                    'unit_amount': price,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.host_url + 'order-confirmation?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'buy-stickers',
+            metadata={
+                'package': package,
+                'count': str(count),
+            }
+        )
+        
+        return redirect(session.url, code=303)
+        
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        flash('Ett fel uppstod vid betalning. Försök igen.', 'error')
+        return redirect(url_for('auth.buy_stickers'))
+
+
+@bp.route('/order-confirmation')
+def order_confirmation():
+    """Visa orderbekräftelse och skicka mail till admin."""
+    session_id = request.args.get('session_id')
+    
+    if not session_id:
+        flash('Ingen order hittades', 'error')
+        return redirect(url_for('auth.index'))
+    
+    try:
+        # Hämta session från Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            package = session.metadata.get('package')
+            count = session.metadata.get('count')
+            
+            # Här ska vi skicka mail till dig med orderinfo
+            # TODO: Lägg till mail-funktion
+            
+            return render_template('auth/order_confirmation.html', 
+                                 package=package, 
+                                 count=count,
+                                 email=session.customer_details.email if session.customer_details else None)
+        else:
+            flash('Betalningen är inte slutförd', 'warning')
+            return redirect(url_for('auth.buy_stickers'))
+            
+    except Exception as e:
+        logger.error(f"Order confirmation error: {e}")
+        flash('Ett fel uppstod', 'error')
+        return redirect(url_for('auth.index'))
+        
+        
+import stripe
+import os
+from flask import url_for, redirect, request, render_template, flash
+from utils import send_email_async, create_qr_code, generate_random_qr_id
+
+# Stripe konfiguration
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
+@bp.route('/checkout', methods=['POST'])
+def checkout():
+    """Stripe checkout för stickers."""
+    try:
+        package = request.form.get('package')
+        count = int(request.form.get('count', 10))
+        
+        # Priser i ören (SEK)
+        prices = {
+            'start': 5900,      # 59 kr
+            'standard': 9900,   # 99 kr
+            'pro': 17900        # 179 kr
+        }
+        
+        price = prices.get(package, 5900)
+        
+        # Skapa Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'sek',
+                    'product_data': {
+                        'name': f'ReturnaDisc Stickers - {package.capitalize()}',
+                        'description': f'{count} st QR-klistermärken',
+                    },
+                    'unit_amount': price,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.host_url + 'order-confirmation-stripe?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=request.host_url + 'buy-stickers',
+            metadata={
+                'package': package,
+                'count': str(count),
+            }
+        )
+        
+        return redirect(session.url, code=303)
+        
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        flash('Ett fel uppstod vid betalning. Försök igen.', 'error')
+        return redirect(url_for('auth.buy_stickers'))
+
+
+@bp.route('/order-confirmation-stripe')
+def order_confirmation_stripe():
+    """Visa bekräftelse efter Stripe-betalning."""
+    session_id = request.args.get('session_id')
+    
+    if not session_id:
+        flash('Ingen order hittades', 'error')
+        return redirect(url_for('auth.index'))
+    
+    try:
+        # Hämta session från Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            package = session.metadata.get('package')
+            count = int(session.metadata.get('count', 10))
+            customer_email = session.customer_details.email if session.customer_details else 'okänd'
+            
+            # Generera QR-koder för ordern
+            qr_codes = []
+            for i in range(count):
+                qr_id = generate_random_qr_id()
+                create_qr_code(qr_id)
+                qr_codes.append({'qr_id': qr_id})
+            
+            # Skapa order i databasen (simplified)
+            order_id = f"STRIPE-{session_id[:8].upper()}"
+            
+            # SKICKA MAIL TILL DIG (ADMIN)
+            admin_email = os.environ.get('ADMIN_EMAIL', 'din-email@example.com')
+            admin_subject = f"NY BETALNING - ReturnaDisc Order #{order_id}"
+            admin_html = f"""
+            <h2>Ny betalning mottagen!</h2>
+            <p><strong>Order:</strong> #{order_id}</p>
+            <p><strong>Kund:</strong> {customer_email}</p>
+            <p><strong>Paket:</strong> {package} ({count} stickers)</p>
+            <p><strong>Betalat:</strong> {session.amount_total / 100} kr</p>
+            <p><strong>QR-koder:</strong></p>
+            <ul>
+                {''.join([f'<li>{qr["qr_id"]} - https://returnadisc.se/static/qr/qr_{qr["qr_id"]}.png</li>' for qr in qr_codes])}
+            </ul>
+            <p>Skriv ut QR-koderna och skicka till kunden!</p>
+            """
+            send_email_async(admin_email, admin_subject, admin_html)
+            
+            # Skicka mail till kund
+            customer_subject = "Din ReturnaDisc beställning är bekräftad!"
+            customer_html = f"""
+            <h2>Tack för din beställning!</h2>
+            <p>Du har beställt {count} QR-klistermärken.</p>
+            <p>Dina QR-koder:</p>
+            <ul>
+                {''.join([f'<li>{qr["qr_id"]}</li>' for qr in qr_codes])}
+            </ul>
+            <p>Vi skickar dina klistermärken inom 2-3 arbetsdagar.</p>
+            """
+            send_email_async(customer_email, customer_subject, customer_html)
+            
+            return render_template('auth/order_confirmation_stripe.html', 
+                                 package=package,
+                                 count=count,
+                                 order_id=order_id,
+                                 qr_codes=qr_codes,
+                                 email=customer_email)
+        else:
+            flash('Betalningen är inte slutförd', 'warning')
+            return redirect(url_for('auth.buy_stickers'))
+            
+    except Exception as e:
+        logger.error(f"Order confirmation error: {e}")
+        flash('Ett fel uppstod', 'error')
+        return redirect(url_for('auth.index'))
+
+
+@bp.route('/download-qr/<qr_id>')
+def download_qr(qr_id):
+    """Ladda ner enskild QR-kod."""
+    import os
+    from flask import send_file
+    
+    qr_folder = os.environ.get('QR_FOLDER', 'static/qr')
+    filepath = os.path.join(qr_folder, f"qr_{qr_id}.png")
+    
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True, download_name=f'returnadisc_{qr_id}.png')
+    else:
+        flash(f'QR-kod {qr_id} hittades inte', 'error')
+        return redirect(url_for('auth.index'))
