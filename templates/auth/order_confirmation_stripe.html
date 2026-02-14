@@ -176,37 +176,6 @@
         box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
     }
 
-    .qr-preview {
-        margin-top: 25px;
-        padding-top: 25px;
-        border-top: 2px dashed rgba(22, 101, 52, 0.2);
-    }
-
-    .qr-preview h3 {
-        font-size: 1.1rem;
-        color: #166534;
-        margin-bottom: 15px;
-        font-weight: 700;
-    }
-
-    .qr-grid {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        justify-content: center;
-    }
-
-    .qr-item {
-        background: white;
-        border-radius: 8px;
-        padding: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        font-family: monospace;
-        font-size: 0.8rem;
-        color: #166534;
-        border: 1px solid rgba(22, 101, 52, 0.2);
-    }
-
     @media (max-width: 480px) {
         .confirmation-card {
             padding: 35px 25px;
@@ -258,7 +227,9 @@
                 </div>
                 <div class="order-row">
                     <span class="order-label">Antal stickers</span>
-                    <span class="order-value">{{ count }} st</span>
+                    <span class="order-value">
+                        {% if package == 'start' %}12{% elif package == 'standard' %}24{% elif package == 'pro' %}48{% else %}{{ count }}{% endif %} st
+                    </span>
                 </div>
                 <div class="order-row">
                     <span class="order-label">E-post</span>
@@ -269,20 +240,6 @@
             <div class="confirmation-message">
                 <p>Vi skickar dina QR-klistermarken inom <strong>2-3 arbetsdagar</strong>. Du far ett mail med sparbar lank nar paketet ar pa vag.</p>
             </div>
-            
-            {% if qr_codes %}
-            <div class="qr-preview">
-                <h3>Dina QR-koder</h3>
-                <div class="qr-grid">
-                    {% for qr in qr_codes[:5] %}
-                    <div class="qr-item">{{ qr.qr_id }}</div>
-                    {% endfor %}
-                    {% if qr_codes|length > 5 %}
-                    <div class="qr-item">+{{ qr_codes|length - 5 }} till</div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
             
             <a href="{{ url_for('auth.index') }}" class="btn-primary">Tillbaka till startsidan</a>
         </div>
