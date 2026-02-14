@@ -330,6 +330,86 @@ def login():
     return render_template('auth/login.html')
 
 
+@bp.route('/forgot-password', methods=['GET', 'POST'])
+@handle_auth_errors
+def forgot_password():
+    """Glömt lösenord - skicka återställningslänk."""
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        
+        if not email:
+            flash('Ange din email-adress.', 'error')
+            return redirect(url_for('auth.forgot_password'))
+        
+        # Kolla om användaren finns (visa inte om den inte finns - säkerhet)
+        user = db.get_user_by_email(email)
+        
+        if user:
+            # Generera reset-token
+            reset_token = secrets.token_urlsafe(32)
+            
+            # Spara token i databasen
+            db.set_reset_token(email, reset_token)
+            
+            # Skicka email med reset-länk
+            reset_url = url_for('auth.reset_password', token=reset_token, _external=True)
+            
+            subject = "Återställ ditt lösenord - ReturnaDisc"
+            html_content = f"""
+            <h2>Hej {user.get('name', '')}!</h2>
+            <p>Du har begärt att återställa ditt lösenord.</p>
+            <p>Klicka på länken nedan för att välja ett nytt lösenord:</p>
+            <p><a href="{reset_url}" style="display: inline-block; background: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">Återställ lösenord</a></p>
+            <p>Eller kopiera denna länk: {reset_url}</p>
+            <p>Länken är giltig i 24 timmar.</p>
+            <p>Om du inte begärt detta kan du ignorera detta mail.</p>
+            <br>
+            <p>Med vänliga hälsningar,<br>ReturnaDisc-teamet</p>
+            """
+            
+            send_email_async(email, subject, html_content)
+            logger.info(f"Password reset requested for: {email}")
+        
+        # Visa alltid samma meddelande oavsett om användaren finns (säkerhet)
+        flash('Om det finns ett konto med den emailen har vi skickat en återställningslänk.', 'info')
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/forgot_password.html')
+
+
+@bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+@handle_auth_errors
+def reset_password(token):
+    """Återställ lösenord med token."""
+    # Verifiera token
+    user = db.get_user_by_token(token)
+    
+    if not user:
+        flash('Ogiltig eller utgången länk. Begär en ny.', 'error')
+        return redirect(url_for('auth.forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+        
+        if not password or len(password) < 6:
+            flash('Lösenordet måste vara minst 6 tecken.', 'error')
+            return redirect(request.url)
+        
+        if password != confirm_password:
+            flash('Lösenorden matchar inte.', 'error')
+            return redirect(request.url)
+        
+        # Uppdatera lösenord och rensa token
+        password_hash = generate_password_hash(password)
+        db.update_password(user['id'], password_hash)
+        
+        flash('Ditt lösenord har uppdaterats! Logga in med ditt nya lösenord.', 'success')
+        return redirect(url_for('auth.login'))
+    
+    return render_template('auth/reset_password.html', token=token)
+
+
 # ============================================================================
 # Routes - Stripe Betalning
 # ============================================================================
