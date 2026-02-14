@@ -694,3 +694,40 @@ def system_health():
     stats_service = AdminStatsService(db)
     health = stats_service.get_system_health()
     return jsonify(health)
+    
+    
+@bp.route('/orders')
+@admin_required
+@handle_template_errors
+def list_orders():
+    """Lista alla beställningar med användarinfo och QR-koder."""
+    # Hämta alla användare med deras QR-koder
+    query = """
+        SELECT 
+            u.id, u.name, u.email, u.created_at,
+            q.qr_id, q.is_active, q.activated_at
+        FROM users u
+        LEFT JOIN qr_codes q ON u.id = q.user_id
+        WHERE u.is_active = 1
+        ORDER BY u.created_at DESC
+    """
+    orders = db.fetch_all(query)
+    
+    return TemplateService.render('admin/orders.html', orders=orders)
+
+
+@bp.route('/download-qr/<qr_id>')
+@admin_required
+def download_qr(qr_id: str):
+    """Ladda ner QR-kod som PNG."""
+    import os
+    from flask import send_file
+    
+    qr_folder = os.environ.get('QR_FOLDER', 'static/qr')
+    filepath = os.path.join(qr_folder, f"qr_{qr_id}.png")
+    
+    if os.path.exists(filepath):
+        return send_file(filepath, as_attachment=True, download_name=f'returnadisc_{qr_id}.png')
+    else:
+        flash(f'QR-kod {qr_id} hittades inte', 'error')
+        return redirect(url_for('admin.list_orders'))

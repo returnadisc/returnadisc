@@ -422,3 +422,21 @@ def time_ago(dt: datetime) -> str:
         return f"för {int(days)} dagar sedan"
     else:
         return format_datetime(dt)
+        
+        
+def notify_admin_new_order(user_data: dict, qr_id: str):
+    """Skicka email till admin vid ny beställning."""
+    admin_email = "robert.winterqvist@gmail.com"  # Byt till din riktiga email
+    
+    subject = f"Ny ReturnaDisc beställning - {user_data['name']}"
+    
+    html = f"""
+    <h2>Ny beställning</h2>
+    <p><strong>Namn:</strong> {user_data['name']}</p>
+    <p><strong>Email:</strong> {user_data['email']}</p>
+    <p><strong>Adress:</strong> {user_data.get('address', 'Saknas')}</p>
+    <p><strong>QR-kod:</strong> {qr_id}</p>
+    <p>Ladda ner QR-koden: https://returnadisc.se/static/qr/qr_{qr_id}.png</p>
+    """
+    
+    send_email_async(admin_email, subject, html)

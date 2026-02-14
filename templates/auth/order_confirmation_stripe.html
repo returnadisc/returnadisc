@@ -9,23 +9,7 @@
     <p>En bekräftelse har skickats till {{ email }}</p>
     <p>Vi skickar dina QR-klistermärken inom 2-3 arbetsdagar.</p>
     
-    <h3>Dina QR-koder:</h3>
-    <div class="row">
-        {% for qr in qr_codes %}
-        <div class="col-md-3 mb-3">
-            <div class="card">
-                <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
-                     class="card-img-top" 
-                     alt="QR {{ qr.qr_id }}">
-                <div class="card-body">
-                    <h5 class="card-title">{{ qr.qr_id }}</h5>
-                    <a href="{{ url_for('auth.download_qr', qr_id=qr.qr_id) }}" 
-                       class="btn btn-sm btn-primary">Ladda ner</a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+
     
     <a href="{{ url_for('auth.index') }}" class="btn btn-primary mt-4">Tillbaka till startsidan</a>
 </div>
