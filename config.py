@@ -3,7 +3,7 @@ import os
 from datetime import timedelta, datetime
 
 from dotenv import load_dotenv
-from werkzeug.security import generate_password_hash
+
 
 load_dotenv()
 
@@ -48,9 +48,10 @@ class Config:
     PUBLIC_URL = os.environ.get('PUBLIC_URL', BASE_URL)
     
     # Admin
-    ADMIN_KEY = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@returnadisc.se')
-    ADMIN_PASSWORD_HASH = generate_password_hash('scrypt:32768:8:1$ZxXcL46IYbKNUWjR$28a576262227c23c3af11e6b19ceee04c4c535ad5b29d3d5a507dd172b307ba0c8cd3e3a78b6178ab782924cb2d2809cefcf95f453de378e863e6ba13f76aaa4')
+    ADMIN_KEY = os.environ.get('ADMIN_KEY')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
+
     
     # QR/PDF
     QR_FOLDER = 'static/qr'
@@ -81,10 +82,15 @@ class DevelopmentConfig(Config):
     if _admin_key == 'dev-admin-key-change-in-prod':
         import logging
         logging.warning("WARNING: Using default ADMIN_KEY in development!")
-    ADMIN_KEY = _admin_key
     
+    ADMIN_KEY = _admin_key
     ADMIN_EMAIL = 'admin@returnadisc.se'
-    ADMIN_PASSWORD_HASH = generate_password_hash('scrypt:32768:8:1$ZxXcL46IYbKNUWjR$28a576262227c23c3af11e6b19ceee04c4c535ad5b29d3d5a507dd172b307ba0c8cd3e3a78b6178ab782924cb2d2809cefcf95f453de378e863e6ba13f76aaa4')
+
+    ADMIN_PASSWORD_HASH = os.environ.get(
+        'ADMIN_PASSWORD_HASH',
+        'scrypt:32768:8:1$Te18cVzCiLyvdNJH$da5c98b8ce33d3cdab4eb8436c5bb29c0ae183f51f2e395f9f9c220a917dbfaf48a2f45fb9393315d757eb2e3ff58de8af0a6f9aa1bd6b1f8e3765be06404679'
+    )
+
     
 
 
@@ -95,9 +101,12 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
     
-    ADMIN_KEY = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@returnadisc.se')
-    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH') or generate_password_hash('scrypt:32768:8:1$ZxXcL46IYbKNUWjR$28a576262227c23c3af11e6b19ceee04c4c535ad5b29d3d5a507dd172b307ba0c8cd3e3a78b6178ab782924cb2d2809cefcf95f453de378e863e6ba13f76aaa4')
+    ADMIN_KEY = os.environ.get('ADMIN_KEY')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
+    
+    if not ADMIN_PASSWORD_HASH:
+        raise ValueError("ADMIN_PASSWORD_HASH must be set in production")
 
 
 config = {
