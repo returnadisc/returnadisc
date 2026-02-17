@@ -80,5 +80,10 @@ def create_app(config_name=None):
 # Skapa app-instansen
 app = create_app()
 
+@app.route("/test")
+def test():
+    return "APP WORKS"
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
