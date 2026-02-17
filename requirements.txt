@@ -8,3 +8,5 @@ reportlab==4.4.9
 sendgrid==6.12.5
 gunicorn==21.2.0
 stripe>=5.0.0
+psycopg2-binary
+

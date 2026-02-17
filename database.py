@@ -260,26 +260,55 @@ class MatchResult:
 # Database Connection Manager
 # ============================================================================
 
+import psycopg2
+from urllib.parse import urlparse
+
 class DatabaseConnection:
     def __init__(self, db_path: str = None):
         self.db_path = db_path or DB_PATH
-    
+        self.database_url = os.environ.get("DATABASE_URL")
+
     @contextmanager
     def get_connection(self):
-        conn = sqlite3.connect(
-            self.db_path, 
-            timeout=20, 
-        )
-        conn.row_factory = sqlite3.Row
-        try:
-            yield conn
-            conn.commit()
-        except Exception as e:
-            conn.rollback()
-            logger.error(f"Database error: {e}")
-            raise
-        finally:
-            conn.close()
+
+        # Railway / PostgreSQL
+        if self.database_url:
+            url = urlparse(self.database_url)
+
+            conn = psycopg2.connect(
+                host=url.hostname,
+                port=url.port,
+                user=url.username,
+                password=url.password,
+                dbname=url.path[1:]
+            )
+
+            try:
+                yield conn
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
+
+        # Lokal SQLite
+        else:
+            conn = sqlite3.connect(
+                self.db_path,
+                timeout=20,
+            )
+            conn.row_factory = sqlite3.Row
+
+            try:
+                yield conn
+                conn.commit()
+            except Exception as e:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
+
     
     @contextmanager
     def transaction(self):
