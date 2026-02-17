@@ -121,8 +121,8 @@
     }
 
     .sticker-circle {
-        width: 320px;
-        height: 320px;
+        width: 270px;
+        height: 270px;
         background: #ffffff;
         border-radius: 50%;
         display: flex;
@@ -134,16 +134,15 @@
             inset 0 2px 4px rgba(0,0,0,0.05),
             0 0 0 3px rgba(251, 191, 36, 0.3);
         position: relative;
-        padding: 30px;
+        padding: 8px;
         border: 2px solid rgba(251, 191, 36, 0.5);
     }
 
     .qr-example {
-        width: 220px;
-        height: 220px;
+        width: 210px;
+        height: 210px;
         object-fit: contain;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border-radius: 0;
     }
 
     .qr-fallback {
@@ -183,16 +182,17 @@
         letter-spacing: 2px;
     }
 
+    /* SIZE BADGE */
     .size-badge {
         position: absolute;
-        bottom: -15px;
+        bottom: -35px;
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
         color: #1a1a1a;
-        padding: 12px 30px;
+        padding: 14px 35px;
         border-radius: 30px;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 700;
         box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
     }
@@ -342,6 +342,9 @@
         transition: all 0.3s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
     }
 
     .btn-select:hover {
@@ -462,13 +465,19 @@
         }
 
         .sticker-circle {
-            width: 280px;
-            height: 280px;
+            width: 200px;
+            height: 200px;
+            padding: 6px;
         }
 
         .qr-example {
-            width: 180px;
-            height: 180px;
+            width: 185px;
+            height: 185px;
+        }
+
+        .size-badge {
+            font-size: 1rem;
+            padding: 12px 28px;
         }
 
         .price {
@@ -522,7 +531,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="size-badge">2.5 cm</div>
+                    <div class="size-badge">Ø30mm</div>
                 </div>
                 
                 <div class="sticker-info">
@@ -541,18 +550,18 @@
                     </div>
                     <div class="step">
                         <div class="step-number">2</div>
-                        <h4>Vi skickar</h4>
-                        <p>QR-koder skickas till din adress</p>
+                        <h4>Fyll i adress</h4>
+                        <p>Ange leveransadress i nästa steg</p>
                     </div>
                     <div class="step">
                         <div class="step-number">3</div>
-                        <h4>Sätt på discarna</h4>
-                        <p>Samma kod på alla dina discar</p>
+                        <h4>Betala med Stripe</h4>
+                        <p>Säker betalning med kort</p>
                     </div>
                     <div class="step">
                         <div class="step-number">4</div>
-                        <h4>Aktivera</h4>
-                        <p>Skapa konto och aktivera koden</p>
+                        <h4>Vi skickar!</h4>
+                        <p>Stickers kommer inom 1-2 dagar</p>
                     </div>
                 </div>
             </div>
@@ -574,11 +583,7 @@
                             <div class="feature-highlight">12 stickers</div>
                             <p>För nybörjaren</p>
                         </div>
-                        <form method="post" action="{{ url_for('auth.checkout') }}">
-                            <input type="hidden" name="package" value="start">
-                            <input type="hidden" name="count" value="10">
-                            <button type="submit" class="btn-select">Välj</button>
-                        </form>
+                        <a href="{{ url_for('auth.checkout', package='start') }}" class="btn-select">Välj</a>
                     </div>
                     
                     <!-- Standard - POPULÄR -->
@@ -595,11 +600,7 @@
                             <div class="feature-highlight">24 stickers</div>
                             <p>För den aktiva spelaren</p>
                         </div>
-                        <form method="post" action="{{ url_for('auth.checkout') }}">
-                            <input type="hidden" name="package" value="standard">
-                            <input type="hidden" name="count" value="20">
-                            <button type="submit" class="btn-select">Välj</button>
-                        </form>
+                        <a href="{{ url_for('auth.checkout', package='standard') }}" class="btn-select">Välj</a>
                     </div>
                     
                     <!-- Pro -->
@@ -615,11 +616,7 @@
                             <div class="feature-highlight">48 stickers</div>
                             <p>För seriösa discgolfare</p>
                         </div>
-                        <form method="post" action="{{ url_for('auth.checkout') }}">
-                            <input type="hidden" name="package" value="pro">
-                            <input type="hidden" name="count" value="40">
-                            <button type="submit" class="btn-select">Välj</button>
-                        </form>
+                        <a href="{{ url_for('auth.checkout', package='pro') }}" class="btn-select">Välj</a>
                     </div>
                 </div>
             </div>

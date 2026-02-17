@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}Hantera QR-koder - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    .qr-manage-hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
+    }
+
+    .qr-manage-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        100% { transform: scale(1.15) translate(-1%, -1%); }
+    }
+
+    .qr-manage-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .qr-manage-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 900px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .qr-manage-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 40px;
+    }
+
+    .qr-manage-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .qr-manage-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    /* Aktivera ny QR-sektion */
+    .activate-section {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+    }
+
+    .activate-section h2 {
+        color: white;
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .activate-form {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .activate-form input {
+        flex: 1;
+        min-width: 200px;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: white;
+    }
+
+    .btn-activate {
+        padding: 15px 30px;
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        color: #78350f;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-activate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
+    }
+
+    /* QR-lista */
+    .qr-list-container {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .qr-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .qr-list-header h2 {
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+
+    .qr-count {
+        background: #166534;
+        color: white;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    /* QR-kort */
+    .qr-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .qr-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 20px;
+        align-items: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .qr-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .qr-card.disabled {
+        opacity: 0.6;
+        background: #f3f4f6;
+    }
+
+    .qr-card.disabled .qr-image-small {
+        filter: grayscale(100%);
+    }
+
+    .qr-image-small {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+        object-fit: contain;
+        background: white;
+        padding: 5px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .qr-info h3 {
+        font-size: 1.4rem;
+        color: #166534;
+        font-family: monospace;
+        letter-spacing: 2px;
+        margin-bottom: 8px;
+    }
+
+    .qr-meta {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+    .qr-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.disabled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .qr-actions {
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    .btn-toggle {
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-toggle.disable {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-toggle.disable:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-toggle.enable {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .btn-toggle.enable:hover {
+        background: #22c55e;
+        color: white;
+    }
+
+    .btn-download-small {
+        padding: 10px 20px;
+        background: #f3f4f6;
+        color: #374151;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .btn-download-small:hover {
+        background: #e5e7eb;
+    }
+
+    /* Tomt tillstånd */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+    }
+
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.3rem;
+        color: #1f2937;
+        margin-bottom: 10px;
+    }
+
+    /* Info-box */
+    .info-box {
+        background: #dbeafe;
+        border-left: 4px solid #3b82f6;
+        padding: 20px;
+        border-radius: 0 12px 12px 0;
+        margin-bottom: 25px;
+    }
+
+    .info-box p {
+        margin: 0;
+        color: #1e40af;
+        font-size: 0.95rem;
+    }
+
+    /* Separata sektioner */
+    .qr-section {
+        margin-bottom: 30px;
+    }
+
+    .qr-section h3 {
+        font-size: 1.1rem;
+        color: #4b5563;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    /* Tillbaka-knapp */
+    .back-section {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 2px solid white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background: white;
+        color: #166534;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .qr-card {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .qr-image-small {
+            margin: 0 auto;
+        }
+
+        .qr-actions {
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .activate-form {
+            flex-direction: column;
+        }
+
+        .activate-form input {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="qr-manage-hero">
+    <div class="qr-manage-bg" style="background-image: url('{{ url_for('static', filename='images/dashboard-bg.png') }}');"></div>
+    <div class="qr-manage-overlay"></div>
+    
+    <div class="qr-manage-content">
+        <div class="qr-manage-header">
+            <h1>Hantera QR-koder</h1>
+            <p>Aktivera, inaktivera och hantera alla dina QR-koder</p>
+        </div>
+
+        <!-- Aktivera ny QR -->
+        <div class="activate-section">
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Aktivera ny QR-kod
+            </h2>
+            <form action="{{ url_for('qr.activate') }}" method="POST" class="activate-form">
+                <input type="text" name="qr_id" placeholder="Skriv QR-kod (t.ex. ABC123)" maxlength="20" required>
+                <button type="submit" class="btn-activate">Aktivera till mitt konto</button>
+            </form>
+        </div>
+
+        <!-- QR-lista -->
+        <div class="qr-list-container">
+            <div class="qr-list-header">
+                <h2>Mina QR-koder</h2>
+                <span class="qr-count">{{ all_qrs|length }} st</span>
+            </div>
+
+            {% if all_qrs %}
+                <div class="info-box">
+                    <p>💡 <strong>Tips:</strong> Du kan ha obegränsat med QR-koder kopplade till ditt konto. Gamla QR-koder fungerar fortfarande även om du köper nya stickers. Inaktiverade QR-koder slutar fungera tills du återaktiverar dem.</p>
+                </div>
+
+                <!-- Aktiva QR-koder -->
+                {% if active_qrs %}
+                <div class="qr-section">
+                    <h3>Aktiva QR-koder ({{ active_qrs|length }})</h3>
+                    <div class="qr-grid">
+                        {% for qr in active_qrs %}
+                        <div class="qr-card">
+                            <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                                 alt="QR {{ qr.qr_id }}" 
+                                 class="qr-image-small"
+                                 onerror="this.style.display='none'">
+                            <div class="qr-info">
+                                <h3>{{ qr.qr_id }}</h3>
+                                <div class="qr-meta">
+                                    <span class="status-badge active">● Aktiv</span>
+                                    <span>📊 {{ qr.total_scans }} scanningar</span>
+                                    {% if qr.activated_at %}
+                                    <span>📅 Aktiverad {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="qr-actions">
+                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST">
+                                    <input type="hidden" name="action" value="disable">
+                                    <button type="submit" class="btn-toggle disable" onclick="return confirm('Inaktivera QR-koden {{ qr.qr_id }}? Den kommer inte att fungera vid scanning.')">
+                                        Inaktivera
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                                   download="returnadisc-{{ qr.qr_id }}.png"
+                                   class="btn-download-small">Ladda ner</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Inaktiva QR-koder -->
+                {% if disabled_qrs %}
+                <div class="qr-section">
+                    <h3>Inaktiva QR-koder ({{ disabled_qrs|length }})</h3>
+                    <div class="qr-grid">
+                        {% for qr in disabled_qrs %}
+                        <div class="qr-card disabled">
+                            <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                                 alt="QR {{ qr.qr_id }}" 
+                                 class="qr-image-small"
+                                 onerror="this.style.display='none'">
+                            <div class="qr-info">
+                                <h3>{{ qr.qr_id }}</h3>
+                                <div class="qr-meta">
+                                    <span class="status-badge disabled">● Inaktiv</span>
+                                    <span>📊 {{ qr.total_scans }} scanningar</span>
+                                    {% if qr.activated_at %}
+                                    <span>📅 Aktiverad {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="qr-actions">
+                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST">
+                                    <input type="hidden" name="action" value="enable">
+                                    <button type="submit" class="btn-toggle enable">
+                                        Aktivera
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                                   download="returnadisc-{{ qr.qr_id }}.png"
+                                   class="btn-download-small">Ladda ner</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <h3>Inga QR-koder ännu</h3>
+                    <p>Du har inga QR-koder kopplade till ditt konto. Aktivera en QR-kod ovan eller köp nya stickers.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="back-section">
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Tillbaka till Dashboard
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

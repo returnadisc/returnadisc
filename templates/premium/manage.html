@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Hantera Premium - ReturnADisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .manage-hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
+    }
+
+    .manage-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .manage-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .manage-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .manage-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .manage-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2.5rem;
+        box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+    }
+
+    .manage-header h1 {
+        color: white;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .manage-tagline {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+    }
+
+    /* Main Card */
+    .manage-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 35px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .manage-card h2 {
+        color: #1f2937;
+        font-size: 1.6rem;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    /* Status Grid - 2 kolumner */
+    .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .status-item {
+        background: white;
+        padding: 25px 20px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .status-item.active {
+        border-color: #22c55e;
+    }
+
+    .status-item.cancelled {
+        border-color: #ef4444;
+    }
+
+    .status-item label {
+        display: block;
+        color: #6b7280;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .status-item value {
+        display: block;
+        color: #166534;
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .status-item.cancelled value {
+        color: #dc2626;
+    }
+
+    /* Launch Offer Box */
+    .launch-offer-box {
+        background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 25px;
+        text-align: center;
+        color: #92400e;
+        border: 2px solid #fbbf24;
+    }
+
+    .launch-offer-box h3 {
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+        color: #78350f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .launch-offer-box p {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .launch-offer-box strong {
+        color: #78350f;
+    }
+
+    /* Action Section */
+    .action-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .action-section h3 {
+        color: #1f2937;
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+    }
+
+    .action-section p {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .action-section .expiry-notice {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+        border-left: 4px solid #fbbf24;
+    }
+
+    .action-section .expiry-notice strong {
+        color: #78350f;
+    }
+
+    /* Buttons */
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        border: 2px solid #ef4444;
+        color: #ef4444;
+        padding: 14px 28px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-reactivate {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #166534;
+        color: white;
+        padding: 14px 28px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-reactivate:hover {
+        background: #14532d;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(22, 101, 52, 0.3);
+    }
+
+    /* Back Button */
+    .back-section {
+        margin-top: 25px;
+        text-align: center;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 500;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        background: white;
+        color: #166534;
+        border-color: white;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .manage-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .manage-card {
+            padding: 25px;
+        }
+
+        .status-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .status-item {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="manage-hero">
+    <div class="manage-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');"></div>
+    <div class="manage-overlay"></div>
+    
+    <div class="manage-content">
+        <div class="manage-header">
+            <div class="manage-icon">💎</div>
+            <h1>Din prenumeration</h1>
+            <p class="manage-tagline">Hantera ditt ReturnaDisc Premium</p>
+        </div>
+
+        <div class="manage-card">
+            <h2>Prenumerationsdetaljer</h2>
+            
+            {# Kolla prenumerationsstatus #}
+            {% set subscription = premium_status.active_subscription %}
+            {% set is_cancelled = subscription and subscription.status == 'cancelled' %}
+            
+            <!-- Status och Giltig till -->
+            <div class="status-grid">
+                <div class="status-item {% if is_cancelled %}cancelled{% else %}active{% endif %}">
+                    <label>Status</label>
+                    <value>
+                        {% if is_cancelled %}
+                            Avbruten
+                        {% else %}
+                            Aktiv
+                        {% endif %}
+                    </value>
+                </div>
+                <div class="status-item">
+                    <label>Giltig till</label>
+                    <value>
+                        {% if premium_status.premium_until %}
+                            {% if premium_status.premium_until is string %}
+                                {{ premium_status.premium_until[:10] }}
+                            {% else %}
+                                {{ premium_status.premium_until.strftime('%Y-%m-%d') }}
+                            {% endif %}
+                        {% else %}
+                            2027-03-01
+                        {% endif %}
+                    </value>
+                </div>
+            </div>
+            
+            <!-- Launch Offer Box (om aktuell och INTE avbruten) -->
+            {% if subscription and subscription.is_launch_offer and not is_cancelled %}
+            <div class="launch-offer-box">
+                <h3>
+                    <span>🎉</span>
+                    Du har lanseringserbjudandet!
+                </h3>
+                <p>Ditt premium är <strong>helt gratis</strong> till 1 mars 2027. Efter det kan du välja att fortsätta för 39 kr/år eller låta prenumerationen avslutas automatiskt utan kostnad.</p>
+            </div>
+            {% endif %}
+            
+            <!-- Action Section -->
+            <div class="action-section">
+                {% if is_cancelled %}
+                    <!-- AVBRUTEN - Visa återaktivering -->
+                    <h3>Återaktivera prenumeration</h3>
+                    <div class="expiry-notice">
+                        Din premium är fortfarande aktiv till 
+                        <strong>
+                            {% if premium_status.premium_until %}
+                                {% if premium_status.premium_until is string %}
+                                    {{ premium_status.premium_until[:10] }}
+                                {% else %}
+                                    {{ premium_status.premium_until.strftime('%Y-%m-%d') }}
+                                {% endif %}
+                            {% else %}
+                                2027-03-01
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <p>Efter detta datum upphör ditt premium att gälla om du inte återaktiverar.</p>
+                    
+                    <form action="{{ url_for('premium.reactivate') }}" method="POST">
+                        <button type="submit" class="btn-reactivate">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+                            </svg>
+                            Återaktivera prenumeration
+                        </button>
+                    </form>
+                {% else %}
+                    <!-- AKTIV - Visa avbryt -->
+                    <h3>Avbryt prenumeration</h3>
+                    <p>Om du avbryter behåller du alla premium-funktioner tills periodens slut. Du kan återaktivera när som helst.</p>
+                    
+                    <form action="{{ url_for('premium.cancel') }}" method="POST" 
+                          onsubmit="return confirm('Är du säker på att du vill avbryta din premium-prenumeration? Du behåller tillgången tills perioden går ut.');">
+                        <button type="submit" class="btn-cancel">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                            Avbryt prenumeration
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="back-section">
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-back">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Tillbaka till Dashboard
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

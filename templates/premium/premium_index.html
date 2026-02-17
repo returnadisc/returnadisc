@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}Premium - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .premium-hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .premium-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .premium-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .premium-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 800px;
+        padding: 0 20px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .premium-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 3rem;
+        box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+    }
+
+    .premium-content h1 {
+        color: white;
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .premium-content h1 span {
+        color: #fbbf24;
+    }
+
+    .premium-tagline {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+
+    /* Launch Banner */
+    .launch-banner {
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        color: #78350f;
+        padding: 15px 25px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        display: inline-block;
+        animation: pulse-banner 2s infinite;
+        box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+    }
+
+    @keyframes pulse-banner {
+        0%, 100% { box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4); }
+        50% { box-shadow: 0 4px 30px rgba(251, 191, 36, 0.7); }
+    }
+
+    .countdown-box {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 15px 25px;
+        margin-bottom: 30px;
+        color: white;
+        display: inline-block;
+    }
+
+    .countdown-box strong {
+        color: #fbbf24;
+    }
+
+    /* Main Card */
+    .pricing-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin-bottom: 30px;
+    }
+
+    .card-badge {
+        display: inline-block;
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+    }
+
+    .card-badge.free {
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        color: #78350f;
+        animation: pulse-badge 2s infinite;
+    }
+
+    @keyframes pulse-badge {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .card-badge.active {
+        background: linear-gradient(145deg, #10b981 0%, #059669 100%);
+    }
+
+    .pricing-card h2 {
+        color: #1f2937;
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+    }
+
+    .price {
+        font-size: 4rem;
+        font-weight: 800;
+        color: #166534;
+        margin: 20px 0;
+        line-height: 1;
+    }
+
+    .price .currency {
+        font-size: 2rem;
+        vertical-align: super;
+    }
+
+    .price .period {
+        font-size: 1.2rem;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .price .free-text {
+        color: #f59e0b;
+        font-size: 3.5rem;
+    }
+
+    .price-original {
+        font-size: 1.5rem;
+        color: #9ca3af;
+        text-decoration: line-through;
+        margin-bottom: -10px;
+    }
+
+    .features {
+        list-style: none;
+        padding: 0;
+        margin: 30px 0;
+        text-align: left;
+        max-width: 350px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .features li {
+        padding: 14px 0;
+        padding-left: 35px;
+        position: relative;
+        color: #374151;
+        font-size: 1rem;
+        border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .features li:last-child {
+        border-bottom: none;
+    }
+
+    .features li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    /* Buttons */
+    .btn-premium {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(145deg, #166534 0%, #14532d 100%);
+        color: white;
+        padding: 18px 45px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(22, 101, 52, 0.4);
+    }
+
+    .btn-premium:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(22, 101, 52, 0.5);
+    }
+
+    .btn-premium.free {
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        color: #78350f;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        animation: pulse-btn 2s infinite;
+    }
+
+    .btn-premium.free:hover {
+        box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5);
+    }
+
+    @keyframes pulse-btn {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+    }
+
+    .btn-premium:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+        animation: none;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+        color: white;
+        padding: 14px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 2px solid white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: white;
+        color: #166534;
+    }
+
+    /* Already Premium Box */
+    .already-premium {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin-bottom: 30px;
+    }
+
+    .already-premium h2 {
+        color: #166534;
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .already-premium p {
+        color: #4b5563;
+        margin-bottom: 20px;
+    }
+
+    .valid-until {
+        background: linear-gradient(145deg, #d1fae5 0%, #a7f3d0 100%);
+        color: #065f46;
+        padding: 20px;
+        border-radius: 16px;
+        margin: 20px 0;
+        font-weight: 600;
+    }
+
+    .valid-until strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 1.1rem;
+    }
+
+    /* Info Box */
+    .premium-info {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 25px;
+        text-align: left;
+        color: #1e40af;
+    }
+
+    .premium-info strong {
+        display: block;
+        margin-bottom: 8px;
+        color: #166534;
+    }
+
+    /* Secure payment text */
+    .secure-text {
+        margin-top: 15px;
+        color: #6b7280;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .premium-content h1 {
+            font-size: 2.2rem;
+        }
+
+        .premium-icon {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+        }
+
+        .pricing-card, .already-premium {
+            padding: 25px;
+        }
+
+        .price {
+            font-size: 3rem;
+        }
+
+        .btn-premium, .btn-secondary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="premium-hero">
+    <div class="premium-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');"></div>
+    <div class="premium-overlay"></div>
+    
+    <div class="premium-content">
+        <div class="premium-icon">💎</div>
+        <h1>Returna<span>Disc</span> Premium</h1>
+        <p class="premium-tagline">Få ut mer av din discgolf-upplevelse</p>
+
+        {# OM ANVÄNDAREN HAR PREMIUM - visa badge och hantera-knapp #}
+        {% if premium_status and premium_status.has_premium %}
+        <div class="already-premium">
+            <span class="card-badge active">✓ Aktivt</span>
+            <h2>Du har redan Premium!</h2>
+            <p>Tack för att du är en premium-medlem.</p>
+            {% if is_launch and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
+            <div class="valid-until">
+                <strong>🎁 Gratis premium</strong>
+                Giltigt till 1 mars 2027
+            </div>
+            {% elif premium_status.premium_until %}
+            <div class="valid-until">
+                <strong>✓ Premium giltigt till</strong>
+                {{ premium_status.premium_until[:10] }}
+            </div>
+            {% endif %}
+            <a href="{{ url_for('premium.manage') }}" class="btn-premium" style="font-size: 1rem; padding: 14px 35px; margin-top: 10px;">
+                Hantera Premium
+            </a>
+        </div>
+        
+        {# OM ANVÄNDAREN INTE HAR PREMIUM #}
+        {% else %}
+        
+            {# LANSERINGSPERIOD - Gratis erbjudande #}
+            {% if is_launch %}
+            <div class="launch-banner">
+                🚀 LANSERINGSKAMPANJ: Gratis Premium fram till 1 mars 2027!
+            </div>
+            
+            <div class="countdown-box">
+                ⏰ Erbjudandet gäller till: <strong>{{ launch_end_date }}</strong>
+            </div>
+            {% endif %}
+
+            <div class="pricing-card">
+                {% if is_launch %}
+                <span class="card-badge free">Gratis Nu!</span>
+                {% else %}
+                <span class="card-badge">Populärast</span>
+                {% endif %}
+                
+                <h2>1 År Premium</h2>
+                
+                <div class="price">
+                    {% if is_launch %}
+                    <div class="price-original">39 kr/år</div>
+                    <span class="free-text">GRATIS</span>
+                    {% else %}
+                    <span class="currency">kr</span>39<span class="period">/år</span>
+                    {% endif %}
+                </div>
+
+                <ul class="features">
+                    <li>Full tillgång till Community kartan</li>
+                    <li>Prioriterad support</li>
+                    <li>Early access till nya funktioner</li>
+                </ul>
+
+                {% if is_launch %}
+                    <form action="{{ url_for('premium.activate_free') }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn-premium free">
+                            🎉 Aktivera Gratis Premium Nu!
+                        </button>
+                    </form>
+                {% else %}
+                    <form action="{{ url_for('premium.checkout') }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn-premium">
+                            🔒 Köp Premium - 39 kr/år
+                        </button>
+                    </form>
+                    <p class="secure-text">
+                        🔒 Säker betalning via Stripe
+                    </p>
+                {% endif %}
+
+                {% if is_launch %}
+                <div class="premium-info">
+                    <strong>💡 Information:</strong>
+                    Nya medlemmar före den 1 juli 2026 får tillgång till premium till och med den 1 mars 2027. 
+                    Medlemmar som ansluter efter detta datum omfattas av betalversionen (39 kr per år).
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Tillbaka till Dashboard
+        </a>
+    </div>
+</section>
+{% endblock %}

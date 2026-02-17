@@ -2,103 +2,159 @@
 
 {% block title %}Admin Login - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    .auth-page {
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 40px 20px;
+    }
+
+    .auth-card {
+        background: white;
+        max-width: 420px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .auth-header {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+
+    .auth-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .auth-header h1 {
+        color: #166534;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    .auth-form {
+        margin-bottom: 25px;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 700;
+        color: #166534;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+        background: white;
+    }
+
+    .btn-primary {
+        background: linear-gradient(145deg, #166534 0%, #15803d 100%);
+        color: white;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.3);
+    }
+
+    .auth-links {
+        text-align: center;
+    }
+
+    .auth-links a {
+        color: #166534;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: color 0.3s ease;
+    }
+
+    .auth-links a:hover {
+        color: #22c55e;
+    }
+
+    @media (max-width: 480px) {
+        .auth-card {
+            padding: 30px 25px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="auth-page">
-    <div class="container">
-        <div class="card auth-card">
-            <div class="auth-header">
-                <div class="auth-icon">🔐</div>
-                <h1>Admin Login</h1>
-                <p class="subtitle">Endast för administratörer</p>
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-icon">🔐</span>
+            <h1>Admin Login</h1>
+            <p class="subtitle">Endast för administratörer</p>
+        </div>
+        
+        <form method="post" class="auth-form">
+            <div class="form-group">
+                <label for="email">Admin Email</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="admin@returnadisc.se" autocomplete="email">
             </div>
             
-            <form method="post" class="auth-form">
-                <div class="form-group">
-                    <label for="email">Admin Email</label>
-                    <input type="email" id="email" name="email" required 
-                           placeholder="admin@returnadisc.se" autocomplete="email">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Lösenord</label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Lösenord" autocomplete="current-password">
-                </div>
-                
-                <button type="submit" class="btn-primary btn-large btn-full">
-                    Logga in
-                </button>
-            </form>
-            
-            <div class="auth-links">
-                <a href="{{ url_for('auth.index') }}">← Till startsidan</a>
+            <div class="form-group">
+                <label for="password">Lösenord</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Lösenord" autocomplete="current-password">
             </div>
+            
+            <button type="submit" class="btn-primary">
+                Logga in
+            </button>
+        </form>
+        
+        <div class="auth-links">
+            <a href="{{ url_for('auth.index') }}">← Till startsidan</a>
         </div>
     </div>
 </div>
-
-<style>
-.auth-page {
-    padding: 40px 0;
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-}
-
-.auth-card {
-    max-width: 420px;
-    margin: 0 auto;
-}
-
-.auth-header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.auth-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.auth-header h1 {
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    color: #6b7280;
-}
-
-.auth-form {
-    margin-bottom: 25px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #374151;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 14px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1rem;
-}
-
-.auth-links {
-    text-align: center;
-}
-
-.auth-links a {
-    color: #2563eb;
-    text-decoration: none;
-    font-weight: 500;
-}
-</style>
 {% endblock %}

@@ -1,15 +1,11 @@
-"""Missing discs - community karta för borttappade discar."""
+"""Missing disc-hantering."""
 import logging
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Callable
 from functools import wraps
-
 from flask import (
-    Blueprint, render_template, request, redirect, 
-    url_for, flash, session, jsonify, g
+    Blueprint, render_template, request, flash, 
+    redirect, url_for, session, jsonify
 )
-
-from database import db, MissingDisc
+from database import db
 
 logger = logging.getLogger(__name__)
 
@@ -17,383 +13,182 @@ bp = Blueprint('missing', __name__, url_prefix='/missing')
 
 
 # ============================================================================
-# Dataclasses
-# ============================================================================
-
-@dataclass
-class ReportFormData:
-    """Håller data från rapport-formulär."""
-    disc_name: str
-    description: str
-    latitude: float
-    longitude: float
-    course_name: Optional[str] = None
-    hole_number: Optional[str] = None
-    
-    @classmethod
-    def from_form(cls, form: Dict) -> 'ReportFormData':
-        """Skapa från formulär-data."""
-        return cls(
-            disc_name=form.get('disc_name', '').strip(),
-            description=form.get('description', '').strip(),
-            latitude=float(form.get('latitude', 0)),
-            longitude=float(form.get('longitude', 0)),
-            course_name=form.get('course_name', '').strip() or None,
-            hole_number=form.get('hole_number', '').strip() or None
-        )
-    
-    def validate(self) -> None:
-        """Validera rapport-data."""
-        if not self.disc_name or not self.description:
-            raise ValueError("Fyll i alla obligatoriska fält.")
-        
-        if not self.latitude or not self.longitude:
-            raise ValueError("Välj plats på kartan.")
-        
-        if not (-90 <= self.latitude <= 90) or not (-180 <= self.longitude <= 180):
-            raise ValueError("Ogiltiga koordinater.")
-
-
-# ============================================================================
-# Services
-# ============================================================================
-
-class MissingDiscService:
-    """Service för hantering av saknade discar."""
-    
-    def __init__(self, database):
-        self.db = database
-    
-    def report(self, user_id: int, form_data: ReportFormData) -> int:
-        """
-        Rapportera ny saknad disc.
-        
-        Returns:
-            ID för skapad rapport
-        """
-        disc = MissingDisc(
-            user_id=user_id,
-            disc_name=form_data.disc_name,
-            description=form_data.description,
-            latitude=form_data.latitude,
-            longitude=form_data.longitude,
-            course_name=form_data.course_name,
-            hole_number=form_data.hole_number
-        )
-        
-        return self.db.report_missing_disc(
-            user_id=disc.user_id,
-            disc_name=disc.disc_name,
-            description=disc.description,
-            latitude=disc.latitude,
-            longitude=disc.longitude,
-            course_name=disc.course_name,
-            hole_number=disc.hole_number
-        )
-    
-    def get_user_discs(self, user_id: int) -> List[Dict]:
-        """Hämta användarens saknade discar."""
-        return self.db.get_user_missing_discs(user_id)
-    
-    def get_community_map_data(self, status: str = 'missing') -> List[Dict]:
-        """Hämta data för community-kartan."""
-        return self.db.get_all_missing_discs(status)
-    
-    def mark_found(self, disc_id: int, user_id: int) -> bool:
-        """
-        Markera disc som hittad.
-        
-        Returns:
-            True om lyckad, False om inte ägd av användaren
-        """
-        # Verifiera ägarskap
-        user_discs = self.get_user_discs(user_id)
-        disc_ids = [d['id'] for d in user_discs]
-        
-        if disc_id not in disc_ids:
-            return False
-        
-        self.db.mark_disc_found(disc_id)
-        return True
-    
-    def delete_report(self, disc_id: int, user_id: int) -> bool:
-        """Ta bort egen rapport."""
-        return self.db.delete_missing_disc(disc_id, user_id)
-    
-    def get_disc_for_redirect(self, disc_id: int, user_id: int) -> Optional[Dict]:
-        """
-        Hämta disc för redirect till hittad-flödet.
-        
-        Returns:
-            Disc med ägar-info, eller None om inte finns/ägs av annan
-        """
-        all_discs = self.db.get_all_missing_discs('missing')
-        disc = next((d for d in all_discs if d['id'] == disc_id), None)
-        
-        if not disc:
-            return None
-        
-        # Hämta ägarens QR-kod
-        owner_qr = self.db.get_user_qr(disc['user_id'])
-        if owner_qr:
-            disc['owner_qr_id'] = owner_qr['qr_id']
-        
-        return disc
-
-
-class PermissionService:
-    """Service för behörighetskontroller."""
-    
-    @staticmethod
-    def require_login() -> Optional[Dict]:
-        """
-        Kontrollera att användare är inloggad.
-        
-        Returns:
-            User dict om inloggad, None annars
-        """
-        user_id = session.get('user_id')
-        if not user_id:
-            return None
-        
-        user = db.get_user_by_id(user_id)
-        if not user:
-            session.clear()
-            return None
-        
-        return user
-    
-    @staticmethod
-    def get_current_user_id() -> Optional[int]:
-        """Hämta inloggad användares ID."""
-        return session.get('user_id')
-
-
-# ============================================================================
 # Decorators
 # ============================================================================
 
-def login_required(f: Callable) -> Callable:
+def login_required(f):
     """Decorator som kräver inloggning."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        user = PermissionService.require_login()
-        
-        if not user:
-            flash('Logga in först.', 'error')
+        if 'user_id' not in session:
+            flash('Du måste vara inloggad för att se denna sida.', 'error')
             return redirect(url_for('auth.login'))
-        
-        # Sätt user i g för tillgång i routes
-        g.current_user = user
-        g.user_id = user['id']
-        
         return f(*args, **kwargs)
-    
-    return decorated_function
-
-
-def handle_form_errors(f: Callable) -> Callable:
-    """Decorator som fångar formulärfel."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except ValueError as e:
-            flash(str(e), 'error')
-            return redirect(request.url)
-        except Exception as e:
-            logger.error(f"Oväntat fel: {e}")
-            flash('Ett fel uppstod.', 'error')
-            return redirect(request.url)
-    
     return decorated_function
 
 
 # ============================================================================
-# Routes - Huvudsida och Karta
+# Routes
 # ============================================================================
 
-@bp.route('/')
-@login_required
-def index():
-    """Huvudsida - redirect till community-kartan."""
-    return redirect(url_for('missing.community_map'))
-
-
-@bp.route('/map')
+@bp.route('/community-map')
 @login_required
 def community_map():
-    """Community karta - alla saknade discar."""
-    service = MissingDiscService(db)
-    discs = service.get_community_map_data('missing')
-    return render_template('missing/community_map.html', discs=discs)
+    """
+    Community-karta - tillgänglig för alla inloggade.
+    BAS: Ser bara egna discar på kartan
+    PREMIUM: Ser alla discar (egna + andras)
+    """
+    user_id = session.get('user_id')
+    
+    # Kolla premium-status
+    premium_status = db.get_user_premium_status(user_id)
+    has_premium = premium_status.get('has_premium', False)
+    
+    # Hämta användarens egna discar (alla ser alltid sina egna)
+    my_discs = db.get_user_missing_discs(user_id)
+    
+    # Hämta alla andras discar om premium, annars tom lista
+    if has_premium:
+        all_discs = db.get_all_missing_discs(status='missing')
+        other_discs = [d for d in all_discs if d['user_id'] != user_id]
+    else:
+        other_discs = []
+    
+    return render_template('missing/community_map.html', 
+                         my_discs=my_discs,
+                         other_discs=other_discs,
+                         has_premium=has_premium)
 
-
-# ============================================================================
-# Routes - Rapportera
-# ============================================================================
 
 @bp.route('/report', methods=['GET', 'POST'])
 @login_required
-@handle_form_errors
 def report():
-    """Rapportera saknad disc."""
-    service = MissingDiscService(db)
-    
+    """Rapportera saknad disc - tillgängligt för alla inloggade."""
     if request.method == 'POST':
-        form_data = ReportFormData.from_form(request.form)
-        form_data.validate()
+        user_id = session.get('user_id')
         
-        service.report(g.user_id, form_data)
+        disc_name = request.form.get('disc_name', '').strip()
+        description = request.form.get('description', '').strip()
+        course_name = request.form.get('course_name', '').strip()
+        hole_number = request.form.get('hole_number', '').strip()
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
         
-        flash('Din saknade disc är rapporterad!', 'success')
-        return redirect(url_for('missing.community_map'))
+        # Validering
+        if not disc_name:
+            flash('Ange ett namn på discen.', 'error')
+            return redirect(url_for('missing.report'))
+        
+        if not latitude or not longitude:
+            flash('Välj en plats på kartan.', 'error')
+            return redirect(url_for('missing.report'))
+        
+        try:
+            disc_id = db.report_missing_disc(
+                user_id=user_id,
+                disc_name=disc_name,
+                description=description,
+                latitude=float(latitude),
+                longitude=float(longitude),
+                course_name=course_name,
+                hole_number=hole_number
+            )
+            
+            logger.info(f"Disc {disc_id} rapporterad saknad av användare {user_id}")
+            flash('Din disc är rapporterad som saknad!', 'success')
+            return redirect(url_for('missing.community_map'))
+            
+        except Exception as e:
+            logger.error(f"Fel vid rapportering av saknad disc: {e}")
+            flash('Ett fel uppstod. Försök igen.', 'error')
+            return redirect(url_for('missing.report'))
     
     return render_template('missing/report.html')
 
 
-# ============================================================================
-# Routes - Mina Discar
-# ============================================================================
-
 @bp.route('/my-discs')
 @login_required
-def my_missing_discs():
-    """Se egna saknade discar."""
-    service = MissingDiscService(db)
-    discs = service.get_user_discs(g.user_id)
+def my_discs():
+    """Visa användarens egna saknade discar."""
+    user_id = session.get('user_id')
+    discs = db.get_user_missing_discs(user_id)
     return render_template('missing/my_discs.html', discs=discs)
-
-
-# ============================================================================
-# Routes - Åtgärder på egna discar
-# ============================================================================
-
-@bp.route('/found/<int:disc_id>', methods=['POST'])
-@login_required
-def mark_found(disc_id):
-    """Markera disc som hittad - ENDAST om man är ägaren."""
-    service = MissingDiscService(db)
-    
-    if not service.mark_found(disc_id, g.user_id):
-        flash('Du kan endast markera dina egna discar som hittade.', 'error')
-        return redirect(url_for('missing.community_map'))
-    
-    flash('Grattis att du hittade din disc!', 'success')
-    return redirect(url_for('missing.community_map'))
 
 
 @bp.route('/delete/<int:disc_id>', methods=['POST'])
 @login_required
-def delete(disc_id):
-    """Ta bort egen rapport."""
-    service = MissingDiscService(db)
+def delete_disc(disc_id):
+    """Ta bort en rapporterad saknad disc."""
+    user_id = session.get('user_id')
     
-    if service.delete_report(disc_id, g.user_id):
-        flash('Rapport borttagen.', 'success')
-    else:
-        flash('Kunde inte ta bort rapporten.', 'error')
+    try:
+        success = db.delete_missing_disc(disc_id, user_id)
+        if success:
+            flash('Disc borttagen.', 'success')
+        else:
+            flash('Kunde inte ta bort discen.', 'error')
+    except Exception as e:
+        logger.error(f"Fel vid borttagning av disc {disc_id}: {e}")
+        flash('Ett fel uppstod.', 'error')
     
-    return redirect(url_for('missing.my_missing_discs'))
+    return redirect(url_for('missing.my_discs'))
 
 
-# ============================================================================
-# Routes - Redirect till Hittad-flödet
-# ============================================================================
-
-@bp.route('/found-via-map/<int:disc_id>')
+@bp.route('/api/nearby')
 @login_required
-def found_via_map(disc_id):
-    """
-    Redirect till rätt hittad-disc-flöde baserat på QR-kod.
-    
-    När någon hittar en disc via community-kartan, redirecta till
-    found-Blueprintets flöde med ägarens QR-kod.
-    """
-    service = MissingDiscService(db)
-    disc = service.get_disc_for_redirect(disc_id, g.user_id)
-    
-    if not disc:
-        flash('Disc hittades inte.', 'error')
-        return redirect(url_for('missing.community_map'))
-    
-    if not disc.get('owner_qr_id'):
-        flash('Ägaren har ingen aktiv QR-kod.', 'error')
-        return redirect(url_for('missing.community_map'))
-    
-    # Hämta önskad action från query param
-    action = request.args.get('action', 'hide')
-    qr_id = disc['owner_qr_id']
-    
-    # Redirect till rätt endpoint i found.py
-    action_routes = {
-        'hide': 'found.found_hide',
-        'note': 'found.found_note',
-        'meet': 'found.found_meet'
-    }
-    
-    route = action_routes.get(action, 'found.found_qr')
-    return redirect(url_for(route, qr_id=qr_id))
-
-
-# ============================================================================
-# Routes - Bekräfta Matchning
-# ============================================================================
-
-@bp.route('/confirm-found')
-@login_required
-def confirm_found():
-    """
-    Bekräfta att hittad disc matchar saknad rapport.
-    
-    Används när ägaren får mail om hittad disc och klickar på
-    bekräftelse-länken.
-    """
-    disc_id = request.args.get('disc_id')
-    confirm = request.args.get('confirm')
-    
-    if confirm == 'yes' and disc_id:
-        try:
-            disc_id_int = int(disc_id)
-            
-            # Verifiera ägarskap
-            service = MissingDiscService(db)
-            user_discs = service.get_user_discs(g.user_id)
-            disc_ids = [d['id'] for d in user_discs]
-            
-            if disc_id_int not in disc_ids:
-                flash('Du kan endast bekräfta dina egna discar.', 'error')
-                return redirect(url_for('missing.my_missing_discs'))
-            
-            db.mark_disc_found(disc_id_int)
-            flash('Bra jobbat! Din disc är markerad som hittad.', 'success')
-            
-        except ValueError:
-            flash('Ogiltig disc ID.', 'error')
-    
-    elif confirm == 'no' or confirm == 'none':
-        flash('Noterat. Din saknade disc finns kvar på kartan.', 'info')
-    
-    return redirect(url_for('missing.my_missing_discs'))
-
-
-# ============================================================================
-# API Endpoints (för framtida AJAX)
-# ============================================================================
-
-@bp.route('/api/discs')
-@login_required
-def api_get_discs():
-    """API-endpoint för att hämta discar som JSON."""
-    status = request.args.get('status', 'missing')
-    service = MissingDiscService(db)
-    discs = service.get_community_map_data(status)
-    return jsonify({'discs': discs})
-
-
-@bp.route('/api/my-stats')
-@login_required
-def api_get_my_stats():
-    """API-endpoint för användarens statistik."""
-    stats = db.get_user_missing_stats(g.user_id)
-    return jsonify(stats)
+def nearby_discs():
+    """API-endpoint för att hämta närliggande discar (för karta)."""
+    try:
+        user_id = session.get('user_id')
+        lat = request.args.get('lat', type=float)
+        lng = request.args.get('lng', type=float)
+        radius = request.args.get('radius', default=10, type=float)
+        
+        if lat is None or lng is None:
+            return jsonify({'error': 'Latitud och longitud krävs'}), 400
+        
+        # Kolla premium-status
+        premium_status = db.get_user_premium_status(user_id)
+        has_premium = premium_status.get('has_premium', False)
+        
+        # Hämta discar
+        if has_premium:
+            # Premium ser alla discar
+            all_discs = db.get_all_missing_discs(status='missing')
+        else:
+            # BAS ser bara egna
+            all_discs = db.get_user_missing_discs(user_id)
+        
+        # Filtrera efter avstånd
+        import math
+        
+        def calculate_distance(lat1, lng1, lat2, lng2):
+            R = 6371
+            d_lat = math.radians(lat2 - lat1)
+            d_lng = math.radians(lng2 - lng1)
+            a = (math.sin(d_lat / 2) * math.sin(d_lat / 2) +
+                 math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+                 math.sin(d_lng / 2) * math.sin(d_lng / 2))
+            c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+            return R * c
+        
+        nearby = []
+        for disc in all_discs:
+            if disc.get('latitude') and disc.get('longitude'):
+                dist = calculate_distance(lat, lng, disc['latitude'], disc['longitude'])
+                if dist <= radius:
+                    disc['distance'] = round(dist, 2)
+                    nearby.append(disc)
+        
+        nearby.sort(key=lambda x: x['distance'])
+        
+        return jsonify({
+            'discs': nearby,
+            'count': len(nearby),
+            'has_premium': has_premium
+        })
+        
+    except Exception as e:
+        logger.error(f"Fel vid hämtning av närliggande discar: {e}")
+        return jsonify({'error': 'Serverfel'}), 500

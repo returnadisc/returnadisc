@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Aktivera din QR-kod - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .qr-signup-page {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 40px;
+    }
+
+    .qr-signup-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .qr-signup-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .qr-signup-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 550px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .qr-signup-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+
+    .qr-signup-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 2.5rem;
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+    }
+
+    .qr-signup-header h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .qr-signup-header h1 span {
+        color: #fbbf24;
+    }
+
+    .qr-signup-header p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .main-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 35px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .qr-info-box {
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        text-align: center;
+        color: white;
+    }
+
+    .qr-info-box h3 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .qr-info-box p {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        line-height: 1.5;
+    }
+
+    .qr-code-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .qr-code-input label {
+        font-weight: 700;
+        color: #374151;
+        font-size: 1rem;
+        white-space: nowrap;
+    }
+
+    .qr-code-input input {
+        flex: 1;
+        padding: 16px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1.2rem;
+        background: white;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .qr-code-input input:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-section h2 {
+        color: #166534;
+        margin-bottom: 20px;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .signup-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+        padding: 16px;
+        border: 2px solid rgba(22, 101, 52, 0.15);
+        border-radius: 12px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .form-hint {
+        color: #6b7280;
+        font-size: 0.85rem;
+        margin-top: 6px;
+    }
+
+    .btn-submit {
+        width: 100%;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 18px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 25px 0;
+        color: #9ca3af;
+        font-size: 0.9rem;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(22, 101, 52, 0.2);
+    }
+
+    .alt-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .alt-option {
+        text-align: center;
+        padding: 20px;
+        background: #f0fdf4;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .alt-option:hover {
+        background: #dcfce7;
+        transform: translateY(-2px);
+    }
+
+    .alt-option-icon {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+
+    .alt-option h4 {
+        color: #166534;
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+    }
+
+    .alt-option p {
+        color: #6b7280;
+        font-size: 0.8rem;
+    }
+
+    .back-link {
+        text-align: center;
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #6b7280;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+    .btn-back:hover {
+        color: #166534;
+    }
+
+    @media (max-width: 640px) {
+        .qr-signup-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .main-card {
+            padding: 25px;
+        }
+
+        .alt-options {
+            grid-template-columns: 1fr;
+        }
+
+        .qr-code-input {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .qr-code-input input {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="qr-signup-page">
+    <div class="qr-signup-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');"></div>
+    <div class="qr-signup-overlay"></div>
+    
+    <div class="qr-signup-container">
+        <div class="qr-signup-header">
+            <div class="qr-signup-icon">🎯</div>
+            <h1>Aktivera din <span>QR-kod</span></h1>
+            <p>Skapa konto och koppla din köpta QR-kod</p>
+        </div>
+        
+        <div class="main-card">
+            <!-- Info Box -->
+            <div class="qr-info-box">
+                <h3>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    Har du köpt QR-klistermärken?
+                </h3>
+                <p>Skriv in koden från ditt klistermärke nedan. När du skapat kontot är koden aktiverad och redo att användas på dina discar!</p>
+            </div>
+            
+            <!-- Signup Form -->
+            <form method="post" class="signup-form" autocomplete="on">
+                <!-- QR Code Input -->
+                <div class="qr-code-input">
+                    <label for="qr_id">Din QR-kod:</label>
+                    <input type="text" id="qr_id" name="qr_id" required 
+                           placeholder="T.ex. ABC123" 
+                           pattern="[A-Za-z0-9]{5,10}"
+                           title="QR-koden består av 5-10 bokstäver och siffror"
+                           maxlength="10"
+                           autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Ditt namn</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Förnamn Efternamn" autocomplete="name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required 
+                           placeholder="din@email.se" autocomplete="username email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Lösenord</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Välj ett säkert lösenord" 
+                           minlength="6" autocomplete="new-password">
+                    <span class="form-hint">Minst 6 tecken</span>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    Skapa konto & aktivera QR-kod
+                </button>
+            </form>
+            
+            <div class="divider">eller</div>
+            
+            <!-- Alternative Options -->
+            <div class="alt-options">
+                <a href="{{ url_for('auth.signup') }}" class="alt-option">
+                    <div class="alt-option-icon">✨</div>
+                    <h4>Skapa konto utan QR</h4>
+                    <p>Få en QR-kod automatiskt</p>
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="alt-option">
+                    <div class="alt-option-icon">🔑</div>
+                    <h4>Logga in</h4>
+                    <p>Har du redan ett konto?</p>
+                </a>
+            </div>
+            
+            <div class="back-link">
+                <a href="{{ url_for('auth.index') }}" class="btn-back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Tillbaka till startsidan
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

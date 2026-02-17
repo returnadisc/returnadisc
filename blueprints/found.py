@@ -1,6 +1,7 @@
 """Flöde för när någon hittar en disc."""
 import logging
 import re
+import os
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Callable
 from functools import wraps
@@ -11,12 +12,12 @@ from flask import (
 )
 
 from database import db
-from utils import send_email_async, save_uploaded_photo, sanitize_input
+from utils import send_email_async, save_uploaded_photo, sanitize_input, send_email_with_attachment
 from config import Config
 
 logger = logging.getLogger(__name__)
 
-bp = Blueprint('found', __name__, url_prefix='')
+bp = Blueprint('found', __name__, url_prefix='/found')
 
 
 # ============================================================================
@@ -198,7 +199,7 @@ class EmailTemplateService:
         # Footer
         sections.append(cls._render_footer(base_url))
         
-        return '\n'.join(sections)
+        return ''.join(sections)  # Använd '' istället för '\n'
     
     @classmethod
     def _render_match_section(cls, match: Dict, base_url: str) -> str:
@@ -206,6 +207,7 @@ class EmailTemplateService:
         if match.get('is_multiple'):
             return cls._render_multiple_matches(match, base_url)
         return cls._render_single_match(match, base_url)
+    
     
     @classmethod
     def _render_single_match(cls, match: Dict, base_url: str) -> str:
@@ -278,31 +280,31 @@ class EmailTemplateService:
         base_url: str
     ) -> str:
         """Rendera information från upphittare."""
-        sections = ["<h3>📍 Information från upphittaren:</h3>"]
+        sections = ["<h3>Information från upphittaren:</h3>"]
         
         # Meddelande
         sections.append(f"<p><strong>Meddelande:</strong> {note or 'Inget meddelande'}</p>")
         
-        # Karta
+        # Bild först om den finns
+        if photo_path:
+            sections.append(
+                f'<div style="margin: 20px 0;">'
+                f'<img src="cid:found_photo" style="max-width: 100%; max-height: 400px; border-radius: 8px; display: block;">'
+                f'</div>'
+            )
+        
+        # Google Maps-länk
         maps_link = location.to_maps_link()
         if maps_link:
-            sections.append(f'''
-            <p><a href="{maps_link}" 
-               style="padding:12px 24px;background:#10b981;color:white;text-decoration:none;border-radius:8px;display:inline-block;">
-               📍 Visa plats i Google Maps
-            </a></p>
-            ''')
+            sections.append(
+                f'<div style="margin: 20px 0;">'
+                f'<a href="{maps_link}" style="padding: 12px 24px; background: #166534; color: white; text-decoration: none; border-radius: 8px; display: inline-block;">'
+                f'Visa plats i Google Maps'
+                f'</a>'
+                f'</div>'
+            )
         
-        # Bild
-        if photo_path:
-            photo_clean = photo_path.lstrip('/')
-            image_url = f"{base_url}/{photo_clean}"
-            sections.append(f'''
-            <p><img src="{image_url}" 
-                   style="max-width:100%;border-radius:8px;margin:10px 0;"></p>
-            ''')
-        
-        return '\n'.join(sections)
+        return ''.join(sections)  # Använd '' istället för '\n' för att undvika radbrytningar
     
     @classmethod
     def _render_footer(cls, base_url: str) -> str:
@@ -328,18 +330,12 @@ class NotificationService:
         match_data: Optional[Dict],
         handover_data: HandoverData
     ) -> None:
-        """
-        Skicka notifikation om hittad disc.
-        
-        Args:
-            owner: Ägar-dict från databasen
-            match_data: Matchningsdata från MatchingService
-            handover_data: Data om handovern
-        """
+        """Skicka notifikation om hittad disc med bifogad bild."""
         if not owner or not owner.get('email'):
             logger.error(f"Cannot send email: owner or email missing")
             return
         
+        # Bygg HTML
         html_content = self.templates.render_found_disc_email(
             owner_name=owner.get('name', 'Discgolfare'),
             match_data=match_data,
@@ -349,10 +345,31 @@ class NotificationService:
             base_url=Config.PUBLIC_URL
         )
         
-        send_email_async(
+        # Förberedd bildhantering
+        attachment_path = None
+        attachment_cid = None
+        
+        if handover_data.photo_path:
+            # Bygg full sökväg till bilden
+            attachment_path = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)), 
+                'static', 
+                handover_data.photo_path
+            )
+            attachment_cid = 'found_photo'
+            
+            # Uppdatera HTML för att använda CID
+            html_content = html_content.replace(
+                f'/static/{handover_data.photo_path}',
+                'cid:found_photo'
+            )
+        
+        send_email_with_attachment(
             owner['email'],
             "🎉 Din disc har hittats! - ReturnaDisc",
-            html_content
+            html_content,
+            attachment_path=attachment_path,
+            attachment_cid=attachment_cid
         )
     
     def send_simple_notification(
@@ -425,7 +442,7 @@ class FoundDiscService:
             flash('Koordinaterna var ogiltiga och ignoreras. Platsen sparas inte.', 'warning')
         
         # Spara foto
-        photo_path = save_uploaded_photo(photo_file, qr_id)
+        photo_path = save_uploaded_photo(photo_file)
         
         # Skapa handover
         handover = HandoverData(
@@ -600,7 +617,7 @@ def handle_form_errors(f: Callable) -> Callable:
 # Routes
 # ============================================================================
 
-@bp.route('/found/<qr_id>', methods=['GET'])
+@bp.route('/<qr_id>', methods=['GET'])
 def found_qr(qr_id):
     """Huvudsida för 'hittad disc'."""
     service = FoundDiscService(db)
@@ -619,7 +636,7 @@ def found_qr(qr_id):
     )
 
 
-@bp.route('/found/<qr_id>/hide', methods=['GET', 'POST'])
+@bp.route('/<qr_id>/hide', methods=['GET', 'POST'])
 @require_valid_qr
 def found_hide(qr_id, qr_data=None):
     """Rapportera gömd disc med smart matchning."""
@@ -647,7 +664,7 @@ def _handle_hide_post(qr_id: str):
     return render_template('found/thanks_hide.html')
 
 
-@bp.route('/found/<qr_id>/note', methods=['GET', 'POST'])
+@bp.route('/<qr_id>/note', methods=['GET', 'POST'])
 @require_valid_qr
 def found_note(qr_id, qr_data=None):
     """Lämna meddelande."""
@@ -668,7 +685,7 @@ def _handle_note_post(qr_id: str):
     return render_template('found/thanks_note.html')
 
 
-@bp.route('/found/<qr_id>/meet', methods=['GET', 'POST'])
+@bp.route('/<qr_id>/meet', methods=['GET', 'POST'])
 @require_valid_qr
 def found_meet(qr_id, qr_data=None):
     """Begär möte."""
@@ -688,7 +705,7 @@ def _handle_meet_post(qr_id: str):
     return render_template('found/thanks_meet.html')
 
 
-@bp.route('/found-manual', methods=['GET', 'POST'])
+@bp.route('/manual', methods=['GET', 'POST'])
 def found_manual():
     """Sida för att manuellt skriva in QR-kod."""
     if request.method == 'POST':
@@ -726,3 +743,53 @@ def _handle_manual_post():
     
     # Omdirigera till vanliga flödet
     return redirect(url_for('found.found_qr', qr_id=qr_id))
+
+
+# ============================================================================
+# ROUTE FÖR DISC-BASERADE HITTELSER FRÅN KARTAN (NY)
+# ============================================================================
+
+@bp.route('/disc/<int:disc_id>', methods=['GET'])
+def found_disc_by_id(disc_id):
+    """
+    Hantera upphittad disc från kartan - baserat på disc ID.
+    Hittar ägarens QR-kod automatiskt och omdirigerar till rätt formulär.
+    """
+    action = request.args.get('action', 'hide')
+    
+    # Hämta alla saknade discar och hitta rätt
+    all_discs = db.get_all_missing_discs(status='missing')
+    target_disc = None
+    
+    for d in all_discs:
+        if d.get('id') == disc_id:
+            target_disc = d
+            break
+    
+    if not target_disc:
+        flash('Discen hittades inte.', 'error')
+        return redirect(url_for('missing.community_map'))
+    
+    # Hämta ägarens första QR-kod
+    owner_id = target_disc.get('user_id')
+    if not owner_id:
+        flash('Kunde inte hitta ägaren.', 'error')
+        return redirect(url_for('missing.community_map'))
+    
+    owner_qr = db.get_user_qr(owner_id)
+    
+    if not owner_qr:
+        flash('Ägaren har ingen aktiv QR-kod.', 'error')
+        return redirect(url_for('missing.community_map'))
+    
+    qr_id = owner_qr.get('qr_id')
+    
+    # Omdirigera till rätt formulär baserat på action
+    if action == 'hide':
+        return redirect(url_for('found.found_hide', qr_id=qr_id))
+    elif action == 'note':
+        return redirect(url_for('found.found_note', qr_id=qr_id))
+    elif action == 'meet':
+        return redirect(url_for('found.found_meet', qr_id=qr_id))
+    else:
+        return redirect(url_for('found.found_hide', qr_id=qr_id))

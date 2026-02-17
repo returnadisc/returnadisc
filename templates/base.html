@@ -122,7 +122,7 @@
             color: var(--secondary);
         }
 
-        /* NYTT: Highlight för "Återlämna disc med kod" */
+        /* Highlight för "Återlämna disc med kod" */
         .nav-links a.nav-found-code {
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: #1a1a1a;
@@ -132,6 +132,18 @@
         .nav-links a.nav-found-code:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        /* Highlight för "Har du QR-kod?" */
+        .nav-links a.nav-qr-signup {
+            background: linear-gradient(135deg, #22c55e 0%, #166534 100%);
+            color: white;
+            font-weight: 700;
+        }
+
+        .nav-links a.nav-qr-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
         }
 
         /* Community Karta - highlightad med gul/grön gradient */
@@ -155,6 +167,37 @@
             background: #b91c1c;
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+        }
+		
+		/* Premium-knapp i navigationen */
+        .nav-links a.nav-premium {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1a1a1a;
+            font-weight: 700;
+            animation: pulse-gold 2s infinite;
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0); }
+        }
+
+        .nav-links a.nav-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(251, 191, 36, 0.5);
+            animation: none;
+        }
+
+        /* Aktiv premium - grön badge */
+        .nav-links a.nav-premium-active {
+            background: linear-gradient(135deg, #22c55e 0%, #166534 100%);
+            color: white;
+            font-weight: 700;
+        }
+
+        .nav-links a.nav-premium-active:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
         }
 
         /* Mobile menu button */
@@ -354,11 +397,26 @@
                     <a href="{{ url_for('missing.community_map') }}" class="nav-highlight">
                         🗺️ Community Karta
                     </a>
+                    
+                    {# Premium-knapp - visas bara om man inte har premium #}
+                    {% if not session.get('has_premium') %}
+                        <a href="{{ url_for('premium.index') }}" class="nav-premium">
+                            💎 Bli Premium
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('premium.manage') }}" class="nav-premium-active" title="Premium aktivt">
+                            💎 Premium
+                        </a>
+                    {% endif %}
+                    
                     <a href="{{ url_for('auth.buy_stickers') }}">🛒 Köp stickers</a>
                     <a href="{{ url_for('auth.logout') }}" class="btn-logout">Logga ut</a>
                 {% else %}
                     <a href="{{ url_for('found.found_manual') }}" class="nav-found-code">
-                        🔢 Återlämna disc med kod
+                        🔢 Återlämna hittad disc med ID
+                    </a>
+                    <a href="{{ url_for('auth.signup_with_purchased_qr') }}" class="nav-qr-signup">
+                        🎯 Har du köpt QR-kod?
                     </a>
                     <a href="{{ url_for('auth.login') }}">Logga in</a>
                 {% endif %}
@@ -403,6 +461,10 @@
                 <div class="footer-section">
                     <h4>Hittat en disc?</h4>
                     <a href="{{ url_for('found.found_manual') }}">Återlämna disc med kod</a>
+                </div>
+                <div class="footer-section">
+                    <h4>Har du köpt QR-kod?</h4>
+                    <a href="{{ url_for('auth.signup_with_purchased_qr') }}">Aktivera din kod</a>
                 </div>
             </div>
             <div class="footer-bottom">

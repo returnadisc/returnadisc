@@ -2,174 +2,331 @@
 
 {% block title %}QR-koder - Admin{% endblock %}
 
+{% block extra_css %}
+<style>
+    .admin-qr-list {
+        background: linear-gradient(135deg, #f5f5dc 0%, #e8e4d9 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+    }
+
+    .admin-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .admin-header {
+        margin-bottom: 30px;
+    }
+
+    .admin-header h1 {
+        color: #166534;
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .stats-summary {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .summary-item {
+        background: white;
+        padding: 25px 35px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid rgba(22, 101, 52, 0.1);
+        min-width: 140px;
+    }
+
+    .summary-number {
+        display: block;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #166534;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .summary-number.inactive {
+        color: #9ca3af;
+    }
+
+    .summary-number.premium {
+        color: #d97706;
+    }
+
+    .summary-label {
+        color: #374151;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 18px;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .admin-table th {
+        background: #166534;
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    .admin-table td {
+        color: #1f2937;
+        font-size: 0.95rem;
+    }
+
+    .admin-table tr:hover {
+        background: #f0fdf4;
+    }
+
+    .admin-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .admin-table code {
+        background: #ecfdf5;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-family: monospace;
+        font-weight: 700;
+        color: #166534;
+        font-size: 0.9rem;
+    }
+
+    .badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .badge.active {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge.inactive {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .badge.premium {
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        color: #78350f;
+    }
+
+    .badge.not-premium {
+        background: #f3f4f6;
+        color: #6b7280;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 6px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .btn-edit:hover {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-download {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .btn-download:hover {
+        background: #10b981;
+        color: white;
+    }
+
+    .unassigned {
+        color: #9ca3af;
+        font-style: italic;
+    }
+
+    .back-link {
+        margin-top: 30px;
+    }
+
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #166534;
+        padding: 12px 24px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        border: 2px solid #166534;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #166534;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .stats-summary {
+            justify-content: center;
+        }
+        
+        .admin-table {
+            font-size: 0.9rem;
+        }
+        
+        .admin-table th,
+        .admin-table td {
+            padding: 12px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="admin-qr-list">
-    <div class="container">
-        <h1>📋 Alla QR-koder</h1>
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>📋 Alla QR-koder</h1>
+        </div>
         
         <div class="stats-summary">
             <div class="summary-item">
-                <span class="summary-number">{{ qr_codes|selectattr('is_active', 'equalto', 1)|list|length }}</span>
+                <span class="summary-number">{{ qr_codes|selectattr('is_active', 'equalto', true)|list|length if qr_codes else 0 }}</span>
                 <span class="summary-label">Aktiva</span>
             </div>
             <div class="summary-item">
-                <span class="summary-number inactive">{{ qr_codes|selectattr('is_active', 'equalto', 0)|list|length }}</span>
+                <span class="summary-number inactive">{{ qr_codes|selectattr('is_active', 'equalto', false)|list|length if qr_codes else 0 }}</span>
                 <span class="summary-label">Inaktiva</span>
             </div>
             <div class="summary-item">
-                <span class="summary-number">{{ qr_codes|sum(attribute='total_scans') }}</span>
+                <span class="summary-number premium">{{ qr_codes|selectattr('is_premium', 'equalto', true)|list|length if qr_codes else 0 }}</span>
+                <span class="summary-label">Premium</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-number">{{ qr_codes|sum(attribute='total_scans') if qr_codes else 0 }}</span>
                 <span class="summary-label">Totala scanningar</span>
             </div>
         </div>
         
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>QR-ID</th>
-                    <th>Ägare</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Scanningar</th>
-                    <th>Senast aktiv</th>
-                    <th>Skapad</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for qr in qr_codes %}
-                <tr>
-                    <td><code>{{ qr.qr_id }}</code></td>
-                    <td>{{ qr.name or 'Ej tilldelad' }}</td>
-                    <td>{{ qr.email or '-' }}</td>
-                    <td>
-                        {% if qr.is_active %}
-                            <span class="badge active">Aktiv</span>
-                        {% else %}
-                            <span class="badge inactive">Inaktiv</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ qr.total_scans or 0 }}</td>
-                    <td>
-                        {% if qr.last_login %}
-                            {% if qr.last_login is string %}
-                                {{ qr.last_login[:10] }}
+        <div class="table-card">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>QR-ID</th>
+                        <th>Ägare</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Scanningar</th>
+                        <th>Premium</th>
+                        <th>Åtgärder</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for qr in qr_codes %}
+                    <tr>
+                        <td>
+                            <code>{{ qr.qr_id }}</code>
+                        </td>
+                        <td>
+                            {% if qr.name %}
+                                {{ qr.name }}
                             {% else %}
-                                {{ qr.last_login.strftime('%Y-%m-%d') }}
+                                <span class="unassigned">Ej tilldelad</span>
                             {% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if qr.created_at %}
-                            {% if qr.created_at is string %}
-                                {{ qr.created_at[:10] }}
+                        </td>
+                        <td>
+                            {% if qr.email %}
+                                {{ qr.email }}
                             {% else %}
-                                {{ qr.created_at.strftime('%Y-%m-%d') }}
+                                <span class="unassigned">-</span>
                             {% endif %}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                        <td>
+                            {% if qr.is_active %}
+                                <span class="badge active">Aktiv</span>
+                            {% else %}
+                                <span class="badge inactive">Inaktiv</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ qr.total_scans }}</strong></td>
+                        <td>
+                            {% if qr.is_premium %}
+                                <span class="badge premium">💎 Ja</span>
+                            {% else %}
+                                <span class="badge not-premium">Nej</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('admin.edit_qr', qr_id=qr.qr_id) }}" class="btn-action btn-edit" title="Redigera">
+                                    ✏️ Redigera
+                                </a>
+                                <a href="{{ url_for('admin.download_qr', qr_id=qr.qr_id) }}" class="btn-action btn-download" title="Ladda ner">
+                                    ⬇️ Bild
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         
         <div class="back-link">
             <a href="{{ url_for('admin.dashboard') }}" class="btn-secondary">← Tillbaka</a>
         </div>
     </div>
 </div>
-
-<style>
-.admin-qr-list {
-    padding: 40px 0;
-}
-
-.stats-summary {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 30px;
-    padding: 20px;
-    background: #f9fafb;
-    border-radius: 12px;
-}
-
-.summary-item {
-    text-align: center;
-}
-
-.summary-number {
-    display: block;
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #10b981;
-}
-
-.summary-number.inactive {
-    color: #9ca3af;
-}
-
-.summary-label {
-    color: #6b7280;
-    font-size: 0.9rem;
-}
-
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 30px;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.admin-table th,
-.admin-table td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.admin-table th {
-    background: #f9fafb;
-    font-weight: 600;
-    color: #374151;
-}
-
-.admin-table tr:hover {
-    background: #f9fafb;
-}
-
-.admin-table code {
-    background: #f3f4f6;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-weight: bold;
-    color: #2563eb;
-}
-
-.badge {
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.badge.active {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge.inactive {
-    background: #f3f4f6;
-    color: #6b7280;
-}
-
-.back-link {
-    margin-top: 30px;
-}
-</style>
 {% endblock %}

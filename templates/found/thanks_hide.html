@@ -2,227 +2,373 @@
 
 {% block title %}Tack för hjälpen! - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .thanks-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #166534 0%, #0d3320 100%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .thanks-page::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+
+    .thanks-page::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -10%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 50%;
+    }
+
+    .container {
+        max-width: 700px;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .thanks-card {
+        background: linear-gradient(145deg, #f5f5dc 0%, #e8e4d9 100%);
+        border-radius: 24px;
+        padding: 50px 40px;
+        text-align: center;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-badge {
+        display: inline-block;
+        background: #166534;
+        color: #fbbf24;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 25px;
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1a1a1a;
+        margin-bottom: 15px;
+        letter-spacing: -1px;
+        line-height: 1.2;
+    }
+
+    h1 span {
+        color: #166534;
+    }
+
+    .subtitle {
+        color: #4b5563;
+        font-size: 1.2rem;
+        margin-bottom: 40px;
+        line-height: 1.5;
+    }
+
+    .info-box {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 35px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        text-align: left;
+    }
+
+    .info-box h3 {
+        font-size: 1.1rem;
+        color: #166534;
+        margin-bottom: 20px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .info-list li {
+        color: #4b5563;
+        margin-bottom: 12px;
+        padding-left: 30px;
+        position: relative;
+        line-height: 1.5;
+    }
+
+    .info-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #166534;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .steps-section {
+        margin-bottom: 35px;
+    }
+
+    .steps-title {
+        font-size: 1.1rem;
+        color: #1a1a1a;
+        margin-bottom: 25px;
+        font-weight: 700;
+    }
+
+    .steps-horizontal {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .step-item {
+        flex: 1;
+        min-width: 120px;
+        max-width: 160px;
+        text-align: center;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0 auto 12px;
+        box-shadow: 0 4px 10px rgba(22, 101, 52, 0.2);
+    }
+
+    .step-item p {
+        color: #4b5563;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        font-weight: 500;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+        border-radius: 16px;
+        padding: 35px 30px;
+        margin-bottom: 25px;
+    }
+
+    .cta-section h2 {
+        color: white;
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .cta-section p {
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 20px;
+        font-size: 1rem;
+    }
+
+    .btn-primary {
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 16px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        display: inline-block;
+        border: 2px solid #fbbf24;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .btn-primary:hover {
+        background: transparent;
+        color: #fbbf24;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    .hint-box {
+        padding-top: 25px;
+        border-top: 1px solid rgba(22, 101, 52, 0.2);
+        margin-top: 25px;
+    }
+
+    .hint-box p {
+        color: #4b5563;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .hint-box a {
+        color: #166534;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .hint-box a:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .thanks-card {
+            padding: 35px 25px;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+        }
+
+        .info-box {
+            padding: 25px 20px;
+        }
+
+        .steps-horizontal {
+            gap: 15px;
+        }
+
+        .step-item {
+            min-width: 100px;
+            max-width: 140px;
+        }
+
+        .step-number {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+
+        .cta-section {
+            padding: 25px 20px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px 30px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .steps-horizontal {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .step-item {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .step-number {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .step-item p {
+            margin: 0;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="thanks-page">
     <div class="container">
         <div class="thanks-card">
-            <div class="success-animation">
-                <div class="checkmark">✓</div>
-                <div class="confetti">🎉</div>
-            </div>
+            <div class="success-badge">Discen är rapporterad</div>
             
             <h1>Tack för hjälpen!</h1>
-            <p class="lead">Du gör discgolf-communityn bättre! 🦸</p>
+            <p class="subtitle">Du gör discgolf-communityn bättre genom att hjälpa andra få tillbaka sina discar.</p>
             
-            <div class="message-box">
-                <div class="message-icon">📧</div>
-                <div class="message-content">
-                    <h3>Ägaren har fått ett mail med:</h3>
-                    <ul>
-                        <li>✅ Bild på discen (om du tog en)</li>
-                        <li>✅ Exakt position i Google Maps</li>
-                        <li>✅ Ditt meddelande om var du gömde den</li>
-                    </ul>
-                </div>
+            <div class="info-box">
+                <h3>Ägaren har fått ett mail med:</h3>
+                <ul class="info-list">
+                    <li>Bild på discen (om du tog en)</li>
+                    <li>Exakt position i Google Maps</li>
+                    <li>Ditt meddelande om var du gömde den</li>
+                </ul>
             </div>
             
-            <div class="next-steps">
-                <h3>Vad händer nu?</h3>
-                <div class="steps-list">
+            <div class="steps-section">
+                <h3 class="steps-title">Vad händer nu?</h3>
+                <div class="steps-horizontal">
                     <div class="step-item">
-                        <div class="step-num">1</div>
-                        <p>Ägaren får ditt mail och vet var discen finns</p>
+                        <div class="step-number">1</div>
+                        <p>Ägaren får mailet och vet var discen finns</p>
                     </div>
                     <div class="step-item">
-                        <div class="step-num">2</div>
+                        <div class="step-number">2</div>
                         <p>De hämtar discen när det passar dem</p>
                     </div>
                     <div class="step-item">
-                        <div class="step-num">3</div>
-                        <p>Alla är glada! Inget krångel, ingen stress.</p>
+                        <div class="step-number">3</div>
+                        <p>Alla är glada! Inget krångel, ingen stress</p>
                     </div>
                 </div>
             </div>
             
             <div class="cta-section">
-                <a href="{{ url_for('auth.index') }}" class="btn-primary btn-large">
+                <h2>Bra jobbat!</h2>
+                <p>Hoppas någon hjälper dig lika snällt om du tappar en disc.</p>
+                
+                <a href="{{ url_for('auth.index') }}" class="btn-primary">
                     Till startsidan
                 </a>
-                <p class="cta-hint">Tips: Skaffa du också QR-koder så du får tillbaka dina egna discar!</p>
+                
+                <div class="hint-box">
+                    <p>Tips: <a href="{{ url_for('auth.signup') }}">Skaffa du också QR-koder</a> så du får tillbaka dina egna discar!</p>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.thanks-page {
-    padding: 40px 20px;
-    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.thanks-card {
-    background: white;
-    border-radius: 24px;
-    padding: 50px;
-    text-align: center;
-    max-width: 600px;
-    width: 100%;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-}
-
-.success-animation {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 30px;
-}
-
-.checkmark {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    font-weight: bold;
-    animation: scaleIn 0.5s ease-out;
-}
-
-.confetti {
-    position: absolute;
-    top: -10px;
-    right: -20px;
-    font-size: 2.5rem;
-    animation: bounce 1s infinite;
-}
-
-@keyframes scaleIn {
-    0% { transform: scale(0); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    25% { transform: translateY(-10px) rotate(10deg); }
-    75% { transform: translateY(-5px) rotate(-5deg); }
-}
-
-.thanks-card h1 {
-    font-size: 2rem;
-    color: #065f46;
-    margin-bottom: 10px;
-}
-
-.lead {
-    color: #047857;
-    font-size: 1.3rem;
-    margin-bottom: 30px;
-}
-
-.message-box {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    padding: 25px;
-    border-radius: 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    text-align: left;
-    margin-bottom: 30px;
-}
-
-.message-icon {
-    font-size: 2.5rem;
-    flex-shrink: 0;
-}
-
-.message-content h3 {
-    color: #1e40af;
-    margin-bottom: 12px;
-    font-size: 1.1rem;
-}
-
-.message-content ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.message-content li {
-    color: #1e3a8a;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
-}
-
-.next-steps {
-    margin-bottom: 30px;
-}
-
-.next-steps h3 {
-    color: #374151;
-    margin-bottom: 20px;
-}
-
-.steps-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.step-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: #f9fafb;
-    padding: 15px 20px;
-    border-radius: 12px;
-    text-align: left;
-}
-
-.step-num {
-    width: 32px;
-    height: 32px;
-    background: #2563eb;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
-}
-
-.step-item p {
-    margin: 0;
-    color: #4b5563;
-}
-
-.cta-section {
-    padding-top: 20px;
-    border-top: 2px solid #e5e7eb;
-}
-
-.cta-hint {
-    color: #6b7280;
-    margin-top: 15px;
-    font-size: 0.95rem;
-}
-
-@media (max-width: 640px) {
-    .thanks-card {
-        padding: 30px 20px;
-    }
-    
-    .message-box {
-        flex-direction: column;
-        text-align: center;
-    }
-}
-</style>
 {% endblock %}

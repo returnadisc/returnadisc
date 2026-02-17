@@ -1,0 +1,169 @@
+2026-02-14 13:32:15 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 13:32:24 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:12:26 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:12:34 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:17:16 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:17:21 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:17:49 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:20:39 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 22:27:24 - [FAILED] returnadisc@gmail.com | LOGIN | Wrong email (expected: admin@returnadisc.se) | IP: 127.0.0.1
+2026-02-14 22:27:35 - [SUCCESS] admin@returnadisc.se | LOGIN | Successful login (TEMP BYPASS) | IP: 127.0.0.1
+2026-02-14 22:54:25 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:55:05 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:55:05 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:55:05 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:55:14 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:58:26 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:58:51 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:59:12 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:59:20 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:59:41 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 22:59:41 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:02:06 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:02:06 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:03:07 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:03:32 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:03:35 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:03:35 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:04:23 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:04:38 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:04:38 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:05:07 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:05:24 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:05:24 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:12:30 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:12:51 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:12:51 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:13:14 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:13:26 - [SUCCESS] admin@returnadisc.se | DELETE_QR | Delete QR code | IP: 127.0.0.1
+2026-02-14 23:13:59 - [FAILED] admin@returnadisc.se | LOGIN | Password hash not configured | IP: 127.0.0.1
+2026-02-14 23:14:13 - [FAILED] admin@returnadisc.se | LOGIN | Password hash not configured | IP: 127.0.0.1
+2026-02-14 23:14:30 - [FAILED] admin@returnadisc.se | LOGIN | Password hash not configured | IP: 127.0.0.1
+2026-02-14 23:15:26 - [FAILED] admin@returnadisc.se | LOGIN | Password hash not configured | IP: 127.0.0.1
+2026-02-14 23:16:41 - [FAILED] admin@returnadisc.se | LOGIN | Password hash not configured | IP: 127.0.0.1
+2026-02-14 23:19:40 - [FAILED] returnadisc@gmail.com | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-14 23:19:53 - [FAILED] admin@returnadisc.se | LOGIN | Password hash not configured | IP: 127.0.0.1
+2026-02-14 23:23:37 - [SUCCESS] admin@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-14 23:23:46 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:24:08 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:24:08 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:29:12 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:29:27 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:29:27 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:35:20 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:35:24 - [SUCCESS] admin@returnadisc.se | DELETE_QR | Delete QR code | IP: 127.0.0.1
+2026-02-14 23:35:26 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:35:28 - [SUCCESS] admin@returnadisc.se | DELETE_QR | Delete QR code | IP: 127.0.0.1
+2026-02-14 23:35:31 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:35:34 - [SUCCESS] admin@returnadisc.se | DELETE_QR | Delete QR code | IP: 127.0.0.1
+2026-02-14 23:35:36 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:36:01 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:36:01 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-14 23:57:56 - [SUCCESS] admin@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 00:21:58 - [SUCCESS] admin@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 00:22:17 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:22:20 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:22:20 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:24:11 - [SUCCESS] admin@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 00:24:22 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:24:25 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:24:25 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:39:03 - [SUCCESS] admin@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 00:39:30 - [SUCCESS] admin@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-15 00:42:24 - [SUCCESS] admin@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-15 00:45:08 - [SUCCESS] admin@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-15 00:46:07 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:46:10 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 00:46:10 - [SUCCESS] admin@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 14:34:50 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-15 14:35:02 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-15 14:35:12 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-15 14:36:06 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 14:37:00 - [SUCCESS] info@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-15 14:37:11 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 17:12:33 - [FAILED] admin@returnadisc.se | LOGIN | Wrong email | IP: 127.0.0.1
+2026-02-15 17:12:41 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 17:38:27 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 17:49:35 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 17:51:15 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 17:55:23 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 17:55:26 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 17:55:26 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 17:56:21 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 17:56:22 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 17:56:22 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:06:11 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 18:07:30 - [FAILED] info@returnadisc.se | RESET_DATABASE | Failed - wrong password | IP: 127.0.0.1
+2026-02-15 18:07:30 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:07:43 - [FAILED] info@returnadisc.se | RESET_DATABASE | Failed - wrong password | IP: 127.0.0.1
+2026-02-15 18:07:43 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:09:01 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:09:24 - [FAILED] info@returnadisc.se | RESET_DATABASE | Failed - wrong password | IP: 127.0.0.1
+2026-02-15 18:09:24 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:11:37 - [FAILED] info@returnadisc.se | RESET_DATABASE | Failed - wrong password | IP: 127.0.0.1
+2026-02-15 18:11:37 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:11:43 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:12:01 - [FAILED] info@returnadisc.se | RESET_DATABASE | Failed - wrong password | IP: 127.0.0.1
+2026-02-15 18:12:01 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:12:05 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:14:02 - [FAILED] info@returnadisc.se | RESET_DATABASE | Failed - wrong password | IP: 127.0.0.1
+2026-02-15 18:14:02 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:14:06 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:18:05 - [SUCCESS] info@returnadisc.se | RESET_DATABASE | Database was reset successfully | IP: 127.0.0.1
+2026-02-15 18:18:05 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-15 18:18:16 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 18:18:27 - [SUCCESS] info@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-15 18:30:24 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-15 18:31:16 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:32:17 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:32:17 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:33:14 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:33:14 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:35:45 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:35:45 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:36:08 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:36:08 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:36:18 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-15 18:36:18 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 20:00:25 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 20:00:37 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 20:01:41 - [SUCCESS] info@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-16 20:03:12 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 22:14:08 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 22:14:14 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 22:14:20 - [SUCCESS] info@returnadisc.se | DELETE_USER | Delete user | IP: 127.0.0.1
+2026-02-16 22:21:14 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 22:21:26 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 22:21:31 - [SUCCESS] info@returnadisc.se | DELETE_USER | Delete user | IP: 127.0.0.1
+2026-02-16 22:21:44 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 22:21:49 - [SUCCESS] info@returnadisc.se | DELETE_USER | Delete user | IP: 127.0.0.1
+2026-02-16 22:52:58 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 23:09:05 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 23:09:16 - [SUCCESS] info@returnadisc.se | RESET_DATABASE | Database was reset successfully | IP: 127.0.0.1
+2026-02-16 23:09:16 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-16 23:09:48 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 23:10:26 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 23:10:30 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 23:10:33 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 23:10:33 - [SUCCESS] info@returnadisc.se | EDIT_QR | Edit QR code | IP: 127.0.0.1
+2026-02-16 23:42:16 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-16 23:48:10 - [SUCCESS] info@returnadisc.se | RESET_DATABASE | Database was reset successfully | IP: 127.0.0.1
+2026-02-16 23:48:10 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-17 01:38:31 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-17 02:23:22 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-17 02:24:59 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-17 12:15:12 - [SUCCESS] info@returnadisc.se | RESET_DATABASE | Database was reset successfully | IP: 127.0.0.1
+2026-02-17 12:15:12 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-17 12:44:27 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-17 12:44:35 - [SUCCESS] info@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-17 13:34:19 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-17 14:21:47 - [SUCCESS] info@returnadisc.se | UPDATE_ORDER_STATUS | Update order status | IP: 127.0.0.1
+2026-02-17 14:21:52 - [SUCCESS] info@returnadisc.se | UPDATE_ORDER_STATUS | Update order status | IP: 127.0.0.1
+2026-02-17 14:21:54 - [SUCCESS] info@returnadisc.se | UPDATE_ORDER_STATUS | Update order status | IP: 127.0.0.1
+2026-02-17 14:21:54 - [SUCCESS] info@returnadisc.se | UPDATE_ORDER_STATUS | Update order status | IP: 127.0.0.1
+2026-02-17 19:42:15 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1
+2026-02-17 19:42:24 - [SUCCESS] info@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-17 19:42:49 - [SUCCESS] info@returnadisc.se | GENERATE_QR_PDF | Generated QR code PDF | IP: 127.0.0.1
+2026-02-17 20:04:16 - [SUCCESS] info@returnadisc.se | RESET_DATABASE | Database was reset successfully | IP: 127.0.0.1
+2026-02-17 20:04:16 - [SUCCESS] info@returnadisc.se | RESET_DATABASE_ATTEMPT | Attempted database reset | IP: 127.0.0.1
+2026-02-17 21:04:43 - [SUCCESS] info@returnadisc.se | LOGIN | Successful login | IP: 127.0.0.1

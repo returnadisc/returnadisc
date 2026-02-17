@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Premium Aktiverat! - ReturnaDisc{% endblock %}
+
+{% block extra_css %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .success-hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .success-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .success-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(22, 101, 52, 0.85), rgba(13, 51, 32, 0.95));
+        z-index: 1;
+    }
+
+    .success-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        max-width: 700px;
+        padding: 0 20px;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-icon {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        font-size: 4rem;
+        box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+        animation: scaleIn 0.5s ease-out 0.3s both;
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0); }
+        to { transform: scale(1); }
+    }
+
+    .success-content h1 {
+        color: white;
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .success-content h1 span {
+        color: #fbbf24;
+    }
+
+    .success-tagline {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.3rem;
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+
+    .premium-card {
+        background: rgba(245, 245, 220, 0.98);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
+        text-align: left;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        margin-bottom: 30px;
+    }
+
+    .premium-card h3 {
+        color: #166534;
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .premium-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .premium-features li {
+        padding: 12px 0;
+        padding-left: 35px;
+        position: relative;
+        color: #374151;
+        font-size: 1rem;
+        border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .premium-features li:last-child {
+        border-bottom: none;
+    }
+
+    .premium-features li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .valid-until-box {
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 16px;
+        padding: 25px;
+        text-align: center;
+        margin-top: 25px;
+        color: #78350f;
+    }
+
+    .valid-until-box strong {
+        display: block;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+    }
+
+    .valid-until-box .date {
+        font-size: 1.4rem;
+        font-weight: 700;
+    }
+
+    .valid-until-box small {
+        opacity: 0.8;
+        display: block;
+        margin-top: 8px;
+    }
+
+    .payment-info {
+        background: rgba(22, 101, 52, 0.1);
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 20px;
+        text-align: center;
+        color: #166534;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 18px 45px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        border: 2px solid #fbbf24;
+        margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+        background: transparent;
+        color: #fbbf24;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .success-content h1 {
+            font-size: 2.2rem;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            font-size: 3rem;
+        }
+
+        .premium-card {
+            padding: 25px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="success-hero">
+    <div class="success-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');"></div>
+    <div class="success-overlay"></div>
+    
+    <div class="success-content">
+        <div class="success-icon">🎉</div>
+        <h1>Premium är <span>aktiverat!</span></h1>
+        <p class="success-tagline">Välkommen till ReturnaDisc Premium. Du har nu tillgång till alla premium-funktioner.</p>
+        
+        <div class="premium-card">
+            <h3>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                Dina premium-förmåner
+            </h3>
+            <ul class="premium-features">
+                <li>Full tillgång till Community kartan</li>
+                <li>Prioriterad support och hjälp</li>
+                <li>Early access till nya funktioner</li>
+            </ul>
+            
+            {% if is_launch and premium_status and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
+            <div class="valid-until-box">
+                <strong>🎁 Gratis period</strong>
+                <span>Din premium är giltig till och med</span>
+                <div class="date">1 mars 2027</div>
+                <small>
+                    Därefter kan du välja att fortsätta för 39 kr/år
+                </small>
+            </div>
+            {% elif premium_status and premium_status.premium_until %}
+            <div class="valid-until-box">
+                <strong>✓ Premium aktivt</strong>
+                <span>Giltigt till och med</span>
+                <div class="date">{{ premium_status.premium_until[:10] }}</div>
+            </div>
+                {% if premium_status.active_subscription and premium_status.active_subscription.payment_method == 'stripe' %}
+                <div class="payment-info">
+                    🔒 Betalningen hanterades säkert via Stripe
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <a href="{{ url_for('disc.dashboard') }}" class="btn-primary">
+            Gå till Min Sida
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </a>
+    </div>
+</section>
+{% endblock %}

@@ -5,17 +5,17 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta
 from typing import Optional, Dict, List, Callable, TYPE_CHECKING
 from functools import wraps
+from database import db, encryption
 
 from flask import (
     Blueprint, render_template, request, redirect, 
     url_for, flash, session, send_file, current_app, g,
-    jsonify  # Ny för AJAX
+    jsonify
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database import db
 
-# TYPE_CHECKING används för att undvika circular imports vid runtime
 if TYPE_CHECKING:
     from database import Database
 
@@ -266,12 +266,12 @@ class AdminSecurityService:
 class QRGenerationService:
     """Service för batch-generering av QR-koder."""
     
-    def __init__(self, database: 'Database'):  # TYPE_CHECKING används här
+    def __init__(self, database: 'Database'):
         self.db = database
     
     def generate_batch(self, count: int, base_url: str) -> List[str]:
         """Generera batch med QR-koder."""
-        from utils import generate_qr_pdf, create_qr_code
+        from utils import create_qr_code
         
         qr_codes = []
         max_attempts_per_code = 5
@@ -312,7 +312,7 @@ class QRGenerationService:
 class AdminStatsService:
     """Service för admin-statistik."""
     
-    def __init__(self, database: 'Database'):  # TYPE_CHECKING används här
+    def __init__(self, database: 'Database'):
         self.db = database
     
     def get_dashboard_stats(self) -> Dict:
@@ -502,11 +502,15 @@ def dashboard():
     health = stats_service.get_system_health()
     recent_logs = AuditLogService().get_recent_logs(20)
     
+    # Kontrollera om vi är i lanseringsperioden
+    is_launch = db.is_launch_period()
+    
     return TemplateService.render(
         'admin/admin_dashboard.html',
         stats=stats,
         health=health,
-        recent_logs=recent_logs
+        recent_logs=recent_logs,
+        is_launch=is_launch
     )
 
 
@@ -522,7 +526,7 @@ def create_qr():
 @admin_required
 @audit_log("GENERATE_QR_PDF", "Generated QR code PDF")
 def qr_pdf():
-    """Generera QR-PDF - nu med bakgrundsjobb för stora batcher."""
+    """Generera QR-PDF."""
     try:
         count = int(request.form.get('count', 10))
         
@@ -530,30 +534,24 @@ def qr_pdf():
             flash(f'Antal måste vara mellan 1 och {Config.MAX_QR_PER_REQUEST}.', 'error')
             return redirect(url_for('admin.create_qr'))
         
-        # För små batcher (< 20), gör synkront för snabbhet
-        if count <= 20:
-            qr_service = QRGenerationService(db)
-            qr_codes = qr_service.generate_batch(count, Config.PUBLIC_URL)
-            
-            from utils import generate_qr_pdf
-            pdf_path = generate_qr_pdf(count, Config.PUBLIC_URL)
-            
-            logger.info(f"Admin {g.admin_email} generated {count} QR codes from {g.admin_ip}")
-            flash(f'{len(qr_codes)} QR-koder genererade!', 'success')
-            
-            return send_file(
-                pdf_path, 
-                as_attachment=True, 
-                download_name=f'returnadisc-qr-batch-{count}st.pdf'
-            )
+        # Generera QR-koder
+        qr_service = QRGenerationService(db)
+        qr_codes = qr_service.generate_batch(count, Config.PUBLIC_URL)
         
-        # För stora batcher, använd bakgrundsjobb
-        from utils import job_manager
+        # Skapa PDF med befintlig funktion från utils
+        from utils import generate_qr_pdf_for_order
         
-        job_id = job_manager.submit_pdf_job(count, Config.PUBLIC_URL)
-        flash(f'Stor batch på {count} QR-koder köas för generering. Jobb-ID: {job_id}', 'info')
+        qr_codes_data = [{'qr_id': qid, 'qr_filename': f'qr_{qid}.png'} for qid in qr_codes]
+        pdf_path = generate_qr_pdf_for_order(qr_codes_data, Config.PUBLIC_URL)
         
-        return redirect(url_for('admin.job_status', job_id=job_id))
+        logger.info(f"Admin {g.admin_email} generated {count} QR codes from {g.admin_ip}")
+        flash(f'{len(qr_codes)} QR-koder genererade!', 'success')
+        
+        return send_file(
+            pdf_path, 
+            as_attachment=True, 
+            download_name=f'returnadisc-qr-batch-{count}st.pdf'
+        )
         
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
@@ -619,8 +617,101 @@ def api_job_status(job_id: str):
 @handle_template_errors
 def list_qr_codes():
     """Lista alla QR-koder och ägare."""
-    qr_codes = db.get_all_qr_codes_with_users()
-    return TemplateService.render('admin/qr_codes.html', qr_codes=qr_codes)
+    try:
+        qr_codes = db.get_all_qr_codes_with_users()
+        
+        # Debug: Kontrollera om resultatet är None
+        if qr_codes is None:
+            logger.error("db.get_all_qr_codes_with_users() returnerade None")
+            qr_codes = []
+        
+        # Debug: Logga antal och typ
+        logger.info(f"Hämtade {len(qr_codes)} QR-koder, typ: {type(qr_codes)}")
+        
+        # Konvertera alla objekt till dict för säkerhet och fixa datatyper
+        formatted_codes = []
+        for qr in qr_codes:
+            try:
+                if isinstance(qr, dict):
+                    qr_dict = qr
+                elif hasattr(qr, '_asdict'):
+                    qr_dict = qr._asdict()
+                elif hasattr(qr, '__dict__'):
+                    qr_dict = vars(qr)
+                else:
+                    qr_dict = {
+                        'qr_id': getattr(qr, 'qr_id', 'N/A'),
+                        'name': getattr(qr, 'name', None),
+                        'email': getattr(qr, 'email', None),
+                        'is_active': getattr(qr, 'is_active', False),
+                        'total_scans': getattr(qr, 'total_scans', 0),
+                        'is_premium': getattr(qr, 'is_premium', False),
+                    }
+                
+                # VIKTIGT: Konvertera is_premium till boolean (hantera 0/1)
+                is_premium = qr_dict.get('is_premium', False)
+                if isinstance(is_premium, int):
+                    is_premium = bool(is_premium)
+                elif isinstance(is_premium, str):
+                    is_premium = is_premium.lower() in ('true', '1', 'yes', 'ja')
+                
+                # VIKTIGT: Konvertera is_active till boolean
+                is_active = qr_dict.get('is_active', False)
+                if isinstance(is_active, int):
+                    is_active = bool(is_active)
+                
+                # VIKTIGT: Fixa name och email - hämta separat om user_id finns men name är tomt
+                name = qr_dict.get('name')
+                email = qr_dict.get('email')
+                user_id = qr_dict.get('user_id')
+                
+                if user_id and (not name or name == 'None'):
+                    logger.warning(f"QR {qr_dict.get('qr_id')} har user_id {user_id} men ingen name! Hämtar separat...")
+                    user_row = db._db.fetch_one(
+                        "SELECT name, email, is_premium FROM users WHERE id = ?", 
+                        (user_id,)
+                    )
+                    if user_row:
+                        name = user_row.get('name', 'Okänd')
+                        email = user_row.get('email', '')
+                        # Uppdatera is_premium från användaren om den är satt
+                        user_premium = user_row.get('is_premium', 0)
+                        if user_premium:
+                            is_premium = bool(int(user_premium)) if isinstance(user_premium, (int, str)) else bool(user_premium)
+                        
+                        # Dekryptera email om nödvändigt
+                        if email and email.startswith('gAAAA'):
+                            email = encryption.decrypt(email)
+                    else:
+                        name = 'Okänd (saknas)'
+                
+                # Sätt standardvärden om tomma
+                if not name or name == 'None':
+                    name = None  # Kommer visa "Ej tilldelad"
+                if not email or email == 'None':
+                    email = None
+                
+                formatted_codes.append({
+                    'qr_id': qr_dict.get('qr_id') or 'N/A',
+                    'name': name,
+                    'email': email,
+                    'is_active': is_active,
+                    'total_scans': qr_dict.get('total_scans', 0) or 0,
+                    'is_premium': is_premium,
+                    'created_at': qr_dict.get('created_at'),
+                    'user_id': user_id
+                })
+                
+            except Exception as e:
+                logger.error(f"Fel vid konvertering av QR-kod: {e}")
+                continue
+        
+        return TemplateService.render('admin/qr_codes.html', qr_codes=formatted_codes)
+        
+    except Exception as e:
+        logger.error(f"Fel i list_qr_codes: {str(e)}", exc_info=True)
+        flash(f"Ett fel uppstod vid hämtning av QR-koder: {str(e)}", "error")
+        return redirect(url_for('admin.dashboard'))
 
 
 @bp.route('/users')
@@ -628,8 +719,53 @@ def list_qr_codes():
 @handle_template_errors
 def list_users():
     """Lista alla användare med detaljerad statistik."""
-    users = db.get_all_users_with_stats()
-    return TemplateService.render('admin/users.html', users=users)
+    try:
+        users = db.get_all_users_with_stats()
+        
+        # Debug-loggning
+        if users is None:
+            logger.error("db.get_all_users_with_stats() returnerade None")
+            users = []
+        
+        logger.info(f"Hämtade {len(users)} användare")
+        
+        # Kontrollera om vi är i lanseringsperioden
+        is_launch = db.is_launch_period()
+        
+        # Konvertera till dicts för säkerhet
+        formatted_users = []
+        for user in users:
+            try:
+                if isinstance(user, dict):
+                    formatted_users.append(user)
+                elif hasattr(user, '_asdict'):
+                    formatted_users.append(user._asdict())
+                elif hasattr(user, '__dict__'):
+                    formatted_users.append(vars(user))
+                else:
+                    formatted_users.append({
+                        'id': getattr(user, 'id', 0),
+                        'name': getattr(user, 'name', 'Okänd'),
+                        'email': getattr(user, 'email', '-'),
+                        'created_at': getattr(user, 'created_at', None),
+                        'missing_count': getattr(user, 'missing_count', 0),
+                        'found_count': getattr(user, 'found_count', 0),
+                        'handovers_count': getattr(user, 'handovers_count', 0),
+                        'is_premium': getattr(user, 'is_premium', False),
+                        'premium_until': getattr(user, 'premium_until', None)
+                    })
+            except Exception as e:
+                logger.error(f"Fel vid konvertering av användare: {e}")
+                continue
+        
+        return TemplateService.render('admin/users.html', 
+                                    users=formatted_users,
+                                    is_launch=is_launch)
+        
+    except Exception as e:
+        logger.error(f"Fel i list_users: {str(e)}", exc_info=True)
+        flash(f"Ett fel uppstod: {str(e)}", "error")
+        return redirect(url_for('admin.dashboard'))
 
 
 @bp.route('/reset', methods=['POST'])
@@ -637,23 +773,32 @@ def list_users():
 @audit_log("RESET_DATABASE_ATTEMPT", "Attempted database reset")
 def reset_db():
     """Nollställ databasen."""
-    security = AdminSecurityService()
+    from werkzeug.security import check_password_hash
     
-    confirmation = request.form.get('confirm', '')
-    if not security.validate_reset_confirmation(confirmation):
-        flash('Skriv "DELETE EVERYTHING" för att bekräfta.', 'error')
+    confirmation = request.form.get('confirm', '').strip()
+    password = request.form.get('admin_password', '').strip()
+    
+    # Debug-loggning
+    logger.info(f"Reset attempt: confirm='{confirmation}', password_entered={'yes' if password else 'no'}")
+    
+    # Kolla bekräftelse-text
+    if confirmation != 'DELETE EVERYTHING':
+        flash('Skriv exakt "DELETE EVERYTHING" (versaler) för att bekräfta.', 'error')
         return redirect(url_for('admin.dashboard'))
     
-    password = request.form.get('admin_password', '').strip()
-    if not security.verify_password_for_destructive_action(
-        password, Config.ADMIN_PASSWORD_HASH
-    ):
+    # Kolla lösenord - använd samma som admin-inloggning
+    if not Config.ADMIN_PASSWORD_HASH:
+        logger.error("ADMIN_PASSWORD_HASH är inte satt i config!")
+        flash('Systemfel: Admin-lösenord inte konfigurerat.', 'error')
+        return redirect(url_for('admin.dashboard'))
+    
+    if not check_password_hash(Config.ADMIN_PASSWORD_HASH, password):
         audit = AuditLogService()
         audit.log(
             g.admin_email, "RESET_DATABASE", 
             "Failed - wrong password", g.admin_ip, success=False
         )
-        flash('Fel lösenord. Databasen är INTE nollställd.', 'error')
+        flash('Fel lösenord. Ange ditt admin-lösenord.', 'error')
         return redirect(url_for('admin.dashboard'))
     
     try:
@@ -666,15 +811,19 @@ def reset_db():
                 "Database was reset successfully", g.admin_ip, success=True
             )
             logger.critical(f"Database was reset by admin {g.admin_email} from {g.admin_ip}!")
-            flash('Databasen är nollställd. En backup har skapats.', 'warning')
+            
+            # Logga ut och redirecta till login
+            session.clear()
+            flash('Databasen är nollställd. En backup har skapats. Du måste logga in igen.', 'warning')
+            return redirect(url_for('admin.login'))
         else:
-            flash('Nollställning avbröts.', 'error')
+            flash('Nollställning avbröts av systemet.', 'error')
+            return redirect(url_for('admin.dashboard'))
             
     except Exception as e:
         logger.error(f"Database reset failed: {e}")
         flash(f'Fel vid nollställning: {str(e)}', 'error')
-    
-    return redirect(url_for('admin.dashboard'))
+        return redirect(url_for('admin.dashboard'))
 
 
 @bp.route('/audit-log')
@@ -694,26 +843,113 @@ def system_health():
     stats_service = AdminStatsService(db)
     health = stats_service.get_system_health()
     return jsonify(health)
-    
-    
+
+
+# ============================================================================
+# ORDER-HANTERING (ENDAST EN VERSION)
+# ============================================================================
+
 @bp.route('/orders')
 @admin_required
 @handle_template_errors
 def list_orders():
-    """Lista alla beställningar med användarinfo och QR-koder."""
-    # Hämta alla användare med deras QR-koder
-    query = """
-        SELECT 
-            u.id, u.name, u.email, u.created_at,
-            q.qr_id, q.is_active, q.activated_at
-        FROM users u
-        LEFT JOIN qr_codes q ON u.id = q.user_id
-        WHERE u.is_active = 1
-        ORDER BY u.created_at DESC
-    """
-    orders = db.fetch_all(query)
+    """Lista alla ordrar med fullständig information."""
+    try:
+        status_filter = request.args.get('status', 'all')
+        
+        # Hämta ordrar med användarinfo
+        orders = db.get_all_orders_with_user_info(
+            status=None if status_filter == 'all' else status_filter
+        )
+        
+        # Beräkna statistik
+        stats = db.get_order_stats()
+        
+        # Formatera ordrar för display - VIKTIGT: Inkludera alla adress-fält!
+        formatted_orders = []
+        for order in orders:
+            try:
+                formatted_orders.append({
+                    'id': order.get('id'),
+                    'order_number': order.get('order_number', 'N/A'),
+                    'user_name': order.get('user_name', 'Okänd'),
+                    'user_email': order.get('user_email', ''),
+                    'qr_id': order.get('assigned_qr') or order.get('qr_id', '-'),
+                    'package_type': order.get('package_type', ''),
+                    'quantity': order.get('quantity', 0),
+                    'total_amount': order.get('total_amount', 0),
+                    'currency': order.get('currency', 'SEK'),
+                    'status': order.get('status', 'pending'),
+                    'payment_method': order.get('payment_method', '-'),
+                    # VIKTIGT: Dessa fält måste vara med!
+                    'shipping_name': order.get('shipping_name', ''),
+                    'shipping_address': order.get('shipping_address', ''),
+                    'shipping_postal_code': order.get('shipping_postal_code', ''),
+                    'shipping_city': order.get('shipping_city', ''),
+                    'created_at': order.get('created_at'),
+                    'paid_at': order.get('paid_at')
+                })
+            except Exception as e:
+                logger.error(f"Fel vid formatering av order: {e}")
+                continue
+        
+        return TemplateService.render('admin/orders.html',
+                                    orders=formatted_orders,
+                                    stats=stats,
+                                    current_filter=status_filter)
+        
+    except Exception as e:
+        logger.error(f"Fel i list_orders: {e}", exc_info=True)
+        flash('Ett fel uppstod vid hämtning av ordrar', 'error')
+        return redirect(url_for('admin.dashboard'))
+
+
+@bp.route('/orders/<int:order_id>')
+@admin_required
+@handle_template_errors
+def view_order(order_id: int):
+    """Visa detaljer för specifik order."""
+    try:
+        order = db.get_order_by_id(order_id)
+        if not order:
+            flash('Ordern hittades inte', 'error')
+            return redirect(url_for('admin.list_orders'))
+        
+        # Hämta användarinfo
+        user = db.get_user_by_id(order['user_id'])
+        
+        return TemplateService.render('admin/order_detail.html',
+                                    order=order,
+                                    user=user)
+        
+    except Exception as e:
+        logger.error(f"Fel i view_order: {e}")
+        flash('Ett fel uppstod', 'error')
+        return redirect(url_for('admin.list_orders'))
+
+
+@bp.route('/orders/<int:order_id>/status', methods=['POST'])
+@admin_required
+@audit_log("UPDATE_ORDER_STATUS", "Update order status")
+def update_order_status(order_id: int):
+    """Uppdatera orderstatus."""
+    try:
+        new_status = request.form.get('status')
+        valid_statuses = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
+        
+        if new_status not in valid_statuses:
+            flash('Ogiltig status', 'error')
+            return redirect(url_for('admin.list_orders'))
+        
+        db.update_order_status(order_id, new_status)
+        
+        flash(f'Orderstatus uppdaterad', 'success')
+        
+    except Exception as e:
+        logger.error(f"Fel vid uppdatering av orderstatus: {e}")
+        flash('Ett fel uppstod', 'error')
     
-    return TemplateService.render('admin/orders.html', orders=orders)
+    return redirect(url_for('admin.list_orders'))
 
 
 @bp.route('/download-qr/<qr_id>')
@@ -731,3 +967,321 @@ def download_qr(qr_id: str):
     else:
         flash(f'QR-kod {qr_id} hittades inte', 'error')
         return redirect(url_for('admin.list_orders'))
+
+
+# ============================================================================
+# QR-kod Admin-hantering (Redigering, Premium, Registrering)
+# ============================================================================
+
+@bp.route('/qr/<qr_id>/delete', methods=['POST'])
+@admin_required
+@audit_log("DELETE_QR", "Delete QR code")
+def delete_qr(qr_id: str):
+    """Radera QR-kod (endast om ej tilldelad)."""
+    try:
+        qr = db.get_qr(qr_id)
+        
+        if not qr:
+            flash('QR-koden hittades inte', 'error')
+            return redirect(url_for('admin.list_qr_codes'))
+        
+        if qr.get('user_id'):
+            flash('Kan inte radera QR-kod som är tilldelad en användare', 'error')
+            return redirect(url_for('admin.edit_qr', qr_id=qr_id))
+        
+        # Radera från databasen
+        query = "DELETE FROM qr_codes WHERE qr_id = ?"
+        db._db.execute(query, (qr_id,))
+        
+        # Radera bildfil
+        import os
+        qr_folder = os.environ.get('QR_FOLDER', 'static/qr')
+        filepath = os.path.join(qr_folder, f"qr_{qr_id}.png")
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        
+        flash(f'QR-kod {qr_id} raderad', 'success')
+        
+    except Exception as e:
+        logger.error(f"Fel vid radering av QR: {e}")
+        flash('Ett fel uppstod vid radering', 'error')
+    
+    return redirect(url_for('admin.list_qr_codes'))
+
+
+@bp.route('/user/<int:user_id>/delete', methods=['POST'])
+@admin_required
+@audit_log("DELETE_USER", "Delete user")
+def delete_user(user_id: int):
+    """Radera (soft delete) en användare."""
+    try:
+        user = db.get_user_by_id(user_id)
+        if not user:
+            flash('Användaren hittades inte', 'error')
+            return redirect(url_for('admin.list_qr_codes'))
+        
+        # Soft delete via UserRepository
+        db.soft_delete_user(user_id)
+        
+        # Inaktivera QR-koden också
+        qr = db.get_user_qr(user_id)
+        if qr:
+            query = "UPDATE qr_codes SET user_id = NULL, is_active = 0 WHERE qr_id = ?"
+            db._db.execute(query, (qr['qr_id'],))
+        
+        flash(f'Användare {user.get("name", user_id)} har raderats', 'success')
+        
+    except Exception as e:
+        logger.error(f"Fel vid radering av användare: {e}")
+        flash('Ett fel uppstod vid radering', 'error')
+    
+    return redirect(url_for('admin.list_qr_codes'))
+
+
+@bp.route('/qr/<qr_id>/edit', methods=['GET', 'POST'])
+@admin_required
+@audit_log("EDIT_QR", "Edit QR code")
+def edit_qr(qr_id: str):
+    """Redigera QR-kod - byt ID, redigera användare, eller registrera ny användare."""
+    try:
+        # Hämta QR-kod med all info
+        qr_data = db.get_qr_with_payment_info(qr_id)
+        
+        if not qr_data:
+            flash(f'QR-kod {qr_id} hittades inte', 'error')
+            return redirect(url_for('admin.list_qr_codes'))
+        
+        if request.method == 'POST':
+            action = request.form.get('action')
+            
+            if action == 'change_id':
+                # Byt QR-ID
+                new_qr_id = request.form.get('new_qr_id', '').strip().upper()
+                
+                try:
+                    db.update_qr_id(qr_id, new_qr_id)
+                    flash(f'QR-ID ändrat från {qr_id} till {new_qr_id}', 'success')
+                    return redirect(url_for('admin.edit_qr', qr_id=new_qr_id))
+                except ValueError as e:
+                    flash(str(e), 'error')
+            
+            elif action == 'toggle_premium':
+                # Växla premium-status
+                user_id = qr_data.get('user_id')
+                if not user_id:
+                    flash('QR-koden har ingen ägare att sätta premium på', 'error')
+                else:
+                    current_premium = qr_data.get('is_premium', False)
+                    new_premium = not current_premium
+                    db.toggle_user_premium(user_id, new_premium)
+                    status = "aktiverad" if new_premium else "avaktiverad"
+                    flash(f'Premium {status} för användare', 'success')
+                    return redirect(url_for('admin.edit_qr', qr_id=qr_id))
+            
+            elif action == 'update_user':
+                # Uppdatera användarens namn och email
+                user_id = qr_data.get('user_id')
+                if not user_id:
+                    flash('QR-koden har ingen ägare att uppdatera', 'error')
+                else:
+                    name = request.form.get('user_name', '').strip()
+                    email = request.form.get('user_email', '').strip().lower()
+                    
+                    if not name or not email:
+                        flash('Namn och email måste fyllas i', 'error')
+                    else:
+                        try:
+                            # Använd direkt SQL för att uppdatera
+                            query = "UPDATE users SET name = ? WHERE id = ?"
+                            db._db.execute(query, (name, user_id))
+                            
+                            # Uppdatera email om den ändrats
+                            current_email = qr_data.get('email')
+                            if email != current_email:
+                                from database import encryption
+                                encrypted_email = encryption.encrypt(email)
+                                email_hash = encryption.hash_email(email)
+                                query = "UPDATE users SET email = ?, email_hash = ? WHERE id = ?"
+                                db._db.execute(query, (encrypted_email, email_hash, user_id))
+                            
+                            flash('Användaruppgifter uppdaterade', 'success')
+                            return redirect(url_for('admin.edit_qr', qr_id=qr_id))
+                        except Exception as e:
+                            logger.error(f"Fel vid uppdatering: {e}")
+                            flash('Ett fel uppstod vid uppdatering', 'error')
+            
+            elif action == 'register_user':
+                # Registrera ny användare på denna QR-kod
+                if qr_data.get('user_id'):
+                    flash('QR-koden är redan tilldelad en användare', 'error')
+                else:
+                    name = request.form.get('name', '').strip()
+                    email = request.form.get('email', '').strip().lower()
+                    password = request.form.get('password', '').strip()
+                    
+                    if not all([name, email, password]):
+                        flash('Alla fält måste fyllas i', 'error')
+                    elif len(password) < 6:
+                        flash('Lösenordet måste vara minst 6 tecken', 'error')
+                    else:
+                        try:
+                            user_id = db.register_user_on_qr(qr_id, name, email, password)
+                            flash(f'Användare skapad och kopplad till QR-koden! ID: {user_id}', 'success')
+                            return redirect(url_for('admin.edit_qr', qr_id=qr_id))
+                        except ValueError as e:
+                            flash(str(e), 'error')
+                        except Exception as e:
+                            logger.error(f"Fel vid registrering: {e}")
+                            flash('Ett fel uppstod vid registrering', 'error')
+        
+        return TemplateService.render('admin/edit_qr.html', qr=qr_data)
+        
+    except Exception as e:
+        logger.error(f"Fel i edit_qr: {e}")
+        flash('Ett fel uppstod', 'error')
+        return redirect(url_for('admin.list_qr_codes'))
+
+
+# ============================================================================
+# Premium Admin-hantering
+# ============================================================================
+
+@bp.route('/premium')
+@admin_required
+@handle_template_errors
+def premium_overview():
+    """Översikt över premium-användare och prenumerationer."""
+    try:
+        # Hämta alla användare med premium-info
+        query = """
+            SELECT 
+                u.id, u.name, u.email, u.created_at, u.is_premium,
+                u.premium_started_at, u.premium_until,
+                COUNT(DISTINCT ps.id) as subscription_count
+            FROM users u
+            LEFT JOIN premium_subscriptions ps ON u.id = ps.user_id
+            WHERE u.is_active = 1
+            GROUP BY u.id
+            ORDER BY u.is_premium DESC, u.premium_started_at DESC
+        """
+        users = db._db.fetch_all(query)
+        
+        # Beräkna statistik
+        total_premium = sum(1 for u in users if u.get('is_premium'))
+        total_users = len(users)
+        launch_users = sum(1 for u in users if u.get('is_premium') and not u.get('premium_until'))
+        
+        # Hämta prenumerationsdetaljer
+        sub_query = """
+            SELECT ps.*, u.name, u.email
+            FROM premium_subscriptions ps
+            JOIN users u ON ps.user_id = u.id
+            ORDER BY ps.created_at DESC
+            LIMIT 100
+        """
+        subscriptions = db._db.fetch_all(sub_query)
+        
+        is_launch = db.is_launch_period()
+        
+        return TemplateService.render('admin/premium_overview.html',
+                                    users=users,
+                                    subscriptions=subscriptions,
+                                    total_premium=total_premium,
+                                    total_users=total_users,
+                                    launch_users=launch_users,
+                                    is_launch=is_launch)
+        
+    except Exception as e:
+        logger.error(f"Fel i premium_overview: {e}")
+        flash('Ett fel uppstod vid hämtning av premium-data', 'error')
+        return redirect(url_for('admin.dashboard'))
+
+
+@bp.route('/premium/grant', methods=['POST'])
+@admin_required
+@audit_log("GRANT_PREMIUM", "Grant premium to user")
+def grant_premium():
+    """Manuellt ge premium till en användare."""
+    try:
+        user_id = int(request.form.get('user_id', 0))
+        duration_days = int(request.form.get('duration_days', 365))
+        note = request.form.get('note', '')
+        
+        if not user_id:
+            flash('Användar-ID saknas', 'error')
+            return redirect(url_for('admin.premium_overview'))
+        
+        user = db.get_user_by_id(user_id)
+        if not user:
+            flash('Användaren hittades inte', 'error')
+            return redirect(url_for('admin.premium_overview'))
+        
+        # Beräkna utgångsdatum
+        from datetime import timedelta
+        expires_at = datetime.now() + timedelta(days=duration_days)
+        
+        # Aktivera premium
+        db.activate_premium(user_id, payment_method='manual', 
+                          payment_id=f'ADMIN-{g.admin_email}-{datetime.now().isoformat()}',
+                          amount=0)
+        
+        flash(f'Premium aktiverat för {user.get("name", user_id)} till {expires_at.date()}', 'success')
+        logger.info(f"Admin {g.admin_email} gav premium till användare {user_id}")
+        
+    except Exception as e:
+        logger.error(f"Fel vid beviljande av premium: {e}")
+        flash('Ett fel uppstod', 'error')
+    
+    return redirect(url_for('admin.premium_overview'))
+
+
+@bp.route('/premium/revoke', methods=['POST'])
+@admin_required
+@audit_log("REVOKE_PREMIUM", "Revoke premium from user")
+def revoke_premium():
+    """Återkalla premium från en användare."""
+    try:
+        user_id = int(request.form.get('user_id', 0))
+        
+        if not user_id:
+            flash('Användar-ID saknas', 'error')
+            return redirect(url_for('admin.premium_overview'))
+        
+        user = db.get_user_by_id(user_id)
+        if not user:
+            flash('Användaren hittades inte', 'error')
+            return redirect(url_for('admin.premium_overview'))
+        
+        # Avaktivera premium
+        db._users.deactivate_premium(user_id)
+        
+        # Uppdatera alla aktiva prenumerationer till cancelled
+        query = """
+            UPDATE premium_subscriptions 
+            SET status = 'cancelled', expires_at = datetime('now')
+            WHERE user_id = ? AND status = 'active'
+        """
+        db._db.execute(query, (user_id,))
+        
+        flash(f'Premium återkallat från {user.get("name", user_id)}', 'success')
+        logger.info(f"Admin {g.admin_email} återkallade premium från användare {user_id}")
+        
+    except Exception as e:
+        logger.error(f"Fel vid återkallande av premium: {e}")
+        flash('Ett fel uppstod', 'error')
+    
+    return redirect(url_for('admin.premium_overview'))
+
+
+@bp.route('/premium/check-expired')
+@admin_required
+def check_expired_premium():
+    """Kontrollera och uppdatera utgångna prenumerationer."""
+    try:
+        count = db.check_expired_subscriptions()
+        flash(f'{count} utgångna prenumerationer uppdaterade', 'success')
+    except Exception as e:
+        logger.error(f"Fel vid kontroll av utgångna prenumerationer: {e}")
+        flash('Ett fel uppstod', 'error')
+    
+    return redirect(url_for('admin.premium_overview'))

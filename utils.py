@@ -21,52 +21,57 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
-# Email Service
+# Email Service - SendGrid API (NY VERSION)
 # ============================================================================
 
 class EmailService:
-    """Service för att skicka email."""
+    """Service för att skicka email via SendGrid API."""
     
     def __init__(self):
-        # Hantera saknade config-värden
-        self.enabled = getattr(Config, 'EMAIL_ENABLED', False)
-        self.smtp_server = getattr(Config, 'SMTP_SERVER', None)
-        self.smtp_port = getattr(Config, 'SMTP_PORT', 587)
-        self.email_from = getattr(Config, 'EMAIL_FROM', None)
-        self.email_user = getattr(Config, 'EMAIL_USER', None)
-        self.email_password = getattr(Config, 'EMAIL_PASSWORD', None)
-    
-    def send_async(self, to_email: str, subject: str, html_content: str) -> None:
-        """Skicka email asynkront."""
-        if not self.enabled:
-            logger.info(f"Email disabled. Would send to {to_email}: {subject}")
-            return
+        self.api_key = os.environ.get('SENDGRID_API_KEY')
+        self.enabled = bool(self.api_key)
+        self.from_email = "noreply@returnadisc.se"
+        self.from_name = "ReturnaDisc"
         
-        if not all([self.smtp_server, self.email_from, self.email_user, self.email_password]):
-            logger.warning("Email config incomplete, cannot send email")
+        if not self.enabled:
+            logger.warning("SENDGRID_API_KEY saknas - email-funktionen är inaktiverad")
+        else:
+            logger.info("SendGrid email-service initialiserad")
+    
+    def send_async(self, to_email: str, subject: str, html_content: str, reply_to: str = None) -> None:
+        """Skicka email asynkront via SendGrid API."""
+        if not self.enabled:
+            logger.warning(f"Email skickades inte till {to_email} - SendGrid API key saknas")
             return
         
         def send():
             try:
-                import smtplib
-                from email.mime.text import MIMEText
-                from email.mime.multipart import MIMEMultipart
+                from sendgrid import SendGridAPIClient
+                from sendgrid.helpers.mail import Mail, Email, ReplyTo
                 
-                msg = MIMEMultipart('alternative')
-                msg['Subject'] = subject
-                msg['From'] = self.email_from
-                msg['To'] = to_email
+                # Skapa meddelande
+                message = Mail(
+                    from_email=Email(self.from_email, self.from_name),
+                    to_emails=to_email,
+                    subject=subject,
+                    html_content=html_content
+                )
                 
-                msg.attach(MIMEText(html_content, 'html'))
+                # Sätt reply-to om angivet
+                if reply_to:
+                    message.reply_to = ReplyTo(reply_to)
                 
-                with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                    server.starttls()
-                    server.login(self.email_user, self.email_password)
-                    server.sendmail(self.email_from, [to_email], msg.as_string())
+                # Skicka via SendGrid
+                sg = SendGridAPIClient(self.api_key)
+                response = sg.send(message)
                 
-                logger.info(f"Email sent to {to_email}")
+                if response.status_code in [200, 201, 202]:
+                    logger.info(f"✅ Email skickat till {to_email} (status: {response.status_code})")
+                else:
+                    logger.warning(f"⚠️ SendGrid svarade med status: {response.status_code}")
+                    
             except Exception as e:
-                logger.error(f"Failed to send email: {e}")
+                logger.error(f"❌ Kunde inte skicka email via SendGrid: {e}")
         
         thread = threading.Thread(target=send)
         thread.daemon = True
@@ -77,13 +82,13 @@ class EmailService:
 email_service = EmailService()
 
 
-def send_email_async(to_email: str, subject: str, html_content: str) -> None:
+def send_email_async(to_email: str, subject: str, html_content: str, plain_text: str = None) -> None:
     """Helper funktion för att skicka email."""
-    email_service.send_async(to_email, subject, html_content)
+    email_service.send_async(to_email, subject, html_content, plain_text)
 
 
 # ============================================================================
-# QR Code Generation
+# QR Code Generation (oförändrad)
 # ============================================================================
 
 def generate_random_qr_id(length: int = 5) -> str:
@@ -91,7 +96,6 @@ def generate_random_qr_id(length: int = 5) -> str:
     import random
     import string
     
-    # Använd versaler och siffror, undvik I, O, Q, 1, 0 för att undvika förväxling
     chars = ''.join(c for c in (string.ascii_uppercase + string.digits) 
                    if c not in 'IOQ10')
     return ''.join(random.choices(chars, k=length))
@@ -106,12 +110,10 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     
     os.makedirs(qr_folder, exist_ok=True)
     
-    # Hitta font - först i projektmappen, sedan systemet
     font_path = 'static/fonts/arial.ttf'
     if not os.path.exists(font_path):
         font_path = 'C:/Windows/Fonts/arial.ttf'
     
-    # Skapa QR-kod
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -129,7 +131,6 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         qr_img = qr_img.convert('RGB')
     
     try:
-        # Ladda samma font lokalt och online
         font_large = ImageFont.truetype(font_path, 112)
         font_small = ImageFont.truetype(font_path, 72)
         
@@ -167,7 +168,6 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         y_id = y_se + height_se + line_spacing
         draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
         
-        # Skala till 400px
         final_width = 400
         current_width, current_height = new_img.size
         scale = final_width / current_width
@@ -177,7 +177,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
     except Exception as e:
         logger.error(f"Font fel: {e}")
-        raise  # Kasta felet så du ser vad som gick snett
+        raise
     
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
@@ -190,17 +190,9 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
 def create_small_qr_for_pdf(qr_id: str, size: int = 100) -> io.BytesIO:
     """
     Skapa en liten QR-kod för PDF-användning.
-    
-    Args:
-        qr_id: QR-kodens ID
-        size: Storlek i pixlar (default 100)
-    
-    Returns:
-        BytesIO objekt med PNG-bilden
     """
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
-    # Skapa QR-kod
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
@@ -212,17 +204,13 @@ def create_small_qr_for_pdf(qr_id: str, size: int = 100) -> io.BytesIO:
     qr.add_data(qr_url)
     qr.make(fit=True)
     
-    # Skapa bild
     qr_img = qr.make_image(fill_color="black", back_color="white")
     
-    # Konvertera till RGB om nödvändigt
     if qr_img.mode != 'RGB':
         qr_img = qr_img.convert('RGB')
     
-    # Resize till önskad storlek
     qr_img = qr_img.resize((size, size), Image.Resampling.LANCZOS)
     
-    # Spara till BytesIO
     img_buffer = io.BytesIO()
     qr_img.save(img_buffer, format='PNG')
     img_buffer.seek(0)
@@ -233,23 +221,13 @@ def create_small_qr_for_pdf(qr_id: str, size: int = 100) -> io.BytesIO:
 def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
     """
     Generera PDF med QR-koder för en order.
-    
-    Args:
-        qr_codes: Lista med dicts innehållande 'qr_id' och 'qr_filename'
-        base_url: Bas-URL för applikationen
-    
-    Returns:
-        Sökväg till genererad PDF
     """
-    # Hämta folders från config eller använd default
     qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     pdf_folder = getattr(Config, 'PDF_FOLDER', 'static/pdfs')
     
-    # Skapa PDF
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     pdf_filename = f"returnadisc_order_{timestamp}.pdf"
     
-    # Skapa mappen om den inte finns
     os.makedirs(pdf_folder, exist_ok=True)
     
     pdf_path = os.path.join(pdf_folder, pdf_filename)
@@ -257,7 +235,6 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
     c = canvas.Canvas(pdf_path, pagesize=A4)
     width, height = A4
     
-    # Marginaler och layout
     margin = 50
     qr_size = 200
     cols = 2
@@ -272,7 +249,6 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
         col = i % cols
         row = i // cols
         
-        # Ny sida om nödvändigt
         if i > 0 and i % (cols * rows) == 0:
             c.showPage()
         
@@ -283,15 +259,12 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
         qr_filename = qr_data.get('qr_filename', f"qr_{qr_id}.png")
         qr_path = os.path.join(qr_folder, qr_filename)
         
-        # Rita QR-kod
         if os.path.exists(qr_path):
             c.drawImage(qr_path, x, y, width=qr_size, height=qr_size)
         
-        # Rita ID under QR-koden
         c.setFont("Helvetica-Bold", 14)
         c.drawCentredString(x + qr_size/2, y - 20, f"ID: {qr_id}")
         
-        # Rita URL
         c.setFont("Helvetica", 10)
         url_text = f"{base_url}/found/{qr_id}"
         c.drawCentredString(x + qr_size/2, y - 35, url_text)
@@ -303,7 +276,7 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
 
 
 # ============================================================================
-# Validation Utilities
+# Validation Utilities (oförändrad)
 # ============================================================================
 
 def is_valid_email(email: str) -> bool:
@@ -317,16 +290,14 @@ def sanitize_input(text: str, max_length: int = 500) -> str:
     if not text:
         return ""
     
-    # Ta bort farliga tecken
     text = text.strip()
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     
-    # Begränsa längd
     return text[:max_length]
 
 
 # ============================================================================
-# File Utilities
+# File Utilities (oförändrad)
 # ============================================================================
 
 def allowed_file(filename: str, allowed_extensions: set = None) -> bool:
@@ -344,7 +315,7 @@ def save_uploaded_file(file, folder: str, filename: str = None) -> str:
         from werkzeug.utils import secure_filename
         filename = secure_filename(file.filename)
     
-    # Lägg till timestamp för att undvika kollisioner
+    # Skapa unikt filnamn med timestamp
     name, ext = os.path.splitext(filename)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{name}_{timestamp}{ext}"
@@ -352,36 +323,26 @@ def save_uploaded_file(file, folder: str, filename: str = None) -> str:
     filepath = os.path.join(folder, filename)
     file.save(filepath)
     
-    return filename
+    return filename  # Returnera bara filnamnet
 
 
 def save_uploaded_photo(file, folder: str = None) -> Optional[str]:
     """
-    Spara uppladdad foto-fil.
-    
-    Args:
-        file: Flask file object
-        folder: Mapp att spara i (default: UPLOAD_FOLDER från config)
-    
-    Returns:
-        Filnamnet på den sparade filen, eller None om fel
+    Spara uppladdad foto-fil direkt under uploads/.
     """
     if folder is None:
         folder = getattr(Config, 'UPLOAD_FOLDER', 'static/uploads')
     
-    # Kontrollera att filen är tillåten
     if not allowed_file(file.filename):
         logger.warning(f"Invalid file type: {file.filename}")
         return None
     
     try:
-        # Skapa mappen om den inte finns
         os.makedirs(folder, exist_ok=True)
-        
-        # Spara filen
         filename = save_uploaded_file(file, folder)
-        logger.info(f"Saved photo: {filename}")
-        return filename
+        
+        # Returnera relativ sökväg: uploads/filnamn
+        return f"uploads/{filename}"
         
     except Exception as e:
         logger.error(f"Failed to save photo: {e}")
@@ -389,7 +350,7 @@ def save_uploaded_photo(file, folder: str = None) -> Optional[str]:
 
 
 # ============================================================================
-# Date/Time Utilities
+# Date/Time Utilities (oförändrad)
 # ============================================================================
 
 def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M") -> str:
@@ -426,7 +387,7 @@ def time_ago(dt: datetime) -> str:
         
 def notify_admin_new_order(user_data: dict, qr_id: str):
     """Skicka email till admin vid ny beställning."""
-    admin_email = "info@returnadisc.se"  # Byt till din riktiga email
+    admin_email = getattr(Config, 'ADMIN_EMAIL', 'info@returnadisc.se')
     
     subject = f"Ny ReturnaDisc beställning - {user_data['name']}"
     
@@ -436,7 +397,60 @@ def notify_admin_new_order(user_data: dict, qr_id: str):
     <p><strong>Email:</strong> {user_data['email']}</p>
     <p><strong>Adress:</strong> {user_data.get('address', 'Saknas')}</p>
     <p><strong>QR-kod:</strong> {qr_id}</p>
-    <p>Ladda ner QR-koden: https://returnadisc.se/static/qr/qr_{qr_id}.png</p>
+    <p>Ladda ner QR-koden: {Config.PUBLIC_URL}/static/qr/qr_{qr_id}.png</p>
     """
     
     send_email_async(admin_email, subject, html)
+    
+    
+def send_email_with_attachment(to_email: str, subject: str, html_content: str, 
+                               attachment_path: str = None, attachment_cid: str = None) -> None:
+    """Skicka email med bifogad bild via SendGrid API."""
+    if not email_service.enabled:
+        logger.warning(f"Email skickades inte till {to_email} - SendGrid API key saknas")
+        return
+    
+    def send():
+        try:
+            from sendgrid import SendGridAPIClient
+            from sendgrid.helpers.mail import Mail, Email, Attachment, FileContent, FileName, FileType, Disposition, ContentId
+            
+            # Skapa meddelande med HTML som huvudinnehåll
+            message = Mail(
+                from_email=Email(email_service.from_email, email_service.from_name),
+                to_emails=to_email,
+                subject=subject,
+                html_content=html_content  # HTML är huvudinnehållet, inte attachment
+            )
+            
+            # Bifoga bild som inline om angiven
+            if attachment_path and os.path.exists(attachment_path):
+                with open(attachment_path, 'rb') as f:
+                    data = f.read()
+                
+                encoded = base64.b64encode(data).decode()
+                
+                attachment = Attachment()
+                attachment.file_content = FileContent(encoded)
+                attachment.file_name = FileName(os.path.basename(attachment_path))
+                attachment.file_type = FileType('image/jpeg')
+                attachment.disposition = Disposition('inline')
+                attachment.content_id = ContentId(attachment_cid)
+                
+                message.add_attachment(attachment)
+                logger.info(f"Bifogade bild: {attachment_path}")
+            
+            sg = SendGridAPIClient(email_service.api_key)
+            response = sg.send(message)
+            
+            if response.status_code in [200, 201, 202]:
+                logger.info(f"✅ Email skickat till {to_email} (status: {response.status_code})")
+            else:
+                logger.warning(f"⚠️ SendGrid svarade med status: {response.status_code}")
+                
+        except Exception as e:
+            logger.error(f"❌ Kunde inte skicka email via SendGrid: {e}")
+    
+    thread = threading.Thread(target=send)
+    thread.daemon = True
+    thread.start()

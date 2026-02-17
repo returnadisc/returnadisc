@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Callable
 from functools import wraps
 from pathlib import Path
+from database import db, DB_PATH, encryption
 
 from flask import (
     Blueprint, render_template, request, flash, 
@@ -268,14 +269,48 @@ def require_ownership(f: Callable) -> Callable:
 @login_required
 def dashboard():
     """Huvudsida för inloggade användare."""
-    service = UserDashboardService(db)
+    user_id = session.get('user_id')
     
     try:
-        data = service.get_dashboard_data(g.user_id)
+        user = db.get_user_by_id(user_id)
+        if not user:
+            session.clear()
+            flash('Användare hittades inte.', 'error')
+            return redirect(url_for('auth.login'))
+        
+        # Hämta ALLA QR-koder för användaren (nu en lista)
+        all_qrs = db.get_user_qr_codes(user_id)
+        
+        # Hämta första aktiva QR-koden för bakåtkompatibilitet
+        active_qrs = [qr for qr in all_qrs if qr.get('is_enabled')]
+        qr = active_qrs[0] if active_qrs else (all_qrs[0] if all_qrs else None)
+        
+        stats = db.get_user_stats(user_id)
+        missing_stats = db.get_user_missing_stats(user_id)
+        
+        premium_status = db.get_user_premium_status(user_id)
+        has_premium = premium_status.get('has_premium', False) if premium_status else False
+        is_launch = db.is_launch_period()
+        
+        session['has_premium'] = has_premium
+        
+        data = {
+            'user': user,
+            'qr': qr,
+            'all_qrs': all_qrs,
+            'active_qrs': active_qrs,
+            'stats': stats,
+            'missing_stats': missing_stats,
+            'has_premium': has_premium,
+            'is_launch': is_launch,
+            'premium_status': premium_status
+        }
+        
         return render_template('disc/dashboard.html', **data)
-    except ValueError as e:
-        session.clear()
-        flash(str(e), 'error')
+        
+    except Exception as e:
+        logger.error(f"Dashboard error: {e}")
+        flash('Ett fel uppstod. Försök igen.', 'error')
         return redirect(url_for('auth.login'))
 
 
@@ -333,3 +368,4 @@ def download_qr_pdf(qr_id):
         as_attachment=True,
         download_name=f"returnadisc-{qr_id}.pdf"
     )
+    

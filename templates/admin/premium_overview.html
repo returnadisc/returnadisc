@@ -1,0 +1,92 @@
+"""Huvudapplikation för ReturnaDisc."""
+import os
+import logging
+from datetime import datetime
+from flask import Flask, render_template, session
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+# Konfiguration
+from config import Config
+
+# Database
+from database import db, Database
+
+# Blueprints
+from blueprints.auth import bp as auth_bp
+from blueprints.disc import bp as disc_bp
+from blueprints.found import bp as found_bp
+from blueprints.missing import bp as missing_bp
+from blueprints.premium import bp as premium_bp
+from blueprints.admin import bp as admin_bp
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+def create_app(config_class=Config):
+    """Application factory pattern."""
+    app = Flask(__name__, 
+                template_folder='templates',
+                static_folder='static')
+    
+    app.config.from_object(config_class)
+    app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+    
+    # Fix för reverse proxy (Heroku, etc.)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    
+    # Initiera databasen
+    with app.app_context():
+        db.init_tables()
+        logger.info("Databasen initialiserad")
+    
+    # Registrera blueprints
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(disc_bp)
+    app.register_blueprint(found_bp)
+    app.register_blueprint(missing_bp)
+    app.register_blueprint(premium_bp)
+    app.register_blueprint(admin_bp)
+    
+    # Global template context
+    @app.context_processor
+    def inject_globals():
+        return {
+            'now': datetime.now(),
+            'is_launch': db.is_launch_period()
+        }
+    
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found(error):
+        return render_template('errors/404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        return render_template('errors/500.html'), 500
+    
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        return {'status': 'ok', 'timestamp': datetime.now().isoformat()}
+    
+    @app.route('/')
+    def index():
+        """Startsida."""
+        return render_template('index.html')
+    
+    return app
+
+
+# Skapa applikationsinstansen
+app = create_app()
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=port, debug=debug)

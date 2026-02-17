@@ -2,11 +2,163 @@
 
 {% block title %}Generera QR-koder (Admin) - ReturnaDisc{% endblock %}
 
+{% block extra_css %}
+<style>
+    .admin-qr-page {
+        background: linear-gradient(135deg, #f5f5dc 0%, #e8e4d9 100%);
+        min-height: 100vh;
+        padding: 60px 20px;
+    }
+
+    .admin-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .admin-card {
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .admin-badge {
+        background: linear-gradient(145deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: inline-block;
+        margin-bottom: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+    }
+
+    .admin-card h1 {
+        color: #166534;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        font-size: 1rem;
+        margin-bottom: 30px;
+    }
+
+    .qr-form {
+        margin: 30px 0;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 700;
+        color: #166534;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 16px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #166534;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);
+    }
+
+    .form-group small {
+        display: block;
+        margin-top: 8px;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(145deg, #166534 0%, #15803d 100%);
+        color: white;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.3);
+    }
+
+    .info-box {
+        background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+        padding: 20px;
+        border-radius: 16px;
+        margin: 30px 0;
+        border-left: 4px solid #f59e0b;
+    }
+
+    .info-box p {
+        margin: 0;
+        color: #92400e;
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .btn-secondary {
+        display: block;
+        background: transparent;
+        color: #166534;
+        padding: 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        border: 2px solid #166534;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #166534;
+        color: white;
+    }
+
+    @media (max-width: 480px) {
+        .admin-card {
+            padding: 30px 25px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="admin-qr-page">
-    <div class="container">
-        <div class="card">
-            <div class="admin-badge">⚠️ ENDAST ADMIN</div>
+    <div class="admin-container">
+        <div class="admin-card">
+            <span class="admin-badge">⚠️ ENDAST ADMIN</span>
             
             <h1>Generera QR-koder</h1>
             <p class="subtitle">För testning - kommer tas bort vid lansering</p>
@@ -18,7 +170,7 @@
                     <small>Max 30 per gång</small>
                 </div>
                 
-                <button type="submit" class="btn-primary btn-large btn-full">
+                <button type="submit" class="btn-primary">
                     Generera PDF
                 </button>
             </form>
@@ -27,64 +179,8 @@
                 <p><strong>Obs!</strong> Vid lansering kommer QR-koder endast kunna köpas i shoppen.</p>
             </div>
             
-            <a href="{{ url_for('admin.dashboard') }}" class="btn-secondary btn-full">← Tillbaka</a>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn-secondary">← Tillbaka</a>
         </div>
     </div>
 </div>
-
-<style>
-.admin-qr-page {
-    padding: 20px 0;
-}
-
-.admin-badge {
-    background: #ef4444;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: bold;
-    display: inline-block;
-    margin-bottom: 20px;
-}
-
-.qr-form {
-    margin: 30px 0;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 1.2rem;
-}
-
-.form-group small {
-    color: #6b7280;
-    font-size: 0.9rem;
-}
-
-.info-box {
-    background: #fef3c7;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-}
-
-.info-box p {
-    margin: 0;
-    color: #92400e;
-}
-</style>
 {% endblock %}

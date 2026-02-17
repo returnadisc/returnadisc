@@ -3,6 +3,7 @@ import logging
 import secrets
 import os
 import random
+import re
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Optional, Dict, List, Callable
@@ -15,7 +16,7 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from database import db, Database
+from database import db, Database, encryption
 from utils import (
     send_email_async, generate_qr_pdf_for_order, 
     generate_random_qr_id, create_qr_code
@@ -88,8 +89,14 @@ class UserRegistration:
         """Validera registreringsdata."""
         if not all([self.name, self.email, self.password]):
             raise ValidationError("Fyll i alla fält.")
+        
         if len(self.password) < 6:
             raise ValidationError("Lösenordet måste vara minst 6 tecken.")
+        
+        # Validera email-format
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, self.email):
+            raise ValidationError("Ogiltigt email-format.")
 
 
 # ============================================================================
@@ -202,23 +209,42 @@ class QRGenerationService:
 class AuthService:
     """Hantering av autentisering."""
     
+    EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    
     def __init__(self, database: Database):
         self.db = database
     
+    def validate_email(self, email: str) -> str:
+        """Validera och normalisera email."""
+        email = email.lower().strip()
+        if not self.EMAIL_PATTERN.match(email):
+            raise ValidationError("Ogiltigt email-format.")
+        return email
+    
+    def check_email_exists(self, email: str) -> bool:
+        """Kontrollera om email redan finns (case-insensitive)."""
+        normalized_email = email.lower().strip()
+        existing = self.db.get_user_by_email(normalized_email)
+        return existing is not None
+    
     def register(self, name: str, email: str, password: str) -> int:
         """Registrera ny användare."""
-        registration = UserRegistration(name, email, password)
+        normalized_email = self.validate_email(email)
+        
+        if self.check_email_exists(normalized_email):
+            raise ValidationError("Det finns redan ett konto med denna emailadress.")
+        
+        registration = UserRegistration(name, normalized_email, password)
         registration.validate()
         
-        if self.db.get_user_by_email(email):
-            raise ValidationError("Det finns redan ett konto med den emailen.")
-        
         password_hash = generate_password_hash(password)
-        return self.db.create_user(name, email, password_hash)
+        return self.db.create_user(name, normalized_email, password_hash)
     
     def login(self, email: str, password: str) -> Optional[Dict]:
         """Logga in användare."""
-        user = self.db.get_user_by_email(email)
+        normalized_email = email.lower().strip()
+        user = self.db.get_user_by_email(normalized_email)
+        
         if not user:
             return None
         
@@ -289,19 +315,52 @@ def signup():
     """Skapa konto med automatisk QR-kod."""
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip().lower()
+        email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
         
+        # Validera input
+        if not all([name, email, password]):
+            flash('Fyll i alla fält.', 'error')
+            return redirect(url_for('auth.signup'))
+        
+        if len(password) < 6:
+            flash('Lösenordet måste vara minst 6 tecken.', 'error')
+            return redirect(url_for('auth.signup'))
+        
+        # Normalisera email
+        normalized_email = email.lower().strip()
+        
+        # Kontrollera om email redan finns INNAN vi skapar något
+        if db.get_user_by_email(normalized_email):
+            flash('Det finns redan ett konto med denna emailadress. Logga in istället.', 'error')
+            return redirect(url_for('auth.login'))
+        
+        # Validera email-format
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, normalized_email):
+            flash('Ogiltigt email-format.', 'error')
+            return redirect(url_for('auth.signup'))
+        
         try:
+            # Skapa användare med QR-kod
             user_id, qr_id, qr_filename = db.create_user_with_qr(
-                name, email, generate_password_hash(password)
+                name, normalized_email, generate_password_hash(password)
             )
+            
+            logger.info(f"Ny användare skapad: {user_id} med QR: {qr_id}")
+            
         except Exception as e:
             logger.error(f"Failed to create user with QR: {e}")
+            error_str = str(e).lower()
+            if "unique" in error_str or "duplicate" in error_str or "integrity" in error_str:
+                flash('Det finns redan ett konto med denna emailadress.', 'error')
+                return redirect(url_for('auth.login'))
             flash('Ett fel uppstod vid skapande av konto.', 'error')
             return redirect(url_for('auth.signup'))
         
+        # Logga in användaren automatiskt
         session['user_id'] = user_id
+        
         flash('Välkommen! Ditt konto är skapat.', 'success')
         return redirect(url_for('disc.dashboard'))
     
@@ -325,6 +384,14 @@ def login():
         
         session['user_id'] = user['id']
         session.permanent = True
+        
+        # Kontrollera och spara premium-status
+        try:
+            premium_status = db.get_user_premium_status(user['id'])
+            session['has_premium'] = premium_status.get('has_premium', False)
+        except Exception as e:
+            logger.warning(f"Kunde inte hämta premium-status: {e}")
+            session['has_premium'] = False
         
         flash('Välkommen tillbaka!', 'success')
         return redirect(url_for('disc.dashboard'))
@@ -408,43 +475,96 @@ def reset_password(token):
 # Routes - Stripe Betalning
 # ============================================================================
 
-@bp.route('/checkout', methods=['POST'])
+@bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    """Stripe checkout för stickers."""
-    try:
+    """Checkout med formulär för leveransadress INNAN Stripe."""
+    if request.method == 'POST':
+        # Steg 2: Formuläret är skickat, spara i session och gå till Stripe
         package = request.form.get('package')
-        config = ValidationService.validate_package(package)
-        count = config['count']
-        price = config['price'] * 100  # Öre
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        phone = request.form.get('phone', '').strip()
+        address = request.form.get('address', '').strip()
+        postal_code = request.form.get('postal_code', '').strip()
+        city = request.form.get('city', '').strip()
         
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'sek',
-                    'product_data': {
-                        'name': f'ReturnaDisc Stickers - {package.capitalize()}',
-                        'description': f'{count} st QR-klistermärken',
+        # Validera
+        if not all([package, name, email, address, postal_code, city]):
+            flash('Fyll i alla obligatoriska fält.', 'error')
+            return redirect(url_for('auth.checkout', package=package))
+        
+        # Spara i session
+        session['checkout_package'] = package
+        session['checkout_name'] = name
+        session['checkout_email'] = email
+        session['checkout_phone'] = phone
+        session['checkout_address'] = address
+        session['checkout_postal_code'] = postal_code
+        session['checkout_city'] = city
+        
+        # Hämta paketinfo
+        try:
+            config = ValidationService.validate_package(package)
+            count = config['count']
+            price = config['price'] * 100  # Öre
+        except ValidationError:
+            flash('Ogiltigt paket.', 'error')
+            return redirect(url_for('auth.buy_stickers'))
+        
+        # Skapa Stripe Checkout Session
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'sek',
+                        'product_data': {
+                            'name': f'ReturnaDisc Stickers - {package.capitalize()}',
+                            'description': f'{count} st QR-klistermärken',
+                        },
+                        'unit_amount': price,
                     },
-                    'unit_amount': price,
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=request.host_url + 'order-confirmation-stripe?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=request.host_url + 'buy-stickers',
-            metadata={
-                'package': package,
-                'count': str(count),
-            }
-        )
-        
-        return redirect(checkout_session.url, code=303)
-        
-    except Exception as e:
-        logger.error(f"Stripe checkout error: {e}")
-        flash('Ett fel uppstod vid betalning. Försök igen.', 'error')
+                    'quantity': 1,
+                }],
+                mode='payment',
+                # TA BORT shipping_address_collection - vi har redan adressen!
+                success_url=request.host_url + 'order-confirmation-stripe?session_id={CHECKOUT_SESSION_ID}',
+                cancel_url=request.host_url + 'buy-stickers',
+                customer_email=email,  # Fyll i email automatiskt i Stripe
+                metadata={
+                    'package': package,
+                    'count': str(count),
+                    'customer_email': email,
+                }
+            )
+            
+            return redirect(checkout_session.url, code=303)
+            
+        except Exception as e:
+            logger.error(f"Stripe checkout error: {e}")
+            flash('Ett fel uppstod vid betalning. Försök igen.', 'error')
+            return redirect(url_for('auth.buy_stickers'))
+    
+    # Steg 1: Visa formulär (GET)
+    package = request.args.get('package', 'standard')
+    
+    try:
+        config = ValidationService.validate_package(package)
+    except ValidationError:
+        flash('Ogiltigt paket.', 'error')
         return redirect(url_for('auth.buy_stickers'))
+    
+    package_names = {
+        'start': 'Start (12 stickers)',
+        'standard': 'Standard (24 stickers)',
+        'pro': 'Pro (48 stickers)'
+    }
+    
+    return render_template('auth/checkout_form.html',
+                         package=package,
+                         package_name=package_names.get(package, package),
+                         sticker_count=config['count'],
+                         price=config['price'])
 
 
 @bp.route('/order-confirmation-stripe')
@@ -459,63 +579,133 @@ def order_confirmation_stripe():
     try:
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         
-        if checkout_session.payment_status == 'paid':
-            package = checkout_session.metadata.get('package')
-            count = int(checkout_session.metadata.get('count', 24))
-            customer_email = checkout_session.customer_details.email if checkout_session.customer_details else 'okänd'
-            
-            # Generera QR-koder
-            qr_service = QRGenerationService(db)
-            qr_codes = qr_service.generate_batch(count)
-            
-            # GENERERA RIKTIGT ORDERNUMMER
-            date_str = datetime.now().strftime('%y%m%d')
-            random_suffix = ''.join([str(random.randint(0, 9)) for _ in range(4)])
-            order_id = f"RD-{date_str}-{random_suffix}"
-            
-            # Rätt antal baserat på paket
-            package_counts = {'start': 12, 'standard': 24, 'pro': 48}
-            display_count = package_counts.get(package, count)
-            
-            # Mail till admin (med QR-koder)
-            admin_email = os.environ.get('ADMIN_EMAIL', 'din-email@example.com')
-            admin_subject = f"NY BETALNING - ReturnaDisc Order #{order_id}"
-            admin_html = f"""
-            <h2>Ny betalning mottagen!</h2>
-            <p><strong>Order:</strong> #{order_id}</p>
-            <p><strong>Kund:</strong> {customer_email}</p>
-            <p><strong>Paket:</strong> {package} ({display_count} stickers)</p>
-            <p><strong>Betalat:</strong> {checkout_session.amount_total / 100} kr</p>
-            <p><strong>QR-koder:</strong></p>
-            <ul>
-                {''.join([f'<li>{qr["qr_id"]} - https://returnadisc.se/static/qr/{qr["qr_filename"]}</li>' for qr in qr_codes])}
-            </ul>
-            <p>Skriv ut QR-koderna och skicka till kunden!</p>
-            """
-            send_email_async(admin_email, admin_subject, admin_html)
-            
-            # Mail till kund (UTAN QR-koder - säkerhet!)
-            customer_subject = "Din ReturnaDisc beställning är bekräftad!"
-            customer_html = f"""
-            <h2>Tack för din beställning!</h2>
-            <p>Du har beställt <strong>{display_count} QR-klistermärken</strong> ({package}).</p>
-            <p>Din order: <strong>#{order_id}</strong></p>
-            <p>Vi skickar dina klistermärken inom 2-3 arbetsdagar.</p>
-            <p>Du får ett mail med spårningslänk när paketet är på väg.</p>
-            <br>
-            <p>Med vänliga hälsningar,<br>ReturnaDisc-teamet</p>
-            """
-            send_email_async(customer_email, customer_subject, customer_html)
-            
-            return render_template('auth/order_confirmation_stripe.html', 
-                                 package=package,
-                                 count=display_count,
-                                 order_id=order_id,
-                                 email=customer_email)
-        else:
+        if checkout_session.payment_status != 'paid':
             flash('Betalningen är inte slutförd', 'warning')
             return redirect(url_for('auth.buy_stickers'))
-            
+        
+        # Hämta paketinfo från Stripe metadata
+        package = checkout_session.metadata.get('package')
+        count = int(checkout_session.metadata.get('count', 24))
+        
+        # ============================================================================
+        # HÄMTA LEVERANSADRESS FRÅN SESSION (inte Stripe!)
+        # ============================================================================
+        shipping_name = session.get('checkout_name', '')
+        shipping_email = session.get('checkout_email', '')
+        shipping_phone = session.get('checkout_phone', '')
+        shipping_address = session.get('checkout_address', '')
+        shipping_postal_code = session.get('checkout_postal_code', '')
+        shipping_city = session.get('checkout_city', '')
+        shipping_country = 'SE'
+        
+        # Fallback till Stripe om session saknas (gammal order)
+        if not shipping_name:
+            if checkout_session.customer_details:
+                shipping_name = getattr(checkout_session.customer_details, 'name', '') or ''
+                shipping_email = getattr(checkout_session.customer_details, 'email', '') or ''
+        
+        # Debug
+        logger.info(f"Order from session: {shipping_name}, {shipping_address}, {shipping_postal_code} {shipping_city}")
+        
+        # Hämta eller skapa användare
+        user = db.get_user_by_email(shipping_email) if shipping_email else None
+        user_id = None
+        qr_id = None
+        
+        if user:
+            user_id = user['id']
+            user_qr = db.get_user_qr(user_id)
+            if user_qr:
+                qr_id = user_qr.get('qr_id')
+        else:
+            user_id = 0  # Temporär, uppdateras vid registrering
+        
+        # Beräkna pris
+        package_prices = {'start': 59, 'standard': 99, 'pro': 179}
+        total_amount = package_prices.get(package, 99)
+        
+        # Skapa order
+        order_data = {
+            'user_id': user_id,
+            'qr_id': qr_id,
+            'package_type': package,
+            'quantity': count,
+            'total_amount': total_amount,
+            'currency': 'SEK',
+            'status': 'paid',
+            'payment_method': 'stripe',
+            'payment_id': checkout_session.payment_intent,
+            'shipping_name': shipping_name,
+            'shipping_address': shipping_address,
+            'shipping_postal_code': shipping_postal_code,
+            'shipping_city': shipping_city,
+            'shipping_country': shipping_country
+        }
+        
+        try:
+            order = db.create_order(order_data)
+            order_number = order['order_number']
+            logger.info(f"Order skapad: {order_number} för {shipping_email}")
+        except Exception as e:
+            logger.error(f"Kunde inte skapa order: {e}")
+            date_str = datetime.now().strftime('%y%m%d')
+            random_suffix = ''.join([str(random.randint(0, 9)) for _ in range(4)])
+            order_number = f"RD-{date_str}-{random_suffix}"
+        
+        # Rensa session
+        session.pop('checkout_package', None)
+        session.pop('checkout_name', None)
+        session.pop('checkout_email', None)
+        session.pop('checkout_phone', None)
+        session.pop('checkout_address', None)
+        session.pop('checkout_postal_code', None)
+        session.pop('checkout_city', None)
+        
+        # Skicka mail till admin
+        admin_email = getattr(Config, 'ADMIN_EMAIL', 'info@returnadisc.se')
+        
+        address_html = f"{shipping_name}<br>{shipping_address}<br>{shipping_postal_code} {shipping_city}"
+        
+        admin_html = f"""<h2>Ny betalning mottagen!</h2>
+<p><strong>Order:</strong> #{order_number}</p>
+<p><strong>Kund:</strong> {shipping_email}</p>
+<p><strong>Telefon:</strong> {shipping_phone or '-'}</p>
+<p><strong>Paket:</strong> {package} ({count} stickers)</p>
+<p><strong>Betalat:</strong> {total_amount} kr</p>
+<hr>
+<p><strong>Leveransadress:</strong><br>{address_html}</p>
+<hr>
+<p><strong>QR-kod:</strong> {qr_id or 'Tilldelas vid registrering'}</p>
+<p><a href="{Config.PUBLIC_URL}/admin/orders">Se alla ordrar i admin</a></p>"""
+        
+        try:
+            send_email_async(admin_email, f"Ny order #{order_number}", admin_html)
+        except Exception as e:
+            logger.error(f"Kunde inte skicka admin-mail: {e}")
+        
+        # Skicka mail till kund
+        customer_html = f"""<div style="font-family: Arial, sans-serif; max-width: 600px;">
+<h2 style="color: #166534;">Hej {shipping_name}!</h2>
+<p style="font-size: 16px;">Tack för din beställning hos <strong>ReturnaDisc</strong>.</p>
+<p style="font-size: 16px;"><strong>Ditt ordernummer:</strong> #{order_number}</p>
+<p style="font-size: 16px; background: #f0fdf4; padding: 15px; border-radius: 8px;">Dina QR-klistermärken skickas inom <strong>1-2 arbetsdagar</strong> till:</p>
+<p style="font-size: 14px;">{shipping_name}<br>{shipping_address}<br>{shipping_postal_code} {shipping_city}</p>
+<p style="font-size: 14px; color: #666;">Har du frågor? Kontakta oss på <a href="mailto:info@returnadisc.se">info@returnadisc.se</a></p>
+<br>
+<p style="font-size: 14px;">Med vänliga hälsningar,<br><strong>ReturnaDisc-teamet</strong></p>
+</div>"""
+        
+        try:
+            send_email_async(shipping_email, f"Din beställning #{order_number} är bekräftad", customer_html)
+        except Exception as e:
+            logger.error(f"Kunde inte skicka kundmail: {e}")
+        
+        return render_template('auth/order_confirmation_stripe.html', 
+                             package=package,
+                             count=count,
+                             order_id=order_number,
+                             email=shipping_email)
+        
     except Exception as e:
         logger.error(f"Order confirmation error: {e}")
         flash('Ett fel uppstod', 'error')
@@ -533,3 +723,80 @@ def download_qr(qr_id):
     else:
         flash(f'QR-kod {qr_id} hittades inte', 'error')
         return redirect(url_for('auth.index'))
+
+
+@bp.route('/signup-with-qr', methods=['GET', 'POST'])
+@handle_auth_errors
+def signup_with_purchased_qr():
+    """Skapa konto och aktivera köpt QR-kod."""
+    if request.method == 'POST':
+        qr_id = request.form.get('qr_id', '').strip().upper()
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+        
+        # Validera input
+        if not all([qr_id, name, email, password]):
+            flash('Fyll i alla fält.', 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+        
+        if len(password) < 6:
+            flash('Lösenordet måste vara minst 6 tecken.', 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+        
+        # Normalisera email
+        normalized_email = email.lower().strip()
+        
+        # Validera email-format
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, normalized_email):
+            flash('Ogiltigt email-format.', 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+        
+        # Kontrollera att email inte redan finns
+        if db.get_user_by_email(normalized_email):
+            flash('Det finns redan ett konto med denna emailadress. Logga in istället.', 'error')
+            return redirect(url_for('auth.login'))
+        
+        # Kontrollera att QR-koden finns och är inaktiv (ej tilldelad)
+        qr = db.get_qr(qr_id)
+        logger.info(f"Signup with QR: Hittade QR {qr_id}: {qr}")
+        
+        if not qr:
+            flash(f'QR-koden "{qr_id}" hittades inte. Kontrollera att du skrivit rätt.', 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+        
+        if qr.get('user_id') or qr.get('is_active'):
+            flash(f'QR-koden "{qr_id}" är redan aktiverad. Kontakta support om du behöver hjälp.', 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+        
+        try:
+            # Skapa användare och aktivera QR i samma transaktion
+            user_id = db.register_user_on_qr(qr_id, name, normalized_email, password)
+            
+            logger.info(f"Användare {user_id} skapad och QR {qr_id} aktiverad")
+            
+            # Verifiera att QR-koden verkligen aktiverades
+            qr_check = db.get_qr(qr_id)
+            logger.info(f"Verifiering efter aktivering: {qr_check}")
+            
+            # Logga in användaren
+            session['user_id'] = user_id
+            
+            flash(f'Välkommen! Ditt konto är skapat och QR-koden {qr_id} är nu aktiverad.', 'success')
+            return redirect(url_for('disc.dashboard'))
+            
+        except ValueError as e:
+            logger.error(f"Valideringsfel vid skapande av konto med QR: {e}")
+            flash(str(e), 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+        except Exception as e:
+            logger.error(f"Fel vid skapande av konto med QR: {e}")
+            error_str = str(e).lower()
+            if "unique" in error_str or "duplicate" in error_str or "integrity" in error_str:
+                flash('Det finns redan ett konto med denna emailadress.', 'error')
+                return redirect(url_for('auth.login'))
+            flash('Ett fel uppstod. Försök igen eller kontakta support.', 'error')
+            return redirect(url_for('auth.signup_with_purchased_qr'))
+    
+    return render_template('auth/signup_with_purchased_qr.html')

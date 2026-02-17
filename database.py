@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 DB_PATH = os.environ.get('DATABASE_URL', 'database.db')
 
+
 # ============================================================================
 # Kryptering för PII
 # ============================================================================
@@ -87,6 +88,8 @@ class User:
     member_since: Optional[datetime] = None
     total_returns: int = 0
     is_premium: bool = False
+    premium_until: Optional[datetime] = None
+    premium_started_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
     created_at: Optional[datetime] = None
     is_active: bool = True
@@ -99,6 +102,40 @@ class User:
             if self.email and not self.email.startswith('gAAAA'):
                 data['email'] = self.email
         return data
+    
+    def has_active_premium(self) -> bool:
+        """Kontrollera om användaren har aktivt premium."""
+        if not self.is_premium:
+            return False
+        if self.premium_until is None:
+            return True
+        return datetime.now() < self.premium_until
+
+
+@dataclass
+class PremiumSubscription:
+    id: Optional[int] = None
+    user_id: int = 0
+    status: str = "active"
+    started_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    payment_method: Optional[str] = None
+    payment_id: Optional[str] = None
+    amount_paid: Optional[float] = None
+    currency: str = "SEK"
+    is_launch_offer: bool = False
+    created_at: Optional[datetime] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+    
+    def is_active(self) -> bool:
+        """Kontrollera om prenumerationen är aktiv."""
+        if self.status != 'active':
+            return False
+        if self.expires_at is None:
+            return True
+        return datetime.now() < self.expires_at
 
 
 @dataclass
@@ -106,6 +143,7 @@ class QRCode:
     qr_id: str = ""
     user_id: Optional[int] = None
     is_active: bool = False
+    is_enabled: bool = True
     activated_at: Optional[datetime] = None
     total_scans: int = 0
     created_at: Optional[datetime] = None
@@ -152,6 +190,32 @@ class MissingDisc:
 
 
 @dataclass
+class Order:
+    id: Optional[int] = None
+    order_number: str = ""
+    user_id: int = 0
+    qr_id: Optional[str] = None
+    package_type: str = ""
+    quantity: int = 0
+    total_amount: float = 0.0
+    currency: str = "SEK"
+    status: str = "pending"
+    payment_method: str = ""
+    payment_id: Optional[str] = None
+    shipping_name: str = ""
+    shipping_address: str = ""
+    shipping_postal_code: str = ""
+    shipping_city: str = ""
+    shipping_country: str = "SE"
+    created_at: Optional[datetime] = None
+    paid_at: Optional[datetime] = None
+    shipped_at: Optional[datetime] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class UserStats:
     total_returns: int = 0
     member_since: Optional[datetime] = None
@@ -171,6 +235,7 @@ class AdminStats:
     active_today: int = 0
     new_this_week: int = 0
     return_rate: float = 0.0
+    premium_users: int = 0
 
 
 @dataclass
@@ -194,7 +259,6 @@ class DatabaseConnection:
         conn = sqlite3.connect(
             self.db_path, 
             timeout=20, 
-            detect_types=sqlite3.PARSE_DECLTYPES
         )
         conn.row_factory = sqlite3.Row
         try:
@@ -282,8 +346,21 @@ class UserRepository(BaseRepository):
     
     def row_to_model(self, row: Dict, decrypt: bool = True) -> User:
         email = row.get('email', '')
-        if decrypt and email.startswith('gAAAA'):
+        if decrypt and email and email.startswith('gAAAA'):
             email = encryption.decrypt(email)
+        
+        def parse_timestamp(val):
+            if not val:
+                return None
+            if isinstance(val, datetime):
+                return val
+            try:
+                return datetime.fromisoformat(str(val).replace('Z', '+00:00'))
+            except:
+                try:
+                    return val
+                except:
+                    return None
         
         return User(
             id=row.get('id'),
@@ -292,13 +369,15 @@ class UserRepository(BaseRepository):
             email_hash=row.get('email_hash', ''),
             password=row.get('password', ''),
             reset_token=row.get('reset_token'),
-            member_since=row.get('member_since'),
+            member_since=parse_timestamp(row.get('member_since')),
             total_returns=row.get('total_returns', 0),
             is_premium=bool(row.get('is_premium', 0)),
-            last_login=row.get('last_login'),
-            created_at=row.get('created_at'),
+            premium_until=parse_timestamp(row.get('premium_until')),
+            premium_started_at=parse_timestamp(row.get('premium_started_at')),
+            last_login=parse_timestamp(row.get('last_login')),
+            created_at=parse_timestamp(row.get('created_at')),
             is_active=bool(row.get('is_active', 1)),
-            deleted_at=row.get('deleted_at')
+            deleted_at=parse_timestamp(row.get('deleted_at'))
         )
     
     def create(self, name: str, email: str, password_hash: str) -> int:
@@ -320,6 +399,7 @@ class UserRepository(BaseRepository):
         if row:
             return self.row_to_model(row)
         
+        # Fallback för äldre användare utan hash
         query = "SELECT * FROM users WHERE email = ? AND is_active = 1"
         row = self.db.fetch_one(query, (email.lower(),))
         return self.row_to_model(row) if row else None
@@ -330,7 +410,8 @@ class UserRepository(BaseRepository):
         else:
             query = """
                 SELECT id, name, email, email_hash, member_since, 
-                       total_returns, is_premium, last_login, created_at, is_active, deleted_at
+                       total_returns, is_premium, premium_until, premium_started_at,
+                       last_login, created_at, is_active, deleted_at
                 FROM users WHERE id = ? AND is_active = 1
             """
         row = self.db.fetch_one(query, (user_id,))
@@ -375,10 +456,29 @@ class UserRepository(BaseRepository):
         self.db.execute(query, (user_id,))
     
     def increment_returns(self, user_id: int) -> bool:
-        """Öka total returns."""
         query = """
             UPDATE users 
             SET total_returns = total_returns + 1 
+            WHERE id = ?
+        """
+        self.db.execute(query, (user_id,))
+        return True
+    
+    def activate_premium(self, user_id: int, expires_at: Optional[datetime] = None) -> bool:
+        query = """
+            UPDATE users 
+            SET is_premium = 1, premium_started_at = datetime('now'),
+                premium_until = ?
+            WHERE id = ?
+        """
+        expires_str = expires_at.isoformat() if expires_at else None
+        self.db.execute(query, (expires_str, user_id))
+        return True
+    
+    def deactivate_premium(self, user_id: int) -> bool:
+        query = """
+            UPDATE users 
+            SET is_premium = 0, premium_until = NULL
             WHERE id = ?
         """
         self.db.execute(query, (user_id,))
@@ -390,6 +490,7 @@ class UserRepository(BaseRepository):
         query = f"""
             SELECT 
                 u.id, u.name, u.email, u.created_at, u.last_login, u.is_active,
+                u.is_premium, u.premium_until, u.premium_started_at,
                 COUNT(DISTINCT m.id) as missing_count,
                 COUNT(DISTINCT CASE WHEN m.status = 'found' THEN m.id END) as found_count,
                 COUNT(DISTINCT h.id) as handovers_count
@@ -403,10 +504,102 @@ class UserRepository(BaseRepository):
         rows = self.db.fetch_all(query)
         
         for row in rows:
-            if row.get('email', '').startswith('gAAAA'):
-                row['email'] = encryption.decrypt(row['email'])
+            email = row.get('email')
+            if email and email.startswith('gAAAA'):
+                row['email'] = encryption.decrypt(email)
         
         return rows
+    
+    def get_premium_count(self) -> int:
+        query = """
+            SELECT COUNT(*) as count FROM users 
+            WHERE is_premium = 1 AND is_active = 1
+            AND (premium_until IS NULL OR premium_until > datetime('now'))
+        """
+        row = self.db.fetch_one(query)
+        return row.get('count', 0) if row else 0
+
+
+# ============================================================================
+# Premium Subscription Repository
+# ============================================================================
+
+class PremiumSubscriptionRepository(BaseRepository):
+    TABLE = "premium_subscriptions"
+    
+    def row_to_model(self, row: Dict) -> PremiumSubscription:
+        return PremiumSubscription(
+            id=row.get('id'),
+            user_id=row.get('user_id', 0),
+            status=row.get('status', 'active'),
+            started_at=row.get('started_at'),
+            expires_at=row.get('expires_at'),
+            payment_method=row.get('payment_method'),
+            payment_id=row.get('payment_id'),
+            amount_paid=row.get('amount_paid'),
+            currency=row.get('currency', 'SEK'),
+            is_launch_offer=bool(row.get('is_launch_offer', 0)),
+            created_at=row.get('created_at')
+        )
+    
+    def create(self, subscription: PremiumSubscription) -> int:
+        query = """
+            INSERT INTO premium_subscriptions 
+            (user_id, status, started_at, expires_at, payment_method, 
+             payment_id, amount_paid, currency, is_launch_offer, created_at)
+            VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?, ?, datetime('now'))
+        """
+        self.db.execute(query, (
+            subscription.user_id,
+            subscription.status,
+            subscription.expires_at.isoformat() if subscription.expires_at else None,
+            subscription.payment_method,
+            subscription.payment_id,
+            subscription.amount_paid,
+            subscription.currency,
+            1 if subscription.is_launch_offer else 0
+        ))
+        return self.db.last_insert_id()
+    
+    def get_by_id(self, sub_id: int) -> Optional[PremiumSubscription]:
+        query = "SELECT * FROM premium_subscriptions WHERE id = ?"
+        row = self.db.fetch_one(query, (sub_id,))
+        return self.row_to_model(row) if row else None
+    
+    def get_by_user(self, user_id: int, active_only: bool = True) -> List[PremiumSubscription]:
+        status_clause = "AND status = 'active'" if active_only else ""
+        query = f"""
+            SELECT * FROM premium_subscriptions 
+            WHERE user_id = ? {status_clause}
+            ORDER BY created_at DESC
+        """
+        rows = self.db.fetch_all(query, (user_id,))
+        return [self.row_to_model(row) for row in rows]
+    
+    def get_active_for_user(self, user_id: int) -> Optional[PremiumSubscription]:
+        query = """
+            SELECT * FROM premium_subscriptions 
+            WHERE user_id = ? AND status = 'active'
+            AND (expires_at IS NULL OR expires_at > datetime('now'))
+            ORDER BY created_at DESC
+            LIMIT 1
+        """
+        row = self.db.fetch_one(query, (user_id,))
+        return self.row_to_model(row) if row else None
+    
+    def cancel_subscription(self, sub_id: int) -> bool:
+        query = """
+            UPDATE premium_subscriptions 
+            SET status = 'cancelled'
+            WHERE id = ?
+        """
+        self.db.execute(query, (sub_id,))
+        return True
+    
+    def update_status(self, sub_id: int, status: str) -> bool:
+        query = "UPDATE premium_subscriptions SET status = ? WHERE id = ?"
+        self.db.execute(query, (status, sub_id))
+        return True
 
 
 # ============================================================================
@@ -419,6 +612,7 @@ class QRCodeRepository(BaseRepository):
             qr_id=row.get('qr_id', ''),
             user_id=row.get('user_id'),
             is_active=bool(row.get('is_active', 0)),
+            is_enabled=bool(row.get('is_enabled', 1)),
             activated_at=row.get('activated_at'),
             total_scans=row.get('total_scans', 0),
             created_at=row.get('created_at')
@@ -438,18 +632,50 @@ class QRCodeRepository(BaseRepository):
         row = self.db.fetch_one(query, (qr_id,))
         return self.row_to_model(row) if row else None
     
-    def get_by_user(self, user_id: int) -> Optional[QRCode]:
-        query = "SELECT * FROM qr_codes WHERE user_id = ? LIMIT 1"
-        row = self.db.fetch_one(query, (user_id,))
-        return self.row_to_model(row) if row else None
+    def get_by_user(self, user_id: int) -> List[QRCode]:
+        query = "SELECT * FROM qr_codes WHERE user_id = ? ORDER BY created_at DESC"
+        rows = self.db.fetch_all(query, (user_id,))
+        return [self.row_to_model(row) for row in rows]
+    
+    def get_active_for_user(self, user_id: int) -> List[QRCode]:
+        """Hämta alla aktiva och aktiverade QR-koder för användare."""
+        query = "SELECT * FROM qr_codes WHERE user_id = ? AND is_active = 1 AND is_enabled = 1 ORDER BY created_at DESC"
+        rows = self.db.fetch_all(query, (user_id,))
+        return [self.row_to_model(row) for row in rows]
     
     def activate(self, qr_id: str, user_id: int) -> None:
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = 1, activated_at = datetime('now')
+            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = datetime('now')
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
+    
+    def assign_to_user(self, qr_id: str, user_id: int) -> bool:
+        """Tilldela en inaktiv QR-kod till en användare."""
+        qr = self.get_by_id(qr_id)
+        if not qr:
+            raise ValueError("QR-koden finns inte")
+        if qr.user_id is not None:
+            raise ValueError("QR-koden är redan tilldelad")
+        
+        query = """
+            UPDATE qr_codes 
+            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = datetime('now')
+            WHERE qr_id = ?
+        """
+        self.db.execute(query, (user_id, qr_id))
+        return True
+    
+    def toggle_enabled(self, qr_id: str, user_id: int, enabled: bool) -> bool:
+        """Aktivera/inaktivera en QR-kod (användaren måste äga den)."""
+        qr = self.get_by_id(qr_id)
+        if not qr or qr.user_id != user_id:
+            return False
+        
+        query = "UPDATE qr_codes SET is_enabled = ? WHERE qr_id = ?"
+        self.db.execute(query, (1 if enabled else 0, qr_id))
+        return True
     
     def increment_scans(self, qr_id: str) -> None:
         query = "UPDATE qr_codes SET total_scans = total_scans + 1 WHERE qr_id = ?"
@@ -457,17 +683,36 @@ class QRCodeRepository(BaseRepository):
     
     def get_all_with_users(self) -> List[Dict]:
         query = """
-            SELECT q.qr_id, q.is_active, q.activated_at, q.total_scans,
-                   u.name, u.email, u.created_at, u.last_login
+            SELECT q.qr_id, q.is_active, q.is_enabled, q.activated_at, q.total_scans,
+                   u.id as user_id, u.name, u.email, u.is_premium, u.created_at, u.last_login
             FROM qr_codes q
             LEFT JOIN users u ON q.user_id = u.id
             ORDER BY q.created_at DESC
         """
+        
         rows = self.db.fetch_all(query)
         
         for row in rows:
-            if row.get('email', '').startswith('gAAAA'):
-                row['email'] = encryption.decrypt(row['email'])
+            email = row.get('email')
+            if email and email.startswith('gAAAA'):
+                row['email'] = encryption.decrypt(email)
+            
+            if row.get('user_id') and not row.get('name'):
+                logger.warning(f"QR {row.get('qr_id')} har user_id {row.get('user_id')} men ingen name!")
+                user_row = self.db.fetch_one(
+                    "SELECT name, email FROM users WHERE id = ?", 
+                    (row.get('user_id'),)
+                )
+                if user_row:
+                    row['name'] = user_row.get('name', 'Okänd')
+                    email = user_row.get('email', '')
+                    if email and email.startswith('gAAAA'):
+                        row['email'] = encryption.decrypt(email)
+                    else:
+                        row['email'] = email
+            
+            if row.get('user_id'):
+                row['is_active'] = True
         
         return rows
     
@@ -475,6 +720,8 @@ class QRCodeRepository(BaseRepository):
         queries = {
             'active': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 1",
             'inactive': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 0",
+            'enabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 1 AND is_enabled = 1",
+            'disabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 1 AND is_enabled = 0",
             'total_scans': "SELECT SUM(total_scans) FROM qr_codes"
         }
         return {
@@ -672,6 +919,160 @@ class HandoverRepository(BaseRepository):
 
 
 # ============================================================================
+# NYTT: Order Repository - LÄGG TILL HELA DENNA KLASS
+# ============================================================================
+
+class OrderRepository(BaseRepository):
+    TABLE = "orders"
+    
+    def row_to_model(self, row: Dict) -> Order:
+        return Order(
+            id=row.get('id'),
+            order_number=row.get('order_number', ''),
+            user_id=row.get('user_id', 0),
+            qr_id=row.get('qr_id'),
+            package_type=row.get('package_type', ''),
+            quantity=row.get('quantity', 0),
+            total_amount=row.get('total_amount', 0.0),
+            currency=row.get('currency', 'SEK'),
+            status=row.get('status', 'pending'),
+            payment_method=row.get('payment_method', ''),
+            payment_id=row.get('payment_id'),
+            shipping_name=row.get('shipping_name', ''),
+            shipping_address=row.get('shipping_address', ''),
+            shipping_postal_code=row.get('shipping_postal_code', ''),
+            shipping_city=row.get('shipping_city', ''),
+            shipping_country=row.get('shipping_country', 'SE'),
+            created_at=row.get('created_at'),
+            paid_at=row.get('paid_at'),
+            shipped_at=row.get('shipped_at')
+        )
+    
+    def create(self, order: Order) -> int:
+        query = """
+            INSERT INTO orders 
+            (order_number, user_id, qr_id, package_type, quantity, total_amount,
+             currency, status, payment_method, payment_id, shipping_name,
+             shipping_address, shipping_postal_code, shipping_city, shipping_country,
+             created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        """
+        self.db.execute(query, (
+            order.order_number, order.user_id, order.qr_id, order.package_type,
+            order.quantity, order.total_amount, order.currency, order.status,
+            order.payment_method, order.payment_id, order.shipping_name,
+            order.shipping_address, order.shipping_postal_code, order.shipping_city,
+            order.shipping_country
+        ))
+        return self.db.last_insert_id()
+    
+    def get_by_id(self, order_id: int) -> Optional[Order]:
+        query = "SELECT * FROM orders WHERE id = ?"
+        row = self.db.fetch_one(query, (order_id,))
+        return self.row_to_model(row) if row else None
+    
+    def get_by_order_number(self, order_number: str) -> Optional[Order]:
+        query = "SELECT * FROM orders WHERE order_number = ?"
+        row = self.db.fetch_one(query, (order_number,))
+        return self.row_to_model(row) if row else None
+    
+    def get_all_with_user_info(self, status: str = None, limit: int = 100) -> List[Dict]:
+        """Hämta alla ordrar med användarinfo - UTAN dubletter."""
+        where_clause = "WHERE 1=1"
+        params = []
+        if status:
+            where_clause += " AND o.status = ?"
+            params.append(status)
+            
+        # VIKTIGT: Använd DISTINCT och GROUP BY för att undvika dubletter
+        query = f"""
+            SELECT DISTINCT
+                o.id,
+                o.order_number,
+                o.user_id,
+                o.qr_id,
+                o.package_type,
+                o.quantity,
+                o.total_amount,
+                o.currency,
+                o.status,
+                o.payment_method,
+                o.payment_id,
+                o.shipping_name,
+                o.shipping_address,
+                o.shipping_postal_code,
+                o.shipping_city,
+                o.shipping_country,
+                o.created_at,
+                o.paid_at,
+                o.shipped_at,
+                u.name as user_name,
+                u.email as user_email,
+                u.is_premium as user_is_premium
+            FROM orders o
+            LEFT JOIN users u ON o.user_id = u.id
+            {where_clause}
+            GROUP BY o.id, o.order_number
+            ORDER BY o.created_at DESC
+            LIMIT ?
+        """
+        params.append(limit)
+        rows = self.db.fetch_all(query, tuple(params))
+        
+        # Dekryptera email
+        for row in rows:
+            email = row.get('user_email')
+            if email and email.startswith('gAAAA'):
+                row['user_email'] = encryption.decrypt(email)
+        
+        return rows
+    
+    def get_order_stats(self) -> Dict:
+        query = """
+            SELECT 
+                COUNT(*) as total_orders,
+                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) as paid_orders,
+                SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END) as shipped_orders,
+                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_orders,
+                SUM(CASE WHEN status = 'delivered' THEN 1 ELSE 0 END) as delivered_orders,
+                SUM(total_amount) as total_revenue,
+                SUM(CASE WHEN status = 'paid' THEN total_amount ELSE 0 END) as paid_revenue
+            FROM orders
+        """
+        return self.db.fetch_one(query) or {}
+    
+    def update_status(self, order_id: int, status: str) -> bool:
+        query = "UPDATE orders SET status = ? WHERE id = ?"
+        self.db.execute(query, (status, order_id))
+        return True
+    
+    def mark_as_paid(self, order_id: int, payment_id: str = None) -> bool:
+        query = """
+            UPDATE orders 
+            SET status = 'paid', paid_at = datetime('now'), payment_id = ?
+            WHERE id = ?
+        """
+        self.db.execute(query, (payment_id, order_id))
+        return True
+    
+    def mark_as_shipped(self, order_id: int) -> bool:
+        query = "UPDATE orders SET status = 'shipped', shipped_at = datetime('now') WHERE id = ?"
+        self.db.execute(query, (order_id,))
+        return True
+    
+    def generate_order_number(self) -> str:
+        """Generera unikt ordernummer: RET-YYYYMMDD-XXX"""
+        today = datetime.now().strftime("%Y%m%d")
+        
+        # Räkna dagens ordrar
+        query = "SELECT COUNT(*) as count FROM orders WHERE date(created_at) = date('now')"
+        row = self.db.fetch_one(query)
+        count = (row.get('count', 0) if row else 0) + 1
+        
+        return f"RET-{today}-{count:03d}"
+
+
+# ============================================================================
 # Unit of Work
 # ============================================================================
 
@@ -734,6 +1135,11 @@ class UserService:
             encrypted_email = encryption.encrypt(email)
             email_hash = encryption.hash_email(email)
             
+            # 🔴 VIKTIGT: Kontrollera om email redan finns innan vi skapar
+            cur.execute("SELECT id FROM users WHERE email_hash = ? AND is_active = 1", (email_hash,))
+            if cur.fetchone():
+                raise ValueError("Det finns redan ett konto med denna emailadress.")
+            
             cur.execute("""
                 INSERT INTO users (name, email, email_hash, password, created_at, is_active)
                 VALUES (?, ?, ?, ?, datetime('now'), 1)
@@ -768,15 +1174,160 @@ class UserService:
         user = self.users.get_by_id(user_id)
         if not user:
             return UserStats()
-        
+    
         missing, found = MissingDiscRepository(self.db).get_user_stats(user_id)
-        
+    
         return UserStats(
-            total_returns=user.total_returns,
+            total_returns=user.total_returns,  # ÄNDRA FRÅN stats.total_returns
             member_since=user.member_since,
             missing=missing,
             found=found
         )
+
+
+class PremiumService:
+    LAUNCH_DATE = datetime(2026, 2, 1)
+    LAUNCH_OFFER_END = datetime(2027, 3, 1)
+    REGULAR_PRICE = 39.0
+    
+    def __init__(
+        self,
+        db: DatabaseConnection,
+        user_repo: UserRepository,
+        sub_repo: PremiumSubscriptionRepository
+    ):
+        self.db = db
+        self.users = user_repo
+        self.subs = sub_repo
+    
+    def is_launch_period(self) -> bool:
+        return datetime.now() < self.LAUNCH_OFFER_END
+    
+    def can_get_free_premium(self, user_id: int) -> bool:
+        if not self.is_launch_period():
+            return False
+        
+        user = self.users.get_by_id(user_id)
+        if not user:
+            return False
+        
+        if user.created_at and user.created_at > self.LAUNCH_OFFER_END:
+            return False
+        
+        if user.is_premium:
+            return False
+        
+        return True
+    
+    def activate_premium(
+        self, 
+        user_id: int, 
+        payment_method: str = "free",
+        payment_id: Optional[str] = None,
+        amount: Optional[float] = None,
+        is_launch_offer: bool = False
+    ) -> PremiumSubscription:
+        if is_launch_offer:
+            expires_at = self.LAUNCH_OFFER_END
+            amount = 0.0
+        else:
+            expires_at = datetime.now().replace(year=datetime.now().year + 1)
+            amount = amount or self.REGULAR_PRICE
+        
+        subscription = PremiumSubscription(
+            user_id=user_id,
+            status='active',
+            expires_at=expires_at,
+            payment_method=payment_method,
+            payment_id=payment_id,
+            amount_paid=amount,
+            is_launch_offer=is_launch_offer
+        )
+        
+        sub_id = self.subs.create(subscription)
+        subscription.id = sub_id
+        
+        self.users.activate_premium(user_id, expires_at)
+        
+        logger.info(f"Premium aktiverat för användare {user_id}, expires: {expires_at}")
+        return subscription
+    
+    def activate_free_launch_premium(self, user_id: int) -> Optional[PremiumSubscription]:
+        if not self.can_get_free_premium(user_id):
+            logger.warning(f"Användare {user_id} kan inte få gratis premium")
+            return None
+        
+        return self.activate_premium(
+            user_id=user_id,
+            payment_method="free",
+            is_launch_offer=True
+        )
+    
+    def check_and_update_expired_subscriptions(self) -> int:
+        query = """
+            SELECT id, user_id FROM premium_subscriptions
+            WHERE status = 'active' 
+            AND expires_at IS NOT NULL 
+            AND expires_at < datetime('now')
+        """
+        expired = self.db.fetch_all(query)
+        
+        count = 0
+        for row in expired:
+            self.subs.update_status(row['id'], 'expired')
+            active_subs = self.subs.get_by_user(row['user_id'], active_only=True)
+            if not active_subs:
+                self.users.deactivate_premium(row['user_id'])
+            count += 1
+        
+        if count > 0:
+            logger.info(f"Uppdaterade {count} utgångna prenumerationer")
+        
+        return count
+    
+    def get_user_subscription_status(self, user_id: int) -> Dict:
+        """Hämta fullständig prenumerationsstatus för en användare."""
+        user = self.users.get_by_id(user_id)
+        if not user:
+            return {'has_premium': False, 'error': 'User not found'}
+        
+        # Hämta aktiv prenumeration ELLER avbruten men fortfarande giltig
+        query = """
+            SELECT * FROM premium_subscriptions 
+            WHERE user_id = ? 
+            AND (status = 'active' OR status = 'cancelled')
+            AND (expires_at IS NULL OR expires_at > datetime('now'))
+            ORDER BY created_at DESC
+            LIMIT 1
+        """
+        row = self.db.fetch_one(query, (user_id,))
+        
+        active_sub = None
+        if row:
+            active_sub = PremiumSubscription(
+                id=row.get('id'),
+                user_id=row.get('user_id', 0),
+                status=row.get('status', 'active'),
+                started_at=row.get('started_at'),
+                expires_at=row.get('expires_at'),
+                payment_method=row.get('payment_method'),
+                payment_id=row.get('payment_id'),
+                amount_paid=row.get('amount_paid'),
+                currency=row.get('currency', 'SEK'),
+                is_launch_offer=bool(row.get('is_launch_offer', 0)),
+                created_at=row.get('created_at')
+            )
+        
+        return {
+            'has_premium': user.has_active_premium(),
+            'is_premium': user.is_premium,
+            'premium_until': user.premium_until,
+            'premium_started_at': user.premium_started_at,
+            'active_subscription': active_sub.to_dict() if active_sub else None,
+            'is_launch_period': self.is_launch_period(),
+            'can_get_free_premium': self.can_get_free_premium(user_id),
+            'regular_price': self.REGULAR_PRICE
+        }
 
 
 class MatchingService:
@@ -857,7 +1408,8 @@ class AdminService:
             total_scans=qr_stats.get('total_scans', 0),
             active_today=self.handovers.get_active_today(),
             new_this_week=self._get_new_users_this_week(),
-            return_rate=return_rate
+            return_rate=return_rate,
+            premium_users=self.users.get_premium_count()
         )
     
     def _get_new_users_this_week(self) -> int:
@@ -905,7 +1457,11 @@ class DatabaseManager:
             self._migrate_last_login(cur)
             self._migrate_soft_delete(cur)
             self._migrate_email_encryption(cur)
+            self._migrate_premium_columns(cur)
             self._create_indexes(cur)
+            self._create_unique_email_constraint(cur)
+            self._migrate_orders_table(cur)
+            self._migrate_qr_enabled(cur)
             
             logger.info("Database initialized")
     
@@ -915,13 +1471,15 @@ class DatabaseManager:
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
+                email TEXT NOT NULL,
                 email_hash TEXT,
                 password TEXT NOT NULL,
                 reset_token TEXT,
                 member_since TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 total_returns INTEGER DEFAULT 0,
                 is_premium BOOLEAN DEFAULT 0,
+                premium_until TIMESTAMP,
+                premium_started_at TIMESTAMP,
                 last_login TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 is_active BOOLEAN DEFAULT 1,
@@ -929,10 +1487,27 @@ class DatabaseManager:
             )
             """,
             """
+            CREATE TABLE IF NOT EXISTS premium_subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                status TEXT DEFAULT 'active',
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP,
+                payment_method TEXT,
+                payment_id TEXT,
+                amount_paid REAL,
+                currency TEXT DEFAULT 'SEK',
+                is_launch_offer BOOLEAN DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+            """,
+            """
             CREATE TABLE IF NOT EXISTS qr_codes (
                 qr_id TEXT PRIMARY KEY,
                 user_id INTEGER,
                 is_active BOOLEAN DEFAULT 0,
+                is_enabled BOOLEAN DEFAULT 1,
                 activated_at TIMESTAMP,
                 total_scans INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -984,6 +1559,31 @@ class DatabaseManager:
                 member_count INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_number TEXT UNIQUE NOT NULL,
+                user_id INTEGER NOT NULL,
+                qr_id TEXT,
+                package_type TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                total_amount REAL NOT NULL,
+                currency TEXT DEFAULT 'SEK',
+                status TEXT DEFAULT 'pending',
+                payment_method TEXT,
+                payment_id TEXT,
+                shipping_name TEXT,
+                shipping_address TEXT,
+                shipping_postal_code TEXT,
+                shipping_city TEXT,
+                shipping_country TEXT DEFAULT 'SE',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                paid_at TIMESTAMP,
+                shipped_at TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id),
+                FOREIGN KEY (qr_id) REFERENCES qr_codes(qr_id)
+            )
             """
         ]
     
@@ -1019,6 +1619,41 @@ class DatabaseManager:
                 )
             logger.info(f"Indexerade {len(rows)} befintliga användare")
     
+    def _migrate_premium_columns(self, cursor) -> None:
+        migrations = [
+            ("is_premium", "BOOLEAN DEFAULT 0"),
+            ("premium_until", "TIMESTAMP"),
+            ("premium_started_at", "TIMESTAMP")
+        ]
+        
+        for column, data_type in migrations:
+            try:
+                cursor.execute(f"SELECT {column} FROM users LIMIT 1")
+            except sqlite3.OperationalError:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {column} {data_type}")
+                logger.info(f"La till kolumnen {column}")
+        
+        try:
+            cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute("""
+                CREATE TABLE premium_subscriptions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    status TEXT DEFAULT 'active',
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    payment_method TEXT,
+                    payment_id TEXT,
+                    amount_paid REAL,
+                    currency TEXT DEFAULT 'SEK',
+                    is_launch_offer BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """)
+            logger.info("Skapade premium_subscriptions tabell")
+    
     def _create_indexes(self, cursor) -> None:
         indexes = [
             ("idx_qr_user", "qr_codes(user_id)"),
@@ -1028,11 +1663,121 @@ class DatabaseManager:
             ("idx_users_active", "users(is_active)"),
             ("idx_missing_user", "missing_discs(user_id)"),
             ("idx_missing_status", "missing_discs(status)"),
-            ("idx_missing_location", "missing_discs(latitude, longitude)")
+            ("idx_missing_location", "missing_discs(latitude, longitude)"),
+            ("idx_premium_user", "premium_subscriptions(user_id)"),
+            ("idx_premium_status", "premium_subscriptions(status)"),
+            ("idx_premium_expires", "premium_subscriptions(expires_at)"),
+            # ============================================================================
+            # NYTT: Index för orders - LÄGG TILL DETTA
+            # ============================================================================
+            ("idx_orders_user", "orders(user_id)"),
+            ("idx_orders_status", "orders(status)"),
+            ("idx_orders_number", "orders(order_number)"),
+            ("idx_orders_created", "orders(created_at)"),
         ]
         
         for name, columns in indexes:
             cursor.execute(f"CREATE INDEX IF NOT EXISTS {name} ON {columns}")
+    
+    def _create_unique_email_constraint(self, cursor) -> None:
+        """🔴 NYTT: Skapa unique constraint på email_hash för att förhindra dubletter"""
+        try:
+            # Först, ta bort befintliga dubletter (behåll den äldsta)
+            cursor.execute("""
+                DELETE FROM users 
+                WHERE id NOT IN (
+                    SELECT MIN(id) 
+                    FROM users 
+                    WHERE is_active = 1
+                    GROUP BY email_hash
+                )
+                AND is_active = 1
+                AND email_hash IS NOT NULL
+                AND email_hash != ''
+            """)
+            deleted = cursor.rowcount
+            if deleted > 0:
+                logger.warning(f"Tog bort {deleted} dubletter av användare")
+            
+            # Skapa unique index på email_hash
+            cursor.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_hash_unique 
+                ON users(email_hash) 
+                WHERE is_active = 1
+            """)
+            logger.info("Skapade unique index på email_hash")
+            
+        except sqlite3.OperationalError as e:
+            logger.warning(f"Kunde inte skapa unique constraint: {e}")
+    
+    # ============================================================================
+    # NYTT: Migrera orders-tabell för befintliga databaser - LÄGG TILL DENNA METOD
+    # ============================================================================
+    def _migrate_orders_table(self, cursor) -> None:
+        """Skapa orders-tabell om den saknas (för befintliga databaser)"""
+        try:
+            cursor.execute("SELECT id FROM orders LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute("""
+                CREATE TABLE orders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    order_number TEXT UNIQUE NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    qr_id TEXT,
+                    package_type TEXT NOT NULL,
+                    quantity INTEGER NOT NULL,
+                    total_amount REAL NOT NULL,
+                    currency TEXT DEFAULT 'SEK',
+                    status TEXT DEFAULT 'pending',
+                    payment_method TEXT,
+                    payment_id TEXT,
+                    shipping_name TEXT,
+                    shipping_address TEXT,
+                    shipping_postal_code TEXT,
+                    shipping_city TEXT,
+                    shipping_country TEXT DEFAULT 'SE',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    paid_at TIMESTAMP,
+                    shipped_at TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id),
+                    FOREIGN KEY (qr_id) REFERENCES qr_codes(qr_id)
+                )
+            """)
+            logger.info("Skapade orders-tabell")
+            
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at)")
+            logger.info("Skapade index för orders-tabell")
+
+    def _migrate_qr_enabled(self, cursor) -> None:
+        """Migrera is_enabled kolumn för befintliga QR-koder."""
+        try:
+            cursor.execute("SELECT is_enabled FROM qr_codes LIMIT 1")
+        except sqlite3.OperationalError:
+            cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT 1")
+            logger.info("La till is_enabled kolumn i qr_codes")
+
+    def init_tables(self) -> None:
+        schema = self._get_schema()
+        
+        with self.db.get_connection() as conn:
+            cur = conn.cursor()
+            
+            for table_sql in schema:
+                cur.execute(table_sql)
+            
+            self._migrate_last_login(cur)
+            self._migrate_soft_delete(cur)
+            self._migrate_email_encryption(cur)
+            self._migrate_premium_columns(cur)
+            self._create_indexes(cur)
+            self._create_unique_email_constraint(cur)
+            self._migrate_orders_table(cur)
+            self._migrate_qr_enabled(cur)
+            
+            logger.info("Database initialized")
 
 
 # ============================================================================
@@ -1050,9 +1795,12 @@ class Database:
         self._qrs = QRCodeRepository(self._db)
         self._handovers = HandoverRepository(self._db)
         self._missing = MissingDiscRepository(self._db)
+        self._premium_subs = PremiumSubscriptionRepository(self._db)
+        self._orders = OrderRepository(self._db)
     
     def _init_services(self) -> None:
         self._user_service = UserService(self._db, self._users, self._qrs)
+        self._premium_service = PremiumService(self._db, self._users, self._premium_subs)
         self._matching = MatchingService(self._missing)
         self._admin = AdminService(
             self._db, self._users, self._qrs, self._handovers, self._missing
@@ -1065,6 +1813,7 @@ class Database:
     def reset_database(self, confirm: bool = False) -> bool:
         return self._admin.reset_database(confirm)
     
+    # User methods
     def create_user(self, name: str, email: str, password_hash: str) -> int:
         return self._users.create(name, email, password_hash)
     
@@ -1098,6 +1847,33 @@ class Database:
     def soft_delete_user(self, user_id: int) -> bool:
         return self._users.soft_delete(user_id)
     
+    # Premium methods
+    def activate_premium(self, user_id: int, payment_method: str = "free", 
+                       payment_id: Optional[str] = None, 
+                       amount: Optional[float] = None) -> Dict:
+        sub = self._premium_service.activate_premium(
+            user_id, payment_method, payment_id, amount, 
+            is_launch_offer=False
+        )
+        return sub.to_dict() if sub else {}
+    
+    def activate_free_launch_premium(self, user_id: int) -> Optional[Dict]:
+        sub = self._premium_service.activate_free_launch_premium(user_id)
+        return sub.to_dict() if sub else None
+    
+    def get_user_premium_status(self, user_id: int) -> Dict:
+        return self._premium_service.get_user_subscription_status(user_id)
+    
+    def check_expired_subscriptions(self) -> int:
+        return self._premium_service.check_and_update_expired_subscriptions()
+    
+    def is_launch_period(self) -> bool:
+        return self._premium_service.is_launch_period()
+    
+    def can_get_free_premium(self, user_id: int) -> bool:
+        return self._premium_service.can_get_free_premium(user_id)
+    
+    # QR methods
     def create_qr(self, qr_id: str) -> bool:
         return self._qrs.create(qr_id)
     
@@ -1109,12 +1885,23 @@ class Database:
         self._qrs.activate(qr_id, user_id)
     
     def get_user_qr(self, user_id: int) -> Optional[Dict]:
-        qr = self._qrs.get_by_user(user_id)
-        return qr.to_dict() if qr else None
+        qrs = self._qrs.get_by_user(user_id)
+        return qrs[0].to_dict() if qrs else None
+    
+    def get_user_qr_codes(self, user_id: int) -> List[Dict]:
+        qrs = self._qrs.get_by_user(user_id)
+        return [qr.to_dict() for qr in qrs]
+    
+    def assign_qr_to_user(self, qr_id: str, user_id: int) -> bool:
+        return self._qrs.assign_to_user(qr_id, user_id)
+    
+    def toggle_qr_enabled(self, qr_id: str, user_id: int, enabled: bool) -> bool:
+        return self._qrs.toggle_enabled(qr_id, user_id, enabled)
     
     def increment_qr_scans(self, qr_id: str) -> None:
         self._qrs.increment_scans(qr_id)
     
+    # Handover methods
     def create_handover(
         self, 
         qr_id: str, 
@@ -1141,6 +1928,7 @@ class Database:
     def confirm_handover(self, handover_id: int) -> None:
         self._handovers.confirm(handover_id)
     
+    # Missing disc methods
     def report_missing_disc(
         self,
         user_id: int,
@@ -1176,6 +1964,7 @@ class Database:
     def delete_missing_disc(self, disc_id: int, user_id: int) -> bool:
         return self._missing.delete(disc_id, user_id)
     
+    # Stats methods
     def get_user_stats(self, user_id: int) -> Dict:
         stats = self._user_service.get_stats(user_id)
         return {
@@ -1204,7 +1993,8 @@ class Database:
             'active_qrs': admin_stats.active_qrs,
             'handovers': admin_stats.handovers,
             'total_scans': admin_stats.total_scans,
-            'missing_discs': admin_stats.missing_discs
+            'missing_discs': admin_stats.missing_discs,
+            'premium_users': admin_stats.premium_users
         }
     
     def get_admin_stats(self) -> Dict:
@@ -1219,7 +2009,8 @@ class Database:
             'total_scans': stats.total_scans,
             'active_today': stats.active_today,
             'new_this_week': stats.new_this_week,
-            'return_rate': stats.return_rate
+            'return_rate': stats.return_rate,
+            'premium_users': stats.premium_users
         }
     
     def create_user_with_qr(
@@ -1265,5 +2056,207 @@ class Database:
     def get_all_qr_codes_with_users(self) -> List[Dict]:
         return self._qrs.get_all_with_users()
 
+    # Order methods
+    def create_order(self, order_data: Dict) -> Dict:
+        order = Order(
+            order_number=self._orders.generate_order_number(),
+            user_id=order_data['user_id'],
+            qr_id=order_data.get('qr_id'),
+            package_type=order_data['package_type'],
+            quantity=order_data['quantity'],
+            total_amount=order_data['total_amount'],
+            currency=order_data.get('currency', 'SEK'),
+            status=order_data.get('status', 'pending'),
+            payment_method=order_data.get('payment_method', ''),
+            payment_id=order_data.get('payment_id'),
+            shipping_name=order_data.get('shipping_name', ''),
+            shipping_address=order_data.get('shipping_address', ''),
+            shipping_postal_code=order_data.get('shipping_postal_code', ''),
+            shipping_city=order_data.get('shipping_city', ''),
+            shipping_country=order_data.get('shipping_country', 'SE')
+        )
+        
+        order_id = self._orders.create(order)
+        order.id = order_id
+        
+        return order.to_dict()
+    
+    def get_all_orders_with_user_info(self, status: str = None) -> List[Dict]:
+        return self._orders.get_all_with_user_info(status)
+    
+    def get_order_by_id(self, order_id: int) -> Optional[Dict]:
+        order = self._orders.get_by_id(order_id)
+        return order.to_dict() if order else None
+    
+    def get_order_by_number(self, order_number: str) -> Optional[Dict]:
+        order = self._orders.get_by_order_number(order_number)
+        return order.to_dict() if order else None
+    
+    def get_order_stats(self) -> Dict:
+        return self._orders.get_order_stats()
+    
+    def update_order_status(self, order_id: int, status: str) -> bool:
+        return self._orders.update_status(order_id, status)
+    
+    def mark_order_as_paid(self, order_id: int, payment_id: str = None) -> bool:
+        return self._orders.mark_as_paid(order_id, payment_id)
+    
+    def mark_order_as_shipped(self, order_id: int) -> bool:
+        return self._orders.mark_as_shipped(order_id)
 
+    # Admin methods for QR management
+    def update_qr_id(self, old_qr_id: str, new_qr_id: str) -> bool:
+        import os
+        from utils import create_qr_code
+        
+        if not new_qr_id or len(new_qr_id) < 3:
+            raise ValueError("QR-ID måste vara minst 3 tecken")
+        
+        if not new_qr_id.isalnum():
+            raise ValueError("QR-ID får endast innehålla bokstäver och siffror")
+        
+        new_qr_id = new_qr_id.upper()
+        
+        existing = self.get_qr(new_qr_id)
+        if existing:
+            raise ValueError(f"QR-ID {new_qr_id} finns redan")
+        
+        old_qr = self.get_qr(old_qr_id)
+        if not old_qr:
+            raise ValueError(f"QR-ID {old_qr_id} hittades inte")
+        
+        user_id = old_qr.get('user_id')
+        
+        with self._db.get_connection() as conn:
+            cur = conn.cursor()
+            
+            cur.execute("""
+                UPDATE qr_codes 
+                SET qr_id = ? 
+                WHERE qr_id = ?
+            """, (new_qr_id, old_qr_id))
+            
+            cur.execute("""
+                UPDATE handovers 
+                SET qr_id = ? 
+                WHERE qr_id = ?
+            """, (new_qr_id, old_qr_id))
+        
+        try:
+            create_qr_code(new_qr_id, user_id)
+        except Exception as e:
+            logger.error(f"Kunde inte skapa ny QR-bild: {e}")
+        
+        qr_folder = os.environ.get('QR_FOLDER', 'static/qr')
+        old_filepath = os.path.join(qr_folder, f"qr_{old_qr_id}.png")
+        if os.path.exists(old_filepath):
+            try:
+                os.remove(old_filepath)
+            except Exception as e:
+                logger.warning(f"Kunde inte ta bort gammal QR-bild: {e}")
+        
+        logger.info(f"QR-ID ändrat från {old_qr_id} till {new_qr_id}")
+        return True
+    
+    def toggle_user_premium(self, user_id: int, is_premium: bool) -> bool:
+        query = """
+            UPDATE users 
+            SET is_premium = ? 
+            WHERE id = ? AND is_active = 1
+        """
+        self._db.execute(query, (1 if is_premium else 0, user_id))
+        logger.info(f"Användare {user_id} premium satt till {is_premium}")
+        return True
+    
+    def get_user_payment_info(self, user_id: int) -> Optional[Dict]:
+        query = """
+            SELECT 
+                u.id, u.name, u.email, u.is_premium, u.created_at,
+                'ORD-' || substr(u.created_at, 1, 10) || '-' || u.id as order_id
+            FROM users u
+            WHERE u.id = ? AND u.is_active = 1
+        """
+        row = self._db.fetch_one(query, (user_id,))
+        return row
+    
+    def register_user_on_qr(self, qr_id: str, name: str, email: str, password: str) -> int:
+        from werkzeug.security import generate_password_hash
+        
+        qr = self.get_qr(qr_id)
+        if not qr:
+            raise ValueError(f"QR-kod {qr_id} hittades inte")
+        
+        if qr.get('user_id'):
+            raise ValueError(f"QR-kod {qr_id} är redan tilldelad användare {qr['user_id']}")
+        
+        existing = self.get_user_by_email(email.lower().strip())
+        if existing:
+            raise ValueError("Det finns redan ett konto med denna emailadress.")
+        
+        password_hash = generate_password_hash(password)
+        
+        with self._db.get_connection() as conn:
+            cur = conn.cursor()
+            
+            encrypted_email = encryption.encrypt(email)
+            email_hash = encryption.hash_email(email)
+            
+            cur.execute("""
+                INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                VALUES (?, ?, ?, ?, datetime('now'), 1)
+            """, (name, encrypted_email, email_hash, password_hash))
+            
+            user_id = cur.lastrowid
+            
+            cur.execute("""
+                UPDATE qr_codes 
+                SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = datetime('now')
+                WHERE qr_id = ?
+            """, (user_id, qr_id))
+            
+            conn.commit()
+        
+        logger.info(f"Ny användare {user_id} registrerad på QR {qr_id}")
+        return user_id
+    
+    def get_qr_with_payment_info(self, qr_id: str) -> Optional[Dict]:
+        query = """
+            SELECT 
+                q.qr_id, q.is_active, q.is_enabled, q.activated_at, q.total_scans, q.created_at,
+                u.id as user_id, u.name, u.email, u.is_premium, u.created_at as user_created_at,
+                'ORD-' || substr(u.created_at, 1, 10) || '-' || u.id as order_id
+            FROM qr_codes q
+            LEFT JOIN users u ON q.user_id = u.id
+            WHERE q.qr_id = ?
+        """
+        row = self._db.fetch_one(query, (qr_id,))
+        
+        if row:
+            email = row.get('email')
+            if email and email.startswith('gAAAA'):
+                row['email'] = encryption.decrypt(email)
+        
+        return row
+        
+    def update_user(self, user_id: int, name: str = None, email: str = None) -> bool:
+        try:
+            if name:
+                query = "UPDATE users SET name = ? WHERE id = ?"
+                self._db.execute(query, (name, user_id))
+            
+            if email:
+                encrypted_email = encryption.encrypt(email)
+                email_hash = encryption.hash_email(email)
+                query = "UPDATE users SET email = ?, email_hash = ? WHERE id = ?"
+                self._db.execute(query, (encrypted_email, email_hash, user_id))
+            
+            logger.info(f"Användare {user_id} uppdaterad")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Fel vid uppdatering av användare: {e}")
+            raise
+
+
+# Skapa global databasinstans
 db = Database(DB_PATH)

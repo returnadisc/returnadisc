@@ -48,7 +48,7 @@
         position: relative;
         z-index: 2;
         width: 100%;
-        max-width: 600px;
+        max-width: 700px;
         padding: 20px;
         animation: fadeInUp 0.8s ease-out;
     }
@@ -68,130 +68,259 @@
         text-align: center;
     }
 
-    .confirmation-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 25px;
-        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
-        border-radius: 50%;
-        display: flex;
+    .success-badge {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.3);
+        gap: 10px;
+        background: #166534;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 25px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .confirmation-icon svg {
-        width: 40px;
-        height: 40px;
-        fill: none;
+    .success-badge svg {
+        width: 20px;
+        height: 20px;
         stroke: white;
         stroke-width: 3;
+        fill: none;
         stroke-linecap: round;
         stroke-linejoin: round;
     }
 
     .confirmation-header h1 {
-        font-size: 2rem;
-        font-weight: 700;
+        font-size: 2.2rem;
+        font-weight: 800;
         color: #1a1a1a;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
+        letter-spacing: -1px;
+    }
+
+    .confirmation-header h1 span {
+        color: #166534;
     }
 
     .confirmation-subtitle {
-        color: #6b7280;
+        color: #4b5563;
         font-size: 1.1rem;
         margin-bottom: 35px;
         line-height: 1.6;
     }
 
-    .order-details {
+    /* Timeline style order info */
+    .order-timeline {
         background: white;
-        border-radius: 16px;
+        border-radius: 20px;
         padding: 30px;
         margin-bottom: 30px;
+        text-align: left;
         border: 2px solid rgba(22, 101, 52, 0.1);
     }
 
-    .order-row {
+    .timeline-item {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px 0;
         border-bottom: 1px solid rgba(22, 101, 52, 0.1);
     }
 
-    .order-row:last-child {
+    .timeline-item:last-child {
         border-bottom: none;
     }
 
-    .order-label {
-        font-weight: 600;
-        color: #374151;
-        font-size: 0.95rem;
-    }
-
-    .order-value {
-        color: #166534;
-        font-weight: 700;
-        font-size: 1rem;
-    }
-
-    .order-value.highlight {
-        color: #fbbf24;
-        background: #1a1a1a;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-    }
-
-    .confirmation-message {
-        background: linear-gradient(135deg, rgba(22, 101, 52, 0.1) 0%, rgba(34, 197, 94, 0.1) 100%);
+    .timeline-icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(22, 101, 52, 0.1);
         border-radius: 12px;
-        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .timeline-content {
+        flex: 1;
+    }
+
+    .timeline-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .timeline-value {
+        font-size: 1.1rem;
+        color: #1a1a1a;
+        font-weight: 700;
+    }
+
+    .timeline-value.order-num {
+        color: #166534;
+        font-family: monospace;
+        font-size: 1.2rem;
+    }
+
+    .timeline-value.email {
+        color: #166534;
+    }
+
+    /* Delivery estimate box */
+    .delivery-box {
+        background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+        border-radius: 16px;
+        padding: 25px;
         margin-bottom: 30px;
-        border-left: 4px solid #166534;
-    }
-
-    .confirmation-message p {
-        color: #374151;
-        margin: 0;
-        line-height: 1.6;
-    }
-
-    .btn-primary {
-        display: inline-block;
-        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
         color: white;
-        padding: 16px 40px;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .delivery-box::before {
+        content: '📦';
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 4rem;
+        opacity: 0.2;
+    }
+
+    .delivery-box h3 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .delivery-box p {
+        margin: 0;
+        opacity: 0.95;
+        line-height: 1.5;
+        font-size: 0.95rem;
+        max-width: 80%;
+    }
+
+    .delivery-time {
+        display: inline-block;
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    /* Action buttons */
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-yellow {
+        background: #fbbf24;
+        color: #1a1a1a;
+        padding: 16px 36px;
         border-radius: 50px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         transition: all 0.3s ease;
-        border: 2px solid transparent;
+        display: inline-block;
+        border: 2px solid #fbbf24;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
     }
 
-    .btn-primary:hover {
+    .btn-yellow:hover {
+        background: transparent;
+        color: #1a1a1a;
         transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+        box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
     }
 
-    @media (max-width: 480px) {
+    .btn-outline {
+        background: transparent;
+        color: #166534;
+        padding: 16px 36px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+        display: inline-block;
+        border: 2px solid #166534;
+    }
+
+    .btn-outline:hover {
+        background: #166534;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Helper text */
+    .helper-text {
+        margin-top: 25px;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .helper-text a {
+        color: #166534;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .helper-text a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
         .confirmation-card {
-            padding: 35px 25px;
+            padding: 30px 20px;
         }
 
         .confirmation-header h1 {
             font-size: 1.6rem;
         }
 
-        .order-details {
+        .order-timeline {
             padding: 20px;
         }
 
-        .order-row {
+        .timeline-item {
             flex-direction: column;
-            gap: 5px;
+            gap: 10px;
+        }
+
+        .delivery-box::before {
+            display: none;
+        }
+
+        .delivery-box p {
+            max-width: 100%;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-yellow, .btn-outline {
+            width: 100%;
             text-align: center;
         }
     }
@@ -205,43 +334,51 @@
     
     <div class="confirmation-container">
         <div class="confirmation-card">
-            <div class="confirmation-icon">
+            <div class="success-badge">
                 <svg viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
+                Betalning mottagen
             </div>
             
             <div class="confirmation-header">
-                <h1>Tack for din betalning!</h1>
-                <p class="confirmation-subtitle">Din order ar bekraftad och vi har skickat en bekriftelse till din e-post.</p>
+                <h1>Tack för din <span>beställning</span></h1>
+                <p class="confirmation-subtitle">Dina QR-stickers är på väg till dig. Vi har skickat en bekräftelse till din e-post.</p>
             </div>
             
-            <div class="order-details">
-                <div class="order-row">
-                    <span class="order-label">Ordernummer</span>
-                    <span class="order-value highlight">{{ order_id }}</span>
+            <div class="order-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-icon">📋</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Ordernummer</div>
+                        <div class="timeline-value order-num">#{{ order_id }}</div>
+                    </div>
                 </div>
-                <div class="order-row">
-                    <span class="order-label">Paket</span>
-                    <span class="order-value">{{ package.capitalize() }}</span>
+                <div class="timeline-item">
+                    <div class="timeline-icon">📦</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">Paket</div>
+                        <div class="timeline-value">{{ package.capitalize() }} ({% if package == 'start' %}12{% elif package == 'standard' %}24{% elif package == 'pro' %}48{% else %}{{ count }}{% endif %} stickers)</div>
+                    </div>
                 </div>
-                <div class="order-row">
-                    <span class="order-label">Antal stickers</span>
-                    <span class="order-value">
-                        {% if package == 'start' %}12{% elif package == 'standard' %}24{% elif package == 'pro' %}48{% else %}{{ count }}{% endif %} st
-                    </span>
-                </div>
-                <div class="order-row">
-                    <span class="order-label">E-post</span>
-                    <span class="order-value">{{ email }}</span>
+                <div class="timeline-item">
+                    <div class="timeline-icon">✉️</div>
+                    <div class="timeline-content">
+                        <div class="timeline-label">E-post</div>
+                        <div class="timeline-value email">{{ email }}</div>
+                    </div>
                 </div>
             </div>
             
-            <div class="confirmation-message">
-                <p>Vi skickar dina QR-klistermarken inom <strong>2-3 arbetsdagar</strong>. Du far ett mail med sparbar lank nar paketet ar pa vag.</p>
+            <div class="delivery-box">
+                <h3>🚚 Leveransinformation</h3>
+                <p>Vi tillverkar och skickar dina stickers inom 1-2 arbetsdagar.</p>
             </div>
             
-            <a href="{{ url_for('auth.index') }}" class="btn-primary">Tillbaka till startsidan</a>
+            <div class="action-buttons">
+                <a href="{{ url_for('disc.dashboard') }}" class="btn-yellow">Gå till min dashboard</a>
+                <a href="{{ url_for('auth.index') }}" class="btn-outline">Till startsidan</a>
+            </div>         
         </div>
     </div>
 </div>

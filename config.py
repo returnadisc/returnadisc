@@ -1,8 +1,9 @@
 """Central konfigurationsfil."""
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash
 
 load_dotenv()
 
@@ -32,21 +33,43 @@ class Config:
     
     # SendGrid
     SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
-    MAIL_DEFAULT_SENDER = "noreply@returnadisc.se"
+    MAIL_DEFAULT_SENDER = "info@returnadisc.se"
+    
+    # Email (SMTP)
+    EMAIL_ENABLED = os.environ.get('EMAIL_ENABLED', 'false').lower() == 'true'
+    EMAIL_FROM = os.environ.get('EMAIL_FROM', 'info@returnadisc.se')
+    SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+    SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
+    EMAIL_USER = os.environ.get('EMAIL_USER', 'info@returnadisc.se')
+    EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
     
     # URL:er - VIKTIGA FÖR PRODUKTION
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
     PUBLIC_URL = os.environ.get('PUBLIC_URL', BASE_URL)
     
-    # Admin - sätts av subklasser
-    ADMIN_KEY = None
+    # Admin
+    ADMIN_KEY = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@returnadisc.se')
-    ADMIN_PASSWORD_HASH = None
+    ADMIN_PASSWORD_HASH = generate_password_hash('admin123')
     
     # QR/PDF
     QR_FOLDER = 'static/qr'
     PDF_FOLDER = 'static/pdfs'
     MAX_QR_PER_REQUEST = 30
+    
+    # Premium-kampanj (gratis fram till 1 juli)
+    PREMIUM_LAUNCH_DATE = datetime(2026, 7, 1)
+    PREMIUM_PRICE_SEK = 39
+    
+    @classmethod
+    def is_launch_period(cls) -> bool:
+        """Kolla om vi fortfarande är i lanseringsperioden (gratis premium)."""
+        return datetime.now() < cls.PREMIUM_LAUNCH_DATE
+    
+    @classmethod
+    def get_premium_price(cls) -> int:
+        """Hämta aktuellt pris (0 under lansering)."""
+        return 0 if cls.is_launch_period() else cls.PREMIUM_PRICE_SEK
 
 
 class DevelopmentConfig(Config):
@@ -54,41 +77,31 @@ class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
     
-    # Tillåt osäkra defaults i utveckling MEN logga varning
     _admin_key = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
     if _admin_key == 'dev-admin-key-change-in-prod':
         import logging
         logging.warning("WARNING: Using default ADMIN_KEY in development!")
     ADMIN_KEY = _admin_key
     
-    _admin_hash = os.environ.get('ADMIN_PASSWORD_HASH', '')
-    if not _admin_hash:
-        import logging
-        logging.warning("WARNING: ADMIN_PASSWORD_HASH not set! Admin login disabled.")
-        # Sätt en ogiltig hash så inloggning misslyckas men appen startar
-        from werkzeug.security import generate_password_hash
-        ADMIN_PASSWORD_HASH = generate_password_hash('invalid-fallback-do-not-use')
-    else:
-        ADMIN_PASSWORD_HASH = _admin_hash
+    ADMIN_EMAIL = 'info@returnadisc.se'
+    ADMIN_PASSWORD_HASH = generate_password_hash('admin123')
+    
+    print("=" * 60)
+    print("TEMPORÄRT ADMIN-LÖSENORD: admin123")
+    print("Email: info@returnadisc.se")
+    print("=" * 60)
 
 
 class ProductionConfig(Config):
-    """Produktions-konfig - kräver alla miljövariabler."""
+    """Produktions-konfig."""
     DEBUG = False
     TESTING = False
     SESSION_COOKIE_SECURE = True
     PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
     
-    # Hämta från miljövariabler
-    ADMIN_KEY = os.environ.get('ADMIN_KEY')
-    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
-    
-    def __init__(self):
-        # Validera att alla krävda variabler är satta
-        if not self.ADMIN_KEY:
-            raise ValueError("ADMIN_KEY måste sättas i miljövariabler!")
-        if not self.ADMIN_PASSWORD_HASH:
-            raise ValueError("ADMIN_PASSWORD_HASH måste sättas i miljövariabler!")
+    ADMIN_KEY = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')
+    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH') or generate_password_hash('admin123')
 
 
 config = {
