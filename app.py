@@ -19,7 +19,14 @@ def create_app(config_name=None):
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'development')
     
-    app = Flask(__name__)
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+    app = Flask(
+        __name__,
+        static_folder=os.path.join(BASE_DIR, "static"),
+        template_folder=os.path.join(BASE_DIR, "templates")
+    )
+
     app.config.from_object(config[config_name])
     
     # Säkerställ att SECRET_KEY är satt
