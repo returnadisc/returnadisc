@@ -270,6 +270,7 @@ class DatabaseConnection:
         self.db_path = db_path or DB_PATH
         self.database_url = os.environ.get("DATABASE_URL")
 
+
     @contextmanager
     def get_connection(self):
 
@@ -427,7 +428,7 @@ class UserRepository(BaseRepository):
         
         query = """
             INSERT INTO users (name, email, email_hash, password, created_at, is_active)
-            VALUES (?, ?, ?, ?, datetime('now'), 1)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
         """
         self.db.execute(query, (name, encrypted_email, email_hash, password_hash))
         return self.db.last_insert_id()
@@ -466,7 +467,7 @@ class UserRepository(BaseRepository):
     def soft_delete(self, user_id: int) -> bool:
         query = """
             UPDATE users 
-            SET is_active = 0, deleted_at = datetime('now'),
+            SET is_active = 0, deleted_at = CURRENT_TIMESTAMP,
                 name = '[BORTTAGEN]', email = '[BORTTAGEN]',
                 email_hash = '', password = '[BORTTAGEN]'
             WHERE id = ?
@@ -493,7 +494,7 @@ class UserRepository(BaseRepository):
         self.db.execute(query, (user_id,))
     
     def update_last_login(self, user_id: int) -> None:
-        query = "UPDATE users SET last_login = datetime('now') WHERE id = ?"
+        query = "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?"
         self.db.execute(query, (user_id,))
     
     def increment_returns(self, user_id: int) -> bool:
@@ -508,7 +509,7 @@ class UserRepository(BaseRepository):
     def activate_premium(self, user_id: int, expires_at: Optional[datetime] = None) -> bool:
         query = """
             UPDATE users 
-            SET is_premium = 1, premium_started_at = datetime('now'),
+            SET is_premium = 1, premium_started_at = CURRENT_TIMESTAMP,
                 premium_until = ?
             WHERE id = ?
         """
@@ -555,7 +556,7 @@ class UserRepository(BaseRepository):
         query = """
             SELECT COUNT(*) as count FROM users 
             WHERE is_premium = 1 AND is_active = 1
-            AND (premium_until IS NULL OR premium_until > datetime('now'))
+            AND (premium_until IS NULL OR premium_until > CURRENT_TIMESTAMP)
         """
         row = self.db.fetch_one(query)
         return row.get('count', 0) if row else 0
@@ -588,7 +589,7 @@ class PremiumSubscriptionRepository(BaseRepository):
             INSERT INTO premium_subscriptions 
             (user_id, status, started_at, expires_at, payment_method, 
              payment_id, amount_paid, currency, is_launch_offer, created_at)
-            VALUES (?, ?, datetime('now'), ?, ?, ?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         """
         self.db.execute(query, (
             subscription.user_id,
@@ -621,7 +622,7 @@ class PremiumSubscriptionRepository(BaseRepository):
         query = """
             SELECT * FROM premium_subscriptions 
             WHERE user_id = ? AND status = 'active'
-            AND (expires_at IS NULL OR expires_at > datetime('now'))
+            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
             ORDER BY created_at DESC
             LIMIT 1
         """
@@ -687,7 +688,7 @@ class QRCodeRepository(BaseRepository):
     def activate(self, qr_id: str, user_id: int) -> None:
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = datetime('now')
+            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
@@ -702,7 +703,7 @@ class QRCodeRepository(BaseRepository):
         
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = datetime('now')
+            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
@@ -799,7 +800,7 @@ class MissingDiscRepository(BaseRepository):
             INSERT INTO missing_discs 
             (user_id, disc_name, description, latitude, longitude, 
              course_name, hole_number, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         """
         self.db.execute(query, (
             disc.user_id, disc.disc_name, disc.description,
@@ -836,14 +837,14 @@ class MissingDiscRepository(BaseRepository):
         if found_by_user_id:
             query = """
                 UPDATE missing_discs 
-                SET status = 'found', found_by_user_id = ?, found_at = datetime('now')
+                SET status = 'found', found_by_user_id = ?, found_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """
             self.db.execute(query, (found_by_user_id, disc_id))
         else:
             query = """
                 UPDATE missing_discs 
-                SET status = 'found', found_at = datetime('now')
+                SET status = 'found', found_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """
             self.db.execute(query, (disc_id,))
@@ -931,7 +932,7 @@ class HandoverRepository(BaseRepository):
             INSERT INTO handovers 
             (qr_id, finder_user_id, finder_name, action, note, 
              photo_path, latitude, longitude, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         """
         self.db.execute(query, (
             handover.qr_id, handover.finder_user_id, handover.finder_name,
@@ -996,7 +997,7 @@ class OrderRepository(BaseRepository):
              currency, status, payment_method, payment_id, shipping_name,
              shipping_address, shipping_postal_code, shipping_city, shipping_country,
              created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         """
         self.db.execute(query, (
             order.order_number, order.user_id, order.qr_id, order.package_type,
@@ -1090,14 +1091,14 @@ class OrderRepository(BaseRepository):
     def mark_as_paid(self, order_id: int, payment_id: str = None) -> bool:
         query = """
             UPDATE orders 
-            SET status = 'paid', paid_at = datetime('now'), payment_id = ?
+            SET status = 'paid', paid_at = CURRENT_TIMESTAMP, payment_id = ?
             WHERE id = ?
         """
         self.db.execute(query, (payment_id, order_id))
         return True
     
     def mark_as_shipped(self, order_id: int) -> bool:
-        query = "UPDATE orders SET status = 'shipped', shipped_at = datetime('now') WHERE id = ?"
+        query = "UPDATE orders SET status = 'shipped', shipped_at = CURRENT_TIMESTAMP WHERE id = ?"
         self.db.execute(query, (order_id,))
         return True
     
@@ -1183,7 +1184,7 @@ class UserService:
             
             cur.execute("""
                 INSERT INTO users (name, email, email_hash, password, created_at, is_active)
-                VALUES (?, ?, ?, ?, datetime('now'), 1)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
             """, (name, encrypted_email, email_hash, password_hash))
             user_id = cur.lastrowid
             
@@ -1194,7 +1195,7 @@ class UserService:
                 try:
                     cur.execute("""
                         INSERT INTO qr_codes (qr_id, user_id, is_active, activated_at, created_at)
-                        VALUES (?, ?, 1, datetime('now'), datetime('now'))
+                        VALUES (?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
                     """, (candidate, user_id))
                     qr_id = candidate
                     break
@@ -1309,7 +1310,7 @@ class PremiumService:
             SELECT id, user_id FROM premium_subscriptions
             WHERE status = 'active' 
             AND expires_at IS NOT NULL 
-            AND expires_at < datetime('now')
+            AND expires_at < CURRENT_TIMESTAMP
         """
         expired = self.db.fetch_all(query)
         
@@ -1337,7 +1338,7 @@ class PremiumService:
             SELECT * FROM premium_subscriptions 
             WHERE user_id = ? 
             AND (status = 'active' OR status = 'cancelled')
-            AND (expires_at IS NULL OR expires_at > datetime('now'))
+            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
             ORDER BY created_at DESC
             LIMIT 1
         """
@@ -2244,14 +2245,14 @@ class Database:
             
             cur.execute("""
                 INSERT INTO users (name, email, email_hash, password, created_at, is_active)
-                VALUES (?, ?, ?, ?, datetime('now'), 1)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
             """, (name, encrypted_email, email_hash, password_hash))
             
             user_id = cur.lastrowid
             
             cur.execute("""
                 UPDATE qr_codes 
-                SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = datetime('now')
+                SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
                 WHERE qr_id = ?
             """, (user_id, qr_id))
             

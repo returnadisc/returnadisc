@@ -1258,7 +1258,7 @@ def revoke_premium():
         # Uppdatera alla aktiva prenumerationer till cancelled
         query = """
             UPDATE premium_subscriptions 
-            SET status = 'cancelled', expires_at = datetime('now')
+            SET status = 'cancelled', expires_at = CURRENT_TIMESTAMP
             WHERE user_id = ? AND status = 'active'
         """
         db._db.execute(query, (user_id,))

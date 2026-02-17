@@ -284,7 +284,7 @@ def reactivate():
         query = """
             SELECT * FROM premium_subscriptions 
             WHERE user_id = ? AND status = 'cancelled'
-            AND (expires_at IS NULL OR expires_at > datetime('now'))
+            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
             ORDER BY created_at DESC 
             LIMIT 1
         """
