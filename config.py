@@ -50,7 +50,7 @@ class Config:
     # Admin
     ADMIN_KEY = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@returnadisc.se')
-    ADMIN_PASSWORD_HASH = generate_password_hash('admin123')
+    ADMIN_PASSWORD_HASH = generate_password_hash('scrypt:32768:8:1$ZxXcL46IYbKNUWjR$28a576262227c23c3af11e6b19ceee04c4c535ad5b29d3d5a507dd172b307ba0c8cd3e3a78b6178ab782924cb2d2809cefcf95f453de378e863e6ba13f76aaa4')
     
     # QR/PDF
     QR_FOLDER = 'static/qr'
@@ -83,13 +83,9 @@ class DevelopmentConfig(Config):
         logging.warning("WARNING: Using default ADMIN_KEY in development!")
     ADMIN_KEY = _admin_key
     
-    ADMIN_EMAIL = 'info@returnadisc.se'
-    ADMIN_PASSWORD_HASH = generate_password_hash('admin123')
+    ADMIN_EMAIL = 'admin@returnadisc.se'
+    ADMIN_PASSWORD_HASH = generate_password_hash('scrypt:32768:8:1$ZxXcL46IYbKNUWjR$28a576262227c23c3af11e6b19ceee04c4c535ad5b29d3d5a507dd172b307ba0c8cd3e3a78b6178ab782924cb2d2809cefcf95f453de378e863e6ba13f76aaa4')
     
-    print("=" * 60)
-    print("TEMPORÄRT ADMIN-LÖSENORD: admin123")
-    print("Email: info@returnadisc.se")
-    print("=" * 60)
 
 
 class ProductionConfig(Config):
@@ -100,8 +96,8 @@ class ProductionConfig(Config):
     PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
     
     ADMIN_KEY = os.environ.get('ADMIN_KEY', 'dev-admin-key-change-in-prod')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')
-    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH') or generate_password_hash('admin123')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@returnadisc.se')
+    ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH') or generate_password_hash('scrypt:32768:8:1$ZxXcL46IYbKNUWjR$28a576262227c23c3af11e6b19ceee04c4c535ad5b29d3d5a507dd172b307ba0c8cd3e3a78b6178ab782924cb2d2809cefcf95f453de378e863e6ba13f76aaa4')
 
 
 config = {
