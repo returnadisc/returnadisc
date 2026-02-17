@@ -1,5 +1,7 @@
 """Database-hantering med Repository Pattern och kryptering."""
 import sqlite3
+import psycopg2
+from urllib.parse import urlparse
 import logging
 import os
 import math
