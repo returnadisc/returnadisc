@@ -18,7 +18,6 @@ ENV/
 
 # Uploads och genererade filer
 static/uploads/*
-static/qr/*
 static/pdfs/*
 !static/uploads/.gitkeep
 !static/qr/.gitkeep
