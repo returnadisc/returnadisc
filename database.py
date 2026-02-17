@@ -15,7 +15,17 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = os.environ.get('DATABASE_URL', 'database.db')
+
+# Kolla om vi är på Railway (qr-mappen finns)
+if os.path.isdir('/app/static/qr'):
+    # Skapa egen mapp för databas om den inte finns
+    db_dir = '/app/data'
+    if not os.path.exists(db_dir):
+        os.makedirs(db_dir)
+    DB_PATH = os.path.join(db_dir, 'database.db')
+else:
+    # Lokal utveckling
+    DB_PATH = os.environ.get('DATABASE_URL', 'database.db')
 
 
 # ============================================================================
