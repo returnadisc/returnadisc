@@ -116,6 +116,36 @@ def my_discs():
     return render_template('missing/my_discs.html', discs=discs)
 
 
+@bp.route('/mark-found/<int:disc_id>', methods=['POST'])
+@login_required
+def mark_found(disc_id):
+    """Markera en saknad disc som hittad."""
+    user_id = session.get('user_id')
+    
+    try:
+        # Hämta discen för att verifiera ägande
+        disc = db.get_missing_disc_by_id(disc_id)
+        
+        if not disc:
+            flash('Discen hittades inte.', 'error')
+            return redirect(url_for('missing.my_discs'))
+        
+        if disc['user_id'] != user_id:
+            flash('Du kan endast markera dina egna discar som hittade.', 'error')
+            return redirect(url_for('missing.my_discs'))
+        
+        # Markera som hittad
+        db.mark_disc_found(disc_id)
+        logger.info(f"Disc {disc_id} markerad som hittad av användare {user_id}")
+        flash('Din disc har markerats som hittad!', 'success')
+        
+    except Exception as e:
+        logger.error(f"Fel vid markering av disc {disc_id} som hittad: {e}")
+        flash('Ett fel uppstod.', 'error')
+    
+    return redirect(url_for('missing.my_discs'))
+
+
 @bp.route('/delete/<int:disc_id>', methods=['POST'])
 @login_required
 def delete_disc(disc_id):

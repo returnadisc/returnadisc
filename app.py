@@ -5,6 +5,8 @@ from datetime import datetime
 from flask import Flask, render_template, request, session
 from config import config
 from blueprints import qr
+from blueprints import missing
+
 
 # Konfigurera logging
 logging.basicConfig(
