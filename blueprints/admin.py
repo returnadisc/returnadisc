@@ -1026,7 +1026,7 @@ def delete_user(user_id: int):
         # Inaktivera QR-koden också
         qr = db.get_user_qr(user_id)
         if qr:
-            query = "UPDATE qr_codes SET user_id = NULL, is_active = 0 WHERE qr_id = ?"
+            query = "UPDATE qr_codes SET user_id = NULL, is_active = FALSE WHERE qr_id = ?"
             db._db.execute(query, (qr['qr_id'],))
         
         flash(f'Användare {user.get("name", user_id)} har raderats', 'success')
