@@ -336,8 +336,18 @@ def download_qr(qr_id):
         flash('Ogiltigt QR-ID.', 'error')
         return redirect(url_for('disc.dashboard'))
     
-    # Hämta bild från databasen eller fil
-    img_buffer = serve_qr_image(qr_id, current_app.config.get('QR_FOLDER', 'static/qr'))
+    # VIKTIGT: Hämta alltid från databasen först!
+    img_buffer = serve_qr_image(qr_id)
+    
+    if not img_buffer:
+        # Om inte i databasen, försök generera ny
+        try:
+            from utils import create_qr_code
+            create_qr_code(qr_id, g.user_id)
+            # Försök igen
+            img_buffer = serve_qr_image(qr_id)
+        except Exception as e:
+            logger.error(f"Kunde inte generera QR: {e}")
     
     if not img_buffer:
         flash('QR-kod hittades inte.', 'error')
