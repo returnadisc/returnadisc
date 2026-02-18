@@ -430,16 +430,29 @@ class DatabaseConnection:
         
         return adapted
     
-    def execute(
-        self, 
-        query: str, 
-        params: Tuple = (), 
-        fetch_one: bool = False
-    ) -> Optional[Dict]:
-        with self.get_connection() as conn:
-            cur = conn.cursor()
-            adapted_query = self._adapt_query(query)
-            cur.execute(adapted_query, params)
+    def execute(self, query: str, params: Tuple = ()):
+        cur = self.conn.cursor()
+        
+        # PostgreSQL använder %s istället för ?
+        if self.db.database_url:
+            query = query.replace("?", "%s")
+            # Ersätt även datumfunktioner
+            query = query.replace("datetime('now')", "CURRENT_TIMESTAMP")
+            query = query.replace("date('now')", "CURRENT_DATE")
+        
+        adapted_query = self.db._adapt_query(query)
+        cur.execute(adapted_query, params)
+        
+        # Hantera lastrowid olika för PostgreSQL vs SQLite
+        if self.db.database_url:
+            # För PostgreSQL, försök hämta RETURNING
+            if 'RETURNING' in query.upper():
+                row = cur.fetchone()
+                return row[0] if row else None
+            return None
+        else:
+            # SQLite använder lastrowid
+            return cur.lastrowid
         
             if fetch_one:
                 row = cur.fetchone()
@@ -2362,6 +2375,11 @@ class Database:
     
     def mark_disc_found(self, disc_id: int, found_by_user_id: int = None) -> None:
         self._missing.mark_found(disc_id, found_by_user_id)
+        
+    def get_missing_disc_by_id(self, disc_id: int) -> Optional[Dict]:
+        """Hämta en specifik missing disc med ID."""
+        disc = self._missing.get_by_id(disc_id)
+        return disc.to_dict() if disc else None        
     
     def delete_missing_disc(self, disc_id: int, user_id: int) -> bool:
         return self._missing.delete(disc_id, user_id)
