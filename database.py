@@ -1519,12 +1519,12 @@ class DatabaseManager:
                 reset_token TEXT,
                 member_since TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 total_returns INTEGER DEFAULT 0,
-                is_premium BOOLEAN DEFAULT 0,
+                is_premium BOOLEAN DEFAULT FALSE,
                 premium_until TIMESTAMP,
                 premium_started_at TIMESTAMP,
                 last_login TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                is_active BOOLEAN DEFAULT 1,
+                is_active BOOLEAN DEFAULT TRUE,
                 deleted_at TIMESTAMP
             )
             """,
@@ -1539,7 +1539,7 @@ class DatabaseManager:
                 payment_id TEXT,
                 amount_paid REAL,
                 currency TEXT DEFAULT 'SEK',
-                is_launch_offer BOOLEAN DEFAULT 0,
+                is_launch_offer BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
@@ -1548,8 +1548,8 @@ class DatabaseManager:
             CREATE TABLE IF NOT EXISTS qr_codes (
                 qr_id TEXT PRIMARY KEY,
                 user_id INTEGER,
-                is_active BOOLEAN DEFAULT 0,
-                is_enabled BOOLEAN DEFAULT 1,
+                is_active BOOLEAN DEFAULT FALSE,
+                is_enabled BOOLEAN DEFAULT TRUE,
                 activated_at TIMESTAMP,
                 total_scans INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1567,7 +1567,7 @@ class DatabaseManager:
                 photo_path TEXT,
                 latitude REAL,
                 longitude REAL,
-                confirmed BOOLEAN DEFAULT 0,
+                confirmed BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (qr_id) REFERENCES qr_codes(qr_id),
                 FOREIGN KEY (finder_user_id) REFERENCES users(id)
@@ -1640,7 +1640,7 @@ class DatabaseManager:
         try:
             cursor.execute("SELECT is_active FROM users LIMIT 1")
         except sqlite3.OperationalError:
-            cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT 1")
+            cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE")
             cursor.execute("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP")
             logger.info("La till soft delete kolumner")
     
@@ -1663,7 +1663,7 @@ class DatabaseManager:
     
     def _migrate_premium_columns(self, cursor) -> None:
         migrations = [
-            ("is_premium", "BOOLEAN DEFAULT 0"),
+            ("is_premium", "BOOLEAN DEFAULT FALSE"),
             ("premium_until", "TIMESTAMP"),
             ("premium_started_at", "TIMESTAMP")
         ]
@@ -1689,7 +1689,7 @@ class DatabaseManager:
                     payment_id TEXT,
                     amount_paid REAL,
                     currency TEXT DEFAULT 'SEK',
-                    is_launch_offer BOOLEAN DEFAULT 0,
+                    is_launch_offer BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
@@ -1798,7 +1798,7 @@ class DatabaseManager:
         try:
             cursor.execute("SELECT is_enabled FROM qr_codes LIMIT 1")
         except sqlite3.OperationalError:
-            cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT 1")
+            cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT TRUE")
             logger.info("La till is_enabled kolumn i qr_codes")
 
     def init_tables(self) -> None:
