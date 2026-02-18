@@ -84,6 +84,64 @@ def send_email_async(to_email: str, subject: str, html_content: str, plain_text:
 
 
 # ============================================================================
+# QR Code Database Functions
+# ============================================================================
+
+def save_qr_to_db(qr_id: str, image: Image.Image) -> bool:
+    """
+    Spara QR-bild till databasen som base64.
+    """
+    try:
+        from database import db
+        
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format='PNG', quality=95)
+        img_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
+        
+        return db.save_qr_image(qr_id, img_base64)
+        
+    except Exception as e:
+        logger.error(f"Kunde inte spara QR {qr_id} i databasen: {e}")
+        return False
+
+
+def get_qr_image_from_db(qr_id: str) -> Optional[bytes]:
+    """
+    Hämta QR-bild från databasen som bytes.
+    """
+    try:
+        from database import db
+        
+        img_base64 = db.get_qr_image(qr_id)
+        if img_base64:
+            return base64.b64decode(img_base64)
+        return None
+        
+    except Exception as e:
+        logger.error(f"Kunde inte hämta QR {qr_id} från databasen: {e}")
+        return None
+
+
+def serve_qr_image(qr_id: str, folder: str = 'static/qr') -> Optional[io.BytesIO]:
+    """
+    Hämta QR-bild antingen från databasen eller från fil.
+    Returnerar en BytesIO buffer.
+    """
+    # Försök databasen först (produktion)
+    img_data = get_qr_image_from_db(qr_id)
+    if img_data:
+        return io.BytesIO(img_data)
+    
+    # Fallback till fil (utveckling/legacy)
+    filepath = os.path.join(folder, f"qr_{qr_id}.png")
+    if os.path.exists(filepath):
+        with open(filepath, 'rb') as f:
+            return io.BytesIO(f.read())
+    
+    return None
+
+
+# ============================================================================
 # QR Code Generation
 # ============================================================================
 
@@ -205,29 +263,25 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     return final_img
 
 
-def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
+def create_qr_code(qr_id: str, user_id: Optional[int] = None, save_to_db: bool = True) -> str:
     """
-    Skapa QR-kod bild och spara den.
+    Skapa QR-kod bild och spara den i databasen (base64).
     """
     qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
-    # DEBUG
     logger.info(f"=== CREATE_QR_CODE DEBUG ===")
     logger.info(f"qr_id: {qr_id}")
-    logger.info(f"qr_folder: {qr_folder}")
-    logger.info(f"QR_FOLDER env: {os.environ.get('QR_FOLDER', 'NOT SET')}")
-    logger.info(f"Absolute path: {os.path.abspath(qr_folder)}")
-    logger.info(f"Folder exists BEFORE: {os.path.exists(qr_folder)}")
+    logger.info(f"save_to_db: {save_to_db}")
     
+    # Skapa mappen om den behövs (fallback för utveckling)
     os.makedirs(qr_folder, exist_ok=True)
-    
-    logger.info(f"Folder exists AFTER: {os.path.exists(qr_folder)}")
     
     font_path = 'static/fonts/arial.ttf'
     if not os.path.exists(font_path):
         font_path = 'C:/Windows/Fonts/arial.ttf'
     
+    # Skapa QR-kod
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -244,6 +298,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     if qr_img.mode != 'RGB':
         qr_img = qr_img.convert('RGB')
     
+    # Lägg till text (returnadisc.se + QR-id)
     try:
         font_large = ImageFont.truetype(font_path, 140)
         font_small = ImageFont.truetype(font_path, 90)
@@ -267,7 +322,6 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         margin_bottom = 50
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
-        
         new_height = height + int(total_text_height)
         new_img = Image.new('RGB', (width, new_height), 'white')
         new_img.paste(qr_img, (0, 0))
@@ -293,31 +347,43 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         logger.error(f"Font fel: {e}")
         raise
     
+    # Spara i databasen som base64
+    if save_to_db:
+        save_qr_to_db(qr_id, qr_img)
+    
+    # Spara även till fil som fallback (lokal utveckling)
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
     
-    # DEBUG
-    logger.info(f"Saving to filepath: {filepath}")
-    
     try:
         qr_img.save(filepath, quality=95)
-        logger.info(f"File saved: {os.path.exists(filepath)}")
-        logger.info(f"File size: {os.path.getsize(filepath) if os.path.exists(filepath) else 'N/A'} bytes")
+        logger.info(f"QR sparad lokalt: {filepath}")
     except Exception as e:
-        logger.error(f"Failed to save file: {e}")
-        raise
+        logger.warning(f"Kunde inte spara lokal fil (okänt i produktion): {e}")
     
     logger.info(f"=== CREATE_QR_CODE END ===")
     return filename
 
 
-def create_small_qr_for_pdf(qr_id: str, size: int = 200) -> io.BytesIO:
+def create_small_qr_for_pdf(qr_id: str, public_url: str = None, size: int = 200) -> io.BytesIO:
     """
     Skapa en QR-kod med design för PDF-användning.
+    Hämtar från databasen om den finns, annars genererar ny.
     """
-    public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
+    # Försök hämta från databasen först
+    img_data = get_qr_image_from_db(qr_id)
+    if img_data:
+        img = Image.open(io.BytesIO(img_data))
+        img = img.resize((size, size), Image.Resampling.LANCZOS)
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        return buffer
     
-    # Använd hjälpfunktionen med target_size
+    # Fallback: generera ny (om den inte finns i DB)
+    if public_url is None:
+        public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
+    
     final_img = create_qr_with_design(qr_id, public_url, target_size=size)
     
     img_buffer = io.BytesIO()
@@ -325,6 +391,7 @@ def create_small_qr_for_pdf(qr_id: str, size: int = 200) -> io.BytesIO:
     img_buffer.seek(0)
     
     return img_buffer
+
 
 def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
     """
@@ -556,5 +623,3 @@ def send_email_with_attachment(to_email: str, subject: str, html_content: str,
     thread = threading.Thread(target=send)
     thread.daemon = True
     thread.start()
-    
-    

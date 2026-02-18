@@ -14,7 +14,7 @@ from flask import (
 )
 
 from database import db
-from utils import create_small_qr_for_pdf
+from utils import create_small_qr_for_pdf, serve_qr_image
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -147,14 +147,21 @@ class QRDownloadService:
             c = canvas.Canvas(pdf_path, pagesize=letter)
             width, height = letter
             
-            # Generera QR-bild
-            qr_img = create_small_qr_for_pdf(qr_id, Config.PUBLIC_URL)
+            # Hämta QR-bild från databasen istället för att generera ny
+            from utils import get_qr_image_from_db
+            img_data = get_qr_image_from_db(qr_id)
+            
+            if not img_data:
+                logger.error(f"QR-bild för {qr_id} hittades inte i databasen")
+                return None
             
             # Temp-fil för bild
             temp_path = os.path.join(pdf_folder, f"temp_{qr_id}_{os.getpid()}.png")
             
             try:
-                qr_img.save(temp_path, 'PNG')
+                # Spara bilddata till temporär fil
+                with open(temp_path, 'wb') as f:
+                    f.write(img_data)
                 
                 # Centrera på sidan
                 qr_size = 2.5 * cm
@@ -323,28 +330,23 @@ def dashboard():
 @login_required
 @require_ownership
 def download_qr(qr_id):
-    """Ladda ner QR-kod som bild."""
-    download_service = QRDownloadService(current_app.config)
-    file_path = download_service.get_qr_image_path(qr_id)
-    
-    if not file_path:
-        flash('Kunde inte hitta QR-kod.', 'error')
+    """Ladda ner QR-kod som bild från databasen."""
+    validation = QRValidationService.validate(qr_id)
+    if not validation.is_valid:
+        flash('Ogiltigt QR-ID.', 'error')
         return redirect(url_for('disc.dashboard'))
     
-    # Säkerhetskontroll
-    qr_folder = current_app.config.get('QR_FOLDER', 'static/qr')
-    if not FileSecurityService.validate_path_within_folder(file_path, qr_folder):
-        logger.warning(f"Path traversal attempt: {qr_id}")
-        flash('Ogiltig fil.', 'error')
-        return redirect(url_for('disc.dashboard'))
+    # Hämta bild från databasen eller fil
+    img_buffer = serve_qr_image(qr_id, current_app.config.get('QR_FOLDER', 'static/qr'))
     
-    if not os.path.exists(file_path):
+    if not img_buffer:
         flash('QR-kod hittades inte.', 'error')
         return redirect(url_for('disc.dashboard'))
     
     return send_file(
-        file_path, 
-        as_attachment=True, 
+        img_buffer,
+        mimetype='image/png',
+        as_attachment=True,
         download_name=f"returnadisc-{qr_id}.png"
     )
 
@@ -373,4 +375,3 @@ def download_qr_pdf(qr_id):
         as_attachment=True,
         download_name=f"returnadisc-{qr_id}.pdf"
     )
-    

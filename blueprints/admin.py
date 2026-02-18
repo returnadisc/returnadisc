@@ -1300,3 +1300,19 @@ def check_expired_premium():
         flash('Ett fel uppstod', 'error')
     
     return redirect(url_for('admin.premium_overview'))
+    
+    
+@bp.route('/qr-image/<qr_id>')
+@admin_required
+def qr_image(qr_id: str):
+    """Visa QR-kod som bild (för img-taggar)."""
+    import os
+    from flask import send_file
+    
+    qr_folder = os.environ.get('QR_FOLDER', 'static/qr')
+    filepath = os.path.join(qr_folder, f"qr_{qr_id}.png")
+    
+    if os.path.exists(filepath):
+        return send_file(filepath)
+    else:
+        return "QR-kod hittades inte", 404

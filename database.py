@@ -264,6 +264,17 @@ class QRCode:
 
 
 @dataclass
+class QRImage:
+    """Modell för QR-bild lagrad i databasen."""
+    qr_id: str = ""
+    image_base64: str = ""
+    created_at: Optional[datetime] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass
 class Handover:
     id: Optional[int] = None
     qr_id: Optional[str] = None
@@ -962,6 +973,73 @@ class QRCodeRepository(BaseRepository):
             self.db.fetch_one(query).get(f'coalesce', 0) or 0
             for key, query in queries.items()
         }
+
+
+# ============================================================================
+# QR Image Repository - NYTT för bilder i databasen
+# ============================================================================
+
+class QRImageRepository(BaseRepository):
+    """Repository för QR-bilder lagrade som base64 i databasen."""
+    
+    def row_to_model(self, row: Dict) -> QRImage:
+        return QRImage(
+            qr_id=row.get('qr_id', ''),
+            image_base64=row.get('image_base64', ''),
+            created_at=row.get('created_at')
+        )
+    
+    def save(self, qr_id: str, image_base64: str) -> bool:
+        """Spara eller uppdatera QR-bild i databasen."""
+        try:
+            query = f"""
+                INSERT INTO qr_images (qr_id, image_base64, created_at)
+                VALUES ({self.db.dialect.placeholder()}, {self.db.dialect.placeholder()}, {self.db.dialect.current_timestamp()})
+                ON CONFLICT (qr_id) DO UPDATE SET
+                    image_base64 = EXCLUDED.image_base64,
+                    created_at = EXCLUDED.created_at
+            """
+            self.db.execute(query, (qr_id, image_base64))
+            return True
+        except Exception as e:
+            logger.error(f"Kunde inte spara QR-bild {qr_id}: {e}")
+            return False
+    
+    def get_by_qr_id(self, qr_id: str) -> Optional[QRImage]:
+        """Hämta QR-bild med qr_id."""
+        query = f"SELECT * FROM qr_images WHERE qr_id = {self.db.dialect.placeholder()}"
+        row = self.db.fetch_one(query, (qr_id,))
+        return self.row_to_model(row) if row else None
+    
+    def get_image_base64(self, qr_id: str) -> Optional[str]:
+        """Hämta endast base64-strängen för en QR-bild."""
+        query = f"SELECT image_base64 FROM qr_images WHERE qr_id = {self.db.dialect.placeholder()}"
+        row = self.db.fetch_one(query, (qr_id,))
+        return row.get('image_base64') if row else None
+    
+    def delete(self, qr_id: str) -> bool:
+        """Ta bort QR-bild från databasen."""
+        query = f"DELETE FROM qr_images WHERE qr_id = {self.db.dialect.placeholder()}"
+        self.db.execute(query, (qr_id,))
+        return True
+    
+    def exists(self, qr_id: str) -> bool:
+        """Kolla om en QR-bild finns i databasen."""
+        query = f"SELECT 1 FROM qr_images WHERE qr_id = {self.db.dialect.placeholder()}"
+        row = self.db.fetch_one(query, (qr_id,))
+        return row is not None
+    
+    def get_all(self) -> List[QRImage]:
+        """Hämta alla QR-bilder."""
+        query = "SELECT * FROM qr_images ORDER BY created_at DESC"
+        rows = self.db.fetch_all(query)
+        return [self.row_to_model(row) for row in rows]
+    
+    def count(self) -> int:
+        """Räkna antalet QR-bilder i databasen."""
+        query = "SELECT COUNT(*) as count FROM qr_images"
+        row = self.db.fetch_one(query)
+        return row.get('count', 0) if row else 0
 
 
 # ============================================================================
@@ -1869,6 +1947,7 @@ class DatabaseManager:
             self._create_unique_email_constraint(cur)
             self._migrate_orders_table(cur)
             self._migrate_qr_enabled(cur)
+            self._migrate_qr_images_table(cur)  # NYTT: Skapa qr_images tabell
             
             logger.info("Database initialized")
     
@@ -1922,6 +2001,14 @@ class DatabaseManager:
                 total_scans INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+            """,
+            f"""
+            CREATE TABLE IF NOT EXISTS qr_images (
+                qr_id TEXT PRIMARY KEY,
+                image_base64 TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (qr_id) REFERENCES qr_codes(qr_id) ON DELETE CASCADE
             )
             """,
             f"""
@@ -2099,6 +2186,7 @@ class DatabaseManager:
             ("idx_orders_status", "orders(status)"),
             ("idx_orders_number", "orders(order_number)"),
             ("idx_orders_created", "orders(created_at)"),
+            ("idx_qr_images_qr_id", "qr_images(qr_id)"),  # NYTT: Index för qr_images
         ]
         
         for name, columns in indexes:
@@ -2204,6 +2292,29 @@ class DatabaseManager:
                 cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT TRUE")
             logger.info("La till is_enabled kolumn i qr_codes")
 
+    def _migrate_qr_images_table(self, cursor) -> None:
+        """Skapa qr_images tabell för lagring av QR-bilder som base64."""
+        try:
+            cursor.execute("SELECT qr_id FROM qr_images LIMIT 1")
+        except (sqlite3.OperationalError, psycopg2.Error):
+            # Tabellen finns inte, skapa den
+            cursor.execute("""
+                CREATE TABLE qr_images (
+                    qr_id TEXT PRIMARY KEY,
+                    image_base64 TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (qr_id) REFERENCES qr_codes(qr_id) ON DELETE CASCADE
+                )
+            """)
+            logger.info("Skapade qr_images tabell för lagring av QR-bilder")
+            
+            # Skapa index
+            try:
+                cursor.execute("CREATE INDEX idx_qr_images_qr_id ON qr_images(qr_id)")
+                logger.info("Skapade index för qr_images")
+            except Exception as e:
+                logger.warning(f"Kunde inte skapa index för qr_images: {e}")
+
 
 # ============================================================================
 # Facade / Main Database Class
@@ -2218,6 +2329,7 @@ class Database:
     def _init_repositories(self) -> None:
         self._users = UserRepository(self._db)
         self._qrs = QRCodeRepository(self._db)
+        self._qr_images = QRImageRepository(self._db)  # NYTT: QR Image repository
         self._handovers = HandoverRepository(self._db)
         self._missing = MissingDiscRepository(self._db)
         self._premium_subs = PremiumSubscriptionRepository(self._db)
@@ -2333,6 +2445,28 @@ class Database:
     
     def increment_qr_scans(self, qr_id: str) -> None:
         self._qrs.increment_scans(qr_id)
+    
+    # QR Image methods - NYTT
+    def save_qr_image(self, qr_id: str, image_base64: str) -> bool:
+        """Spara QR-bild som base64 i databasen."""
+        return self._qr_images.save(qr_id, image_base64)
+    
+    def get_qr_image(self, qr_id: str) -> Optional[str]:
+        """Hämta QR-bild base64 från databasen."""
+        return self._qr_images.get_image_base64(qr_id)
+    
+    def get_qr_image_data(self, qr_id: str) -> Optional[QRImage]:
+        """Hämta QR-bild data från databasen."""
+        img = self._qr_images.get_by_qr_id(qr_id)
+        return img.to_dict() if img else None
+    
+    def qr_image_exists(self, qr_id: str) -> bool:
+        """Kolla om QR-bild finns i databasen."""
+        return self._qr_images.exists(qr_id)
+    
+    def delete_qr_image(self, qr_id: str) -> bool:
+        """Ta bort QR-bild från databasen."""
+        return self._qr_images.delete(qr_id)
     
     # Handover methods
     def create_handover(
@@ -2576,6 +2710,13 @@ class Database:
             
             cur.execute(f"""
                 UPDATE handovers 
+                SET qr_id = {self._db.dialect.placeholder()} 
+                WHERE qr_id = {self._db.dialect.placeholder()}
+            """, (new_qr_id, old_qr_id))
+            
+            # Uppdatera även qr_images tabellen
+            cur.execute(f"""
+                UPDATE qr_images 
                 SET qr_id = {self._db.dialect.placeholder()} 
                 WHERE qr_id = {self._db.dialect.placeholder()}
             """, (new_qr_id, old_qr_id))
