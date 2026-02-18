@@ -334,12 +334,17 @@ class DatabaseConnection:
     ) -> Optional[Dict]:
         with self.get_connection() as conn:
             cur = conn.cursor()
+
+            if self.database_url:
+                query = query.replace("?", "%s")
+
             cur.execute(query, params)
-            
+        
             if fetch_one:
                 row = cur.fetchone()
                 return dict(row) if row else None
             return None
+
     
     def execute_many(
         self, 
@@ -357,8 +362,13 @@ class DatabaseConnection:
     def fetch_all(self, query: str, params: Tuple = ()) -> List[Dict]:
         with self.get_connection() as conn:
             cur = conn.cursor()
+
+            if self.database_url:
+                query = query.replace("?", "%s")
+
             cur.execute(query, params)
             return [dict(row) for row in cur.fetchall()]
+
     
     def fetch_one(self, query: str, params: Tuple = ()) -> Optional[Dict]:
         return self.execute(query, params, fetch_one=True)
@@ -511,7 +521,7 @@ class UserRepository(BaseRepository):
     def activate_premium(self, user_id: int, expires_at: Optional[datetime] = None) -> bool:
         query = """
             UPDATE users 
-            SET is_premium = 1, premium_started_at = CURRENT_TIMESTAMP,
+            SET is_premium = TRUE, premium_started_at = CURRENT_TIMESTAMP,
                 premium_until = ?
             WHERE id = ?
         """
@@ -522,7 +532,7 @@ class UserRepository(BaseRepository):
     def deactivate_premium(self, user_id: int) -> bool:
         query = """
             UPDATE users 
-            SET is_premium = 0, premium_until = NULL
+            SET is_premium = FALSE, premium_until = NULL
             WHERE id = ?
         """
         self.db.execute(query, (user_id,))
@@ -557,7 +567,7 @@ class UserRepository(BaseRepository):
     def get_premium_count(self) -> int:
         query = """
             SELECT COUNT(*) as count FROM users 
-            WHERE is_premium = 1 AND is_active = TRUE
+            WHERE is_premium = TRUE AND is_active = TRUE
             AND (premium_until IS NULL OR premium_until > CURRENT_TIMESTAMP)
         """
         row = self.db.fetch_one(query)
@@ -683,14 +693,14 @@ class QRCodeRepository(BaseRepository):
     
     def get_active_for_user(self, user_id: int) -> List[QRCode]:
         """Hämta alla aktiva och aktiverade QR-koder för användare."""
-        query = "SELECT * FROM qr_codes WHERE user_id = ? AND is_active = TRUE AND is_enabled = 1 ORDER BY created_at DESC"
+        query = "SELECT * FROM qr_codes WHERE user_id = ? AND is_active = TRUE AND is_enabled = TRUE ORDER BY created_at DESC"
         rows = self.db.fetch_all(query, (user_id,))
         return [self.row_to_model(row) for row in rows]
     
     def activate(self, qr_id: str, user_id: int) -> None:
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = TRUE, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
+            SET user_id = ?, is_active = TRUE, is_enabled = TRUE, activated_at = CURRENT_TIMESTAMP
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
@@ -705,7 +715,7 @@ class QRCodeRepository(BaseRepository):
         
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = TRUE, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
+            SET user_id = ?, is_active = TRUE, is_enabled = TRUE, activated_at = CURRENT_TIMESTAMP
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
@@ -718,7 +728,7 @@ class QRCodeRepository(BaseRepository):
             return False
         
         query = "UPDATE qr_codes SET is_enabled = ? WHERE qr_id = ?"
-        self.db.execute(query, (1 if enabled else 0, qr_id))
+        self.db.execute(query, (True if enabled else False, qr_id))
         return True
     
     def increment_scans(self, qr_id: str) -> None:
@@ -764,8 +774,8 @@ class QRCodeRepository(BaseRepository):
         queries = {
             'active': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE",
             'inactive': "SELECT COUNT(*) FROM qr_codes WHERE is_active = FALSE",
-            'enabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = 1",
-            'disabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = 0",
+            'enabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = TRUE",
+            'disabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = FALSE",
             'total_scans': "SELECT SUM(total_scans) FROM qr_codes"
         }
         return {
@@ -1141,10 +1151,22 @@ class UnitOfWork:
             self.conn.commit()
         self.conn.close()
     
-    def execute(self, query: str, params: Tuple = ()) -> int:
+    def execute(self, query: str, params: Tuple = ()):
+
         cur = self.conn.cursor()
+
+        # PostgreSQL använder %s istället för ?
+        if self.database_url:
+            query = query.replace("?", "%s")
+
         cur.execute(query, params)
-        return cur.lastrowid
+
+        # SQLite använder lastrowid
+        if not self.database_url:
+            return cur.lastrowid
+
+        return None
+
     
     def get_cursor(self):
         return self.conn.cursor()
@@ -2254,7 +2276,7 @@ class Database:
             
             cur.execute("""
                 UPDATE qr_codes 
-                SET user_id = ?, is_active = TRUE, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
+                SET user_id = ?, is_active = TRUE, is_enabled = TRUE, activated_at = CURRENT_TIMESTAMP
                 WHERE qr_id = ?
             """, (user_id, qr_id))
             
