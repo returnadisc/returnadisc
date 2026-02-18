@@ -104,7 +104,7 @@ def generate_random_qr_id(length: int = 5) -> str:
 def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     """
     Skapa QR-kod bild med ReturnaDisc-design och spara den.
-    Design: QR-kod med text under (returnadisc.se + QR-ID i blått)
+    Design: QR-kod med text under (returnadisc.se + QR-ID i svart)
     """
     
     logger = logging.getLogger(__name__)
@@ -115,7 +115,6 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     
     logger.info(f"=== QR CODE DEBUG ===")
     logger.info(f"qr_id: {qr_id}")
-    logger.info(f"QR_FOLDER: {qr_folder}")
     
     # Skapa mappen
     try:
@@ -147,7 +146,8 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     
     # 3. Lägg till text under QR-koden
     qr_width, qr_height = qr_img.size
-    text_height = 80
+    margin = 20  # Marginal på sidorna
+    text_height = 100  # Ökat utrymme för text
     total_height = qr_height + text_height
     
     # Skapa ny bild med utrymme för text
@@ -157,34 +157,68 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     # 4. Rita texten
     draw = ImageDraw.Draw(final_img)
     
-    # Försök ladda typsnitt
+    # Ladda typsnitt
     try:
-        font_large = ImageFont.truetype("static/fonts/arial.ttf", 36)
-        font_small = ImageFont.truetype("static/fonts/arial.ttf", 24)
+        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 28)
+        font_id = ImageFont.truetype("static/fonts/arial.ttf", 42)
     except:
-        font_large = ImageFont.load_default()
-        font_small = ImageFont.load_default()
+        font_domain = ImageFont.load_default()
+        font_id = ImageFont.load_default()
     
-    # Rita "returnadisc.se" i grått
+    # === Rita "returnadisc.se" i grått ===
     text1 = "returnadisc.se"
-    bbox1 = draw.textbbox((0, 0), text1, font=font_small)
+    bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
     text1_width = bbox1[2] - bbox1[0]
-    x1 = (qr_width - text1_width) // 2
-    y1 = qr_height + 10
-    draw.text((x1, y1), text1, fill="#808080", font=font_small)
     
-    # Rita QR-ID i blått
-    bbox2 = draw.textbbox((0, 0), qr_id, font=font_large)
-    text2_width = bbox2[2] - bbox2[0]
+    # Centrera men med marginal på sidorna
+    available_width = qr_width - (2 * margin)
+    if text1_width > available_width:
+        scale = available_width / text1_width
+        new_size = int(28 * scale)
+        try:
+            font_domain = ImageFont.truetype("static/fonts/arial.ttf", new_size)
+        except:
+            font_domain = ImageFont.load_default()
+        bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
+        text1_width = bbox1[2] - bbox1[0]
+    
+    x1 = (qr_width - text1_width) // 2
+    y1 = qr_height + 8  # Närmare QR-koden
+    draw.text((x1, y1), text1, fill="#666666", font=font_domain)
+    
+    # === Rita QR-ID i KOLSVART ===
+    bbox_domain_bottom = y1 + (bbox1[3] - bbox1[1])
+    remaining_space = total_height - bbox_domain_bottom - 5
+    
+    # Börja med stor storlek och minska tills det får plats
+    id_font_size = 48
+    while id_font_size > 20:
+        try:
+            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_font_size)
+        except:
+            font_id = ImageFont.load_default()
+            break
+        
+        bbox2 = draw.textbbox((0, 0), qr_id, font=font_id)
+        text2_width = bbox2[2] - bbox2[0]
+        text2_height = bbox2[3] - bbox2[1]
+        
+        if text2_width <= available_width and text2_height <= remaining_space:
+            break
+        
+        id_font_size -= 2
+    
     x2 = (qr_width - text2_width) // 2
-    y2 = qr_height + 38
-    draw.text((x2, y2), qr_id, fill="#0066CC", font=font_large)
+    y2 = bbox_domain_bottom + 2
+    
+    # KOLSVART istället för blå
+    draw.text((x2, y2), qr_id, fill="#000000", font=font_id)
     
     # 5. Spara bilden
     logger.info(f"Saving to: {filepath}")
     try:
         final_img.save(filepath, 'PNG', quality=95)
-        logger.info(f"File saved successfully: {os.path.exists(filepath)}")
+        logger.info(f"File saved successfully")
     except Exception as e:
         logger.error(f"Failed to save file: {e}")
         raise
