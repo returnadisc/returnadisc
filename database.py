@@ -954,7 +954,7 @@ class HandoverRepository(BaseRepository):
         return self.db.last_insert_id()
     
     def confirm(self, handover_id: int) -> None:
-        query = "UPDATE handovers SET confirmed = 1 WHERE id = ?"
+        query = "UPDATE handovers SET confirmed = True WHERE id = ?"
         self.db.execute(query, (handover_id,))
     
     def get_count(self) -> int:
