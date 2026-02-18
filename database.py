@@ -1305,10 +1305,10 @@ class OrderRepository(BaseRepository):
             FROM orders o
             LEFT JOIN users u ON o.user_id = u.id
             {where_clause}
-            GROUP BY o.id, o.order_number
             ORDER BY o.created_at DESC
             {limit_clause}
         """
+
         rows = self.db.fetch_all(query, tuple(params))
         
         # Dekryptera email
