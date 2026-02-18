@@ -130,6 +130,24 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
     
+    # SKAPA QR-KODEN (DETTA SAKNADES!)
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    
+    qr_url = f"{public_url}/found/{qr_id}"
+    qr.add_data(qr_url)
+    qr.make(fit=True)
+    
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Konvertera till RGB om nödvändigt
+    if qr_img.mode != 'RGB':
+        qr_img = qr_img.convert('RGB')
+    
     logger.info(f"Saving to: {filepath}")
     
     try:
