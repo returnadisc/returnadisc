@@ -1663,10 +1663,15 @@ class PremiumService:
                     sub_id = row[0]
                     user_id = row[1]
                 
+                # Uppdatera prenumeration till expired
                 self.subs.update_status(sub_id, 'expired')
+                
+                # Kolla om användaren har andra aktiva prenumerationer
                 active_subs = self.subs.get_by_user(user_id, active_only=True)
                 if not active_subs:
+                    # Inga aktiva prenumerationer - avaktivera premium
                     self.users.deactivate_premium(user_id)
+                
                 count += 1
             
             if count > 0:
