@@ -1511,7 +1511,7 @@ class DatabaseManager:
         return [
             """
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
                 email TEXT NOT NULL,
                 email_hash TEXT,
@@ -1530,7 +1530,7 @@ class DatabaseManager:
             """,
             """
             CREATE TABLE IF NOT EXISTS premium_subscriptions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 status TEXT DEFAULT 'active',
                 started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1558,7 +1558,7 @@ class DatabaseManager:
             """,
             """
             CREATE TABLE IF NOT EXISTS handovers (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 qr_id TEXT,
                 finder_name TEXT,
                 finder_user_id INTEGER,
@@ -1575,7 +1575,7 @@ class DatabaseManager:
             """,
             """
             CREATE TABLE IF NOT EXISTS missing_discs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 disc_name TEXT NOT NULL,
                 description TEXT,
@@ -1593,7 +1593,7 @@ class DatabaseManager:
             """,
             """
             CREATE TABLE IF NOT EXISTS clubs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
@@ -1604,7 +1604,7 @@ class DatabaseManager:
             """,
             """
             CREATE TABLE IF NOT EXISTS orders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 order_number TEXT UNIQUE NOT NULL,
                 user_id INTEGER NOT NULL,
                 qr_id TEXT,
@@ -1680,7 +1680,7 @@ class DatabaseManager:
         except sqlite3.OperationalError:
             cursor.execute("""
                 CREATE TABLE premium_subscriptions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL,
                     status TEXT DEFAULT 'active',
                     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1762,7 +1762,7 @@ class DatabaseManager:
         except sqlite3.OperationalError:
             cursor.execute("""
                 CREATE TABLE orders (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY,
                     order_number TEXT UNIQUE NOT NULL,
                     user_id INTEGER NOT NULL,
                     qr_id TEXT,
