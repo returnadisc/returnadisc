@@ -1632,62 +1632,47 @@ class PremiumService:
         )
     
     def check_and_update_expired_subscriptions(self) -> int:
-        """Kontrollera och uppdatera utgångna prenumerationer. Returnerar antal uppdaterade."""
-        # Använd databasspecifik tidsjämförelse
+        """Kontrollera och uppdatera utgångna/inaktiva prenumerationer."""
+        count = 0
+        
+        # Hitta användare med is_premium=TRUE men ingen aktiv prenumeration
         if self.db.database_url:
-            query = """
-                SELECT id, user_id, expires_at FROM premium_subscriptions
-                WHERE status = 'active' 
-                AND expires_at IS NOT NULL 
-                AND expires_at < CURRENT_TIMESTAMP
+            orphaned_query = """
+                SELECT u.id as user_id 
+                FROM users u
+                WHERE u.is_premium = TRUE
+                AND NOT EXISTS (
+                    SELECT 1 FROM premium_subscriptions ps 
+                    WHERE ps.user_id = u.id 
+                    AND ps.status = 'active'
+                    AND (ps.expires_at IS NULL OR ps.expires_at > CURRENT_TIMESTAMP)
+                )
             """
         else:
-            query = """
-                SELECT id, user_id, expires_at FROM premium_subscriptions
-                WHERE status = 'active' 
-                AND expires_at IS NOT NULL 
-                AND expires_at < datetime('now')
+            orphaned_query = """
+                SELECT u.id as user_id 
+                FROM users u
+                WHERE u.is_premium = 1
+                AND NOT EXISTS (
+                    SELECT 1 FROM premium_subscriptions ps 
+                    WHERE ps.user_id = u.id 
+                    AND ps.status = 'active'
+                    AND (ps.expires_at IS NULL OR ps.expires_at > datetime('now'))
+                )
             """
         
         with self.db.get_connection() as conn:
             cur = conn.cursor()
-            cur.execute(query)
+            cur.execute(orphaned_query)
             rows = cur.fetchall()
             
-            count = 0
             for row in rows:
-                # Hantera både dict och tuple format
-                if isinstance(row, dict):
-                    sub_id = row.get('id')
-                    user_id = row.get('user_id')
-                    expires_at = row.get('expires_at')
-                else:
-                    sub_id = row[0]
-                    user_id = row[1]
-                    expires_at = row[2]
-                
-                # Uppdatera prenumeration till expired
-                self.subs.update_status(sub_id, 'expired')
-                
-                # Kolla om användaren har andra aktiva prenumerationer
-                active_subs = self.subs.get_by_user(user_id, active_only=True)
-                
-                if not active_subs:
-                    # 🔴 VIKTIGT: Deaktivera även i users-tabellen!
-                    self.users.deactivate_premium(user_id)
-                    logger.info(f"Premium deaktiverat för användare {user_id} (prenumeration {sub_id} utgången)")
-                else:
-                    # Uppdatera till senaste aktiva prenumerationens expiry
-                    latest = active_subs[0]
-                    self.users.activate_premium(user_id, latest.expires_at)
-                    logger.info(f"Premium uppdaterat för användare {user_id} till nytt expiry: {latest.expires_at}")
-                
+                user_id = row['user_id'] if isinstance(row, dict) else row[0]
+                self.users.deactivate_premium(user_id)
+                logger.info(f"Premium deaktiverat för användare {user_id}")
                 count += 1
-            
-            if count > 0:
-                logger.info(f"Uppdaterade {count} utgångna prenumerationer")
-            
-            return count
+        
+        return count
     
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
