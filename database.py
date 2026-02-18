@@ -468,7 +468,16 @@ class DatabaseConnection:
             return [dict(row) for row in cur.fetchall()]
 
     def fetch_one(self, query: str, params: Tuple = ()) -> Optional[Dict]:
-        return self.execute(query, params, fetch_one=True)
+
+        with self.get_connection() as conn:
+            cur = conn.cursor()
+            adapted_query = self._adapt_query(query)
+            cur.execute(adapted_query, params)
+
+            row = cur.fetchone()
+
+            return dict(row) if row else None
+
     
     def last_insert_id(self, cursor=None) -> int:
         """Hämta senaste insert ID. OBS: För PostgreSQL krävs RETURNING."""
