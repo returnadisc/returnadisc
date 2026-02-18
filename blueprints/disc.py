@@ -288,10 +288,12 @@ def dashboard():
         stats = db.get_user_stats(user_id)
         missing_stats = db.get_user_missing_stats(user_id)
         
+        # Kolla och uppdatera premium-status
         premium_status = db.get_user_premium_status(user_id)
         has_premium = premium_status.get('has_premium', False) if premium_status else False
         is_launch = db.is_launch_period()
         
+        # UPPDATERA SESSIONEN med aktuell premium-status
         session['has_premium'] = has_premium
         
         data = {
@@ -305,6 +307,9 @@ def dashboard():
             'is_launch': is_launch,
             'premium_status': premium_status
         }
+        
+        premium_status = db.get_user_premium_status(user_id)
+        print(f"DEBUG: {premium_status}")  # Lägg till detta
         
         return render_template('disc/dashboard.html', **data)
         
