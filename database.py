@@ -1689,6 +1689,10 @@ class PremiumService:
     
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
+        
+        # 🔴 VIKTIGT: Uppdatera utgångna prenumerationer först
+        self.check_and_update_expired_subscriptions()
+        
         user = self.users.get_by_id(user_id)
         if not user:
             return {'has_premium': False, 'error': 'User not found'}
@@ -2296,12 +2300,10 @@ class Database:
     
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
-        # Kolla utgångna prenumerationer först
+        # 🔴 VIKTIGT: Kolla utgångna prenumerationer först
         self.check_expired_subscriptions()
-    
-        user = self.users.get_by_id(user_id)
-        if not user:
-            return {'has_premium': False, 'error': 'User not found'}
+        
+        return self._premium_service.get_user_subscription_status(user_id)
     
     def check_expired_subscriptions(self) -> int:
         return self._premium_service.check_and_update_expired_subscriptions()
@@ -2416,9 +2418,11 @@ class Database:
             'member_since': stats.member_since
         }
     
-    def get_user_premium_status(self, user_id: int) -> Dict:
-        return self._premium_service.get_user_subscription_status(user_id)
-    
+    # 🔴 BORTTAGEN: Dublett metod - använd get_user_subscription_status istället
+    # def get_user_premium_status(self, user_id: int) -> Dict:
+    #     result = self._premium_service.get_user_subscription_status(user_id)
+    #     print(f"DEBUG get_user_premium_status: {type(result)}, value: {result}")
+    #     return result
     
     def get_user_missing_stats(self, user_id: int) -> Dict:
         stats = self._user_service.get_stats(user_id)
@@ -2745,11 +2749,6 @@ class Database:
             logger.error(f"Fel vid uppdatering av användare: {e}")
             raise
 
-
-    def get_user_premium_status(self, user_id: int) -> Dict:
-        result = self._premium_service.get_user_subscription_status(user_id)
-        print(f"DEBUG get_user_premium_status: {type(result)}, value: {result}")
-        return result
 
 # Skapa global databasinstans
 db = Database(DB_PATH)
