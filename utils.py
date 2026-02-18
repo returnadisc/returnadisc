@@ -118,42 +118,84 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     qr_img = qr_img.convert('RGB')
     
     qr_width, qr_height = qr_img.size
+    margin = 20
     
-    # Fasta, säkra storlekar
+    # BERÄKNA MAX STORLEK FÖR TEXT
+    available_width = qr_width - (2 * margin)
+    
+    # === STORLEKAR SOM FUNKAR ===
+    domain_size = 32  # returnadisc.se
+    id_size = 44      # C7YKU (större)
+    
     try:
-        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 28)
-        font_id = ImageFont.truetype("static/fonts/arial.ttf", 36)
+        font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_size)
+        font_id = ImageFont.truetype("static/fonts/arial.ttf", id_size)
     except:
         font_domain = ImageFont.load_default()
         font_id = ImageFont.load_default()
     
-    # Mät texten först
+    # MÄT ALLT FÖRST
     temp_draw = ImageDraw.Draw(Image.new('RGB', (1, 1)))
     
+    # Mät domän
     bbox_d = temp_draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+    domain_w = bbox_d[2] - bbox_d[0]
     domain_h = bbox_d[3] - bbox_d[1]
     
+    # Skala ner domän om för bred
+    if domain_w > available_width:
+        scale = available_width / domain_w
+        domain_size = int(domain_size * scale)
+        try:
+            font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_size)
+        except:
+            font_domain = ImageFont.load_default()
+        bbox_d = temp_draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+        domain_w = bbox_d[2] - bbox_d[0]
+        domain_h = bbox_d[3] - bbox_d[1]
+    
+    # Mät ID
     bbox_i = temp_draw.textbbox((0, 0), qr_id, font=font_id)
+    id_w = bbox_i[2] - bbox_i[0]
     id_h = bbox_i[3] - bbox_i[1]
     
-    # Beräkna total höjd
-    total_height = qr_height + 5 + domain_h + 8 + id_h + 10
+    # Skala ner ID om för bred
+    if id_w > available_width:
+        scale = available_width / id_w
+        id_size = int(id_size * scale)
+        try:
+            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_size)
+        except:
+            font_id = ImageFont.load_default()
+        bbox_i = temp_draw.textbbox((0, 0), qr_id, font=font_id)
+        id_w = bbox_i[2] - bbox_i[0]
+        id_h = bbox_i[3] - bbox_i[1]
+    
+    # BERÄKNA HÖJD - VIKTIGT!
+    space_below_qr = 6        # Mellanrum under QR-koden
+    space_between_texts = 10  # Mellanrum mellan texterna
+    bottom_margin = 12        # Marginal i botten
+    
+    total_height = (qr_height + 
+                   space_below_qr + 
+                   domain_h + 
+                   space_between_texts + 
+                   id_h + 
+                   bottom_margin)
     
     # Skapa bild
     final_img = Image.new('RGB', (qr_width, total_height), 'white')
     final_img.paste(qr_img, (0, 0))
     draw = ImageDraw.Draw(final_img)
     
-    # Rita domän
-    domain_w = bbox_d[2] - bbox_d[0]
+    # RITA DOMÄN (returnadisc.se)
     x_d = (qr_width - domain_w) // 2
-    y_d = qr_height + 5
-    draw.text((x_d, y_d), "returnadisc.se", fill="#666666", font=font_domain)
+    y_d = qr_height + space_below_qr
+    draw.text((x_d, y_d), "returnadisc.se", fill="#555555", font=font_domain)
     
-    # Rita ID
-    id_w = bbox_i[2] - bbox_i[0]
+    # RITA ID (C7YKU) - EFTER DOMÄNEN + MELLANRUM
     x_i = (qr_width - id_w) // 2
-    y_i = y_d + domain_h + 8
+    y_i = y_d + domain_h + space_between_texts
     draw.text((x_i, y_i), qr_id, fill="#000000", font=font_id)
     
     # Skala om för PDF om nödvändigt
