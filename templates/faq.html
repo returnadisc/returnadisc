@@ -82,32 +82,33 @@
 
     .faq-item {
         border-bottom: 1px solid rgba(22, 101, 52, 0.1);
-        padding: 24px 0;
+        padding: 28px 0;
     }
 
     .faq-item:last-child {
         border-bottom: none;
     }
 
-    .faq-question {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #166534;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
+    .faq-item.featured {
+        background: linear-gradient(135deg, rgba(22, 101, 52, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
+        margin: 0 -24px;
+        padding: 28px 24px;
+        border-radius: 16px;
+        border-bottom: 2px solid rgba(22, 101, 52, 0.2);
     }
 
-    .faq-question::before {
-        content: '❓';
-        flex-shrink: 0;
+    .faq-question {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #166534;
+        margin-bottom: 16px;
+        line-height: 1.4;
     }
 
     .faq-answer {
-        color: #4b5563;
-        line-height: 1.7;
-        padding-left: 36px;
+        color: #374151;
+        line-height: 1.8;
+        font-size: 1rem;
     }
 
     .faq-answer p {
@@ -119,35 +120,38 @@
     }
 
     .faq-answer ul {
-        margin: 12px 0;
-        padding-left: 20px;
+        margin: 16px 0;
+        padding-left: 24px;
     }
 
     .faq-answer li {
-        margin-bottom: 8px;
+        margin-bottom: 10px;
+        position: relative;
     }
 
-    .highlight-box {
-        background: #dbeafe;
-        border-left: 4px solid #3b82f6;
+    .faq-answer li::marker {
+        color: #166534;
+    }
+
+    .info-box {
+        background: #f0fdf4;
+        border-left: 4px solid #166534;
         padding: 16px 20px;
         border-radius: 0 12px 12px 0;
         margin: 16px 0;
     }
 
-    .highlight-box p {
+    .info-box p {
         margin: 0;
-        color: #1e40af;
+        color: #14532d;
         font-size: 0.95rem;
     }
 
     .weight-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+        display: inline-block;
         background: #166534;
         color: white;
-        padding: 6px 14px;
+        padding: 6px 16px;
         border-radius: 20px;
         font-weight: 600;
         font-size: 0.9rem;
@@ -190,8 +194,9 @@
             font-size: 1.1rem;
         }
 
-        .faq-answer {
-            padding-left: 0;
+        .faq-item.featured {
+            margin: 0 -16px;
+            padding: 24px 16px;
         }
     }
 </style>
@@ -209,23 +214,30 @@
         </div>
 
         <div class="faq-container">
-            <!-- Vad väger en QR-kod? -->
-            <div class="faq-item">
-                <div class="faq-question">Vad väger en QR-kod?</div>
+            <!-- Varför ska jag använda returnadisc.se? (ÖVERST) -->
+            <div class="faq-item featured">
+                <div class="faq-question">Varför ska jag använda returnadisc.se?</div>
                 <div class="faq-answer">
-                    <span class="weight-badge">⚖️ 0,1 gram</span>
-                    <p style="margin-top: 12px;">Våra QR-klistermärken väger nästan ingenting och påverkar inte discens flygegenskaper.</p>
+                    <p>ReturnaDisc är framtaget för att underlätta återlämning av hittade discar till ägaren på ett anonymt, snabbt och säkert sätt.</p>
+                    
+                    <p><strong>Fördelarna är:</strong></p>
+                    <ul>
+                        <li>Anonym överlämning utan att dela personlig information</li>
+                        <li>Snabb process där hittaren skannar QR-koden och lämnar discen på en säker plats</li>
+                        <li>Behåll discens värde – permanent tusch sänker värdet vid försäljning eller byte. QR-koden kan alltid tas bort när du vill sälja discen</li>
+                        <li>Community-kartan fungerar som en samlingsplats för borttappade discar, där fler användare ökar chansen att få sin disc återfunnen</li>
+                    </ul>
                 </div>
             </div>
 
             <!-- Vad ingår i BAS? -->
             <div class="faq-item">
-                <div class="faq-question">Vad ingår i BAS (gratisversionen)?</div>
+                <div class="faq-question">Vad ingår i BAS?</div>
                 <div class="faq-answer">
                     <ul>
-                        <li><strong>Gratis användande</strong> av tjänsten med anonym överlämning, bild och position</li>
-                        <li><strong>Registrering av disc</strong> på Community-kartan (syns för premiumanvändare)</li>
-                        <li><strong>Skriv ut din egen QR-kod</strong> om du föredrar det</li>
+                        <li>Gratis användande av tjänsten med anonym överlämning, bild och position</li>
+                        <li>Registrering av disc på Community-kartan (synlig för premiumanvändare)</li>
+                        <li>Möjlighet att skriva ut din egen QR-kod</li>
                     </ul>
                 </div>
             </div>
@@ -234,11 +246,19 @@
             <div class="faq-item">
                 <div class="faq-question">Vad ingår i Premium?</div>
                 <div class="faq-answer">
-                    <p>Med Premium får du allt i BAS, plus:</p>
+                    <p>Premium inkluderar samtliga funktioner i BAS, samt:</p>
                     <ul>
-                        <li>🗺️ <strong>Full tillgång till community-kartan</strong> – se alla registrerade discar</li>
-                        <li>🚀 <strong>Early access</strong> till nya kommande funktioner</li>
+                        <li>Full tillgång till community-kartan med samtliga registrerade discar</li>
+                        <li>Early access till nya funktioner som lanseras</li>
                     </ul>
+                </div>
+            </div>
+
+            <!-- Varför får inte BAS tillgång till allt? -->
+            <div class="faq-item">
+                <div class="faq-question">Varför får inte BAS-användare se alla discar på kartan?</div>
+                <div class="faq-answer">
+                    <p>Detta är en säkerhetsåtgärd för att skydda communityns saknade discar mot ohederliga personer. Endast premiummedlemmar kan se exakta positioner för saknade discar, vilket säkerställer att de som har tillgång till informationen är engagerade i communityn.</p>
                 </div>
             </div>
 
@@ -246,9 +266,9 @@
             <div class="faq-item">
                 <div class="faq-question">Måste jag köpa stickers?</div>
                 <div class="faq-answer">
-                    <p><strong>Nej, det är inte obligatoriskt.</strong> Du kan skriva ut din egen QR-kod eller bara skriva ID-numret på discen.</p>
-                    <div class="highlight-box">
-                        <p>💡 <strong>Rekommendation:</strong> Våra klistermärken är speciellt framtagna för att sitta fast ordentligt och tåla vatten, vilket ger bäst skydd för din disc.</p>
+                    <p>Nej, det är inte obligatoriskt. Du kan skriva ut din egen QR-kod eller skriva ID-numret direkt på discen.</p>
+                    <div class="info-box">
+                        <p>Våra klistermärken är speciellt framtagna för att sitta fast ordentligt och tåla vatten, vilket ger bäst skydd för din disc.</p>
                     </div>
                 </div>
             </div>
@@ -257,7 +277,7 @@
             <div class="faq-item">
                 <div class="faq-question">Kan jag ha flera QR-koder?</div>
                 <div class="faq-answer">
-                    <p><strong>Ja, absolut!</strong> När du köper stickers får du QR-koder med olika ID:n. Alla dessa kopplas till ditt konto och du kan ha flera QR-koder aktiverade samtidigt – perfekt om du har många discar.</p>
+                    <p>Ja. När du köper stickers får du QR-koder med olika ID:n som alla kopplas till ditt konto. Du kan ha flera QR-koder aktiverade samtidigt.</p>
                 </div>
             </div>
 
@@ -265,40 +285,20 @@
             <div class="faq-item">
                 <div class="faq-question">Kan jag tävla med QR-koden på discen?</div>
                 <div class="faq-answer">
-                    <p><strong>Ja, men med en viktig detalj.</strong> Enligt PDGA:s regler (813.01 Illegal Disc) är det tillåtet att märka discen med permanent tusch eller dylikt. Vår QR-kod är ett tunt klistermärke som inte ändrar discens flygegenskaper.</p>
-                    <p>Om du är osäker inför en tävling kan du:</p>
-                    <ul>
-                        <li>Skriva QR-kodens ID-nummer direkt på discen med permanent tusch</li>
-                        <li>Skriva även "returnadisc.se" så hittaren vet vart de ska gå</li>
-                    </ul>
-                    <div class="highlight-box">
-                        <p>⚠️ <strong>Observera:</strong> Discen måste vara identifikationsmärkt vid tävling. Ett omarkerat disc kast ger varning första gången, och straffkast vid upprepade tillfällen.</p>
+                    <p>Ja. Enligt PDGA:s regler (813.01 Illegal Disc) är det tillåtet att märka discen med permanent tusch eller liknande. Vår QR-kod är ett tunt klistermärke som inte ändrar discens flygegenskaper.</p>
+                    <p>Om du är osäker inför en tävling kan du skriva QR-kodens ID-nummer och returnadisc.se direkt på discen med permanent tusch.</p>
+                    <div class="info-box">
+                        <p>Discen måste vara identifikationsmärkt vid tävling. Ett omarkerat disc kast ger varning första gången, och straffkast vid upprepade tillfällen.</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Varför använda returnadisc.se? -->
+            <!-- Vad väger en QR-kod? -->
             <div class="faq-item">
-                <div class="faq-question">Varför ska jag använda returnadisc.se?</div>
+                <div class="faq-question">Vad väger en QR-kod?</div>
                 <div class="faq-answer">
-                    <p>ReturnaDisc finns för att göra det <strong>enkelt, anonymt och säkert</strong> att återlämna hittade discar till ägaren.</p>
-                    
-                    <p><strong>Fördelarna är många:</strong></p>
-                    <ul>
-                        <li>🎭 <strong>Anonym överlämning</strong> – ingen behöver dela personlig information</li>
-                        <li>⚡ <strong>Snabb process</strong> – hittaren skannar QR-koden och lämnar discen på en säker plats</li>
-                        <li>💰 <strong>Behåll discens värde</strong> – permanent tusch sänker värdet vid försäljning/byte. QR-koden kan alltid tas bort när du vill sälja discen</li>
-                        <li>🗺️ <strong>Community-kartan</strong> – ju fler som ansluter sig, desto större chans att få sin borttappade disc återfunnen</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Varför inte BAS tillgång till allt? -->
-            <div class="faq-item">
-                <div class="faq-question">Varför får inte BAS-användare se alla discar på kartan?</div>
-                <div class="faq-answer">
-                    <p>Det är en <strong>säkerhetsåtgärd</strong> för att skydda communityns saknade discar mot ohederliga personer.</p>
-                    <p>Endast premiummedlemmar kan se exakta positioner för saknade discar. Detta säkerställer att de som har tillgång till informationen är engagerade i communityn och har ett genuint intresse av att hjälpa till att återförena discar med ägarna.</p>
+                    <span class="weight-badge">0,1 gram</span>
+                    <p style="margin-top: 12px;">Våra QR-klistermärken väger nästan ingenting och påverkar inte discens flygegenskaper.</p>
                 </div>
             </div>
         </div>
