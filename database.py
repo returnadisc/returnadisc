@@ -87,6 +87,104 @@ encryption = EncryptionService.get_instance()
 
 
 # ============================================================================
+# SQL Dialect Helper - NYTT för PostgreSQL/SQLite kompatibilitet
+# ============================================================================
+
+class SQLDialect:
+    """Hjälpklass för databasspecifik SQL-syntax."""
+    
+    def __init__(self, is_postgres: bool = False):
+        self.is_postgres = is_postgres
+    
+    def now_minus_days(self, days: int) -> str:
+        """Returnera SQL för nuvarande tid minus X dagar."""
+        if self.is_postgres:
+            return f"CURRENT_TIMESTAMP - INTERVAL '{days} days'"
+        return f"datetime('now', '-{days} days')"
+    
+    def now_minus_months(self, months: int) -> str:
+        """Returnera SQL för nuvarande tid minus X månader."""
+        if self.is_postgres:
+            return f"CURRENT_TIMESTAMP - INTERVAL '{months} months'"
+        return f"datetime('now', '-{months} months')"
+    
+    def current_date(self) -> str:
+        """Returnera SQL för nuvarande datum."""
+        if self.is_postgres:
+            return "CURRENT_DATE"
+        return "date('now')"
+    
+    def current_timestamp(self) -> str:
+        """Returnera SQL för nuvarande timestamp."""
+        if self.is_postgres:
+            return "CURRENT_TIMESTAMP"
+        return "datetime('now')"
+    
+    def date_diff_days(self, col1: str, col2: str) -> str:
+        """Returnera SQL för skillnad i dagar mellan två datum."""
+        if self.is_postgres:
+            return f"EXTRACT(DAY FROM ({col1} - {col2}))"
+        return f"julianday({col1}) - julianday({col2})"
+    
+    def strftime(self, format_str: str, col: str) -> str:
+        """Returnera SQL för datumformatering."""
+        if self.is_postgres:
+            # Konvertera SQLite strftime-format till PostgreSQL TO_CHAR-format
+            pg_format = format_str.replace('%Y', 'YYYY').replace('%m', 'MM').replace('%d', 'DD')
+            return f"TO_CHAR({col}, '{pg_format}')"
+        return f"strftime('{format_str}', {col})"
+    
+    def random(self) -> str:
+        """Returnera SQL för slumpmässigt tal."""
+        if self.is_postgres:
+            return "RANDOM()"  # PostgreSQL har RANDOM() som returnerar 0.0 till 1.0
+        return "RANDOM()"  # SQLite har också RANDOM()
+    
+    def random_order(self) -> str:
+        """Returnera SQL för slumpmässig sortering."""
+        if self.is_postgres:
+            return "RANDOM()"
+        return "RANDOM()"
+    
+    def limit_offset(self, limit: int, offset: int = 0) -> str:
+        """Returnera SQL för LIMIT och OFFSET."""
+        if self.is_postgres:
+            return f"LIMIT {limit} OFFSET {offset}"
+        return f"LIMIT {limit} OFFSET {offset}"
+    
+    def coalesce(self, *args) -> str:
+        """Returnera SQL för COALESCE/IFNULL."""
+        args_str = ', '.join(str(a) for a in args)
+        if self.is_postgres:
+            return f"COALESCE({args_str})"
+        return f"COALESCE({args_str})"  # SQLite har också COALESCE
+    
+    def boolean(self, value: bool) -> str:
+        """Returnera SQL för boolean-värde."""
+        if self.is_postgres:
+            return "TRUE" if value else "FALSE"
+        return "1" if value else "0"
+    
+    def auto_increment(self) -> str:
+        """Returnera SQL för auto-increment kolumn."""
+        if self.is_postgres:
+            return "SERIAL"
+        return "INTEGER PRIMARY KEY AUTOINCREMENT"
+    
+    def placeholder(self, index: int = 0) -> str:
+        """Returnera SQL placeholder (? eller %s)."""
+        if self.is_postgres:
+            return "%s"
+        return "?"
+    
+    def cast_text(self, col: str) -> str:
+        """Casta kolumn till text."""
+        if self.is_postgres:
+            return f"CAST({col} AS TEXT)"
+        return f"CAST({col} AS TEXT)"
+
+
+# ============================================================================
 # Modell-klasser
 # ============================================================================
 
@@ -263,22 +361,17 @@ class MatchResult:
 # Database Connection Manager
 # ============================================================================
 
-import psycopg2
-from urllib.parse import urlparse
-
 class DatabaseConnection:
     def __init__(self, db_path: str = None):
         self.db_path = db_path or DB_PATH
         self.database_url = os.environ.get("DATABASE_URL")
-
+        self.dialect = SQLDialect(is_postgres=bool(self.database_url))
 
     @contextmanager
     def get_connection(self):
-
         # Railway / PostgreSQL
         if self.database_url:
             url = urlparse(self.database_url)
-
             conn = psycopg2.connect(
                 host=url.hostname,
                 port=url.port,
@@ -286,9 +379,7 @@ class DatabaseConnection:
                 password=url.password,
                 dbname=url.path[1:]
             )
-
             conn.cursor_factory = psycopg2.extras.RealDictCursor
-
             try:
                 yield conn
                 conn.commit()
@@ -297,12 +388,10 @@ class DatabaseConnection:
                 raise
             finally:
                 conn.close()
-
         # Lokal SQLite
         else:
             conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
-
             try:
                 yield conn
                 conn.commit()
@@ -312,9 +401,6 @@ class DatabaseConnection:
             finally:
                 conn.close()
 
-
-
-    
     @contextmanager
     def transaction(self):
         with self.get_connection() as conn:
@@ -326,6 +412,24 @@ class DatabaseConnection:
             else:
                 conn.commit()
     
+    def _adapt_query(self, query: str) -> str:
+        """Anpassa query för PostgreSQL om nödvändigt."""
+        if not self.database_url:
+            return query
+        
+        # Ersätt ? med %s för PostgreSQL
+        # Men var försiktig med att inte ersätta ? i strängar
+        # Detta är en enkel implementation - i produktion bör du använda en riktig parser
+        adapted = query.replace("?", "%s")
+        
+        # Hantera SQLite-specifika datumfunktioner som inte redan hanterats
+        # datetime('now') -> CURRENT_TIMESTAMP
+        adapted = adapted.replace("datetime('now')", "CURRENT_TIMESTAMP")
+        # date('now') -> CURRENT_DATE
+        adapted = adapted.replace("date('now')", "CURRENT_DATE")
+        
+        return adapted
+    
     def execute(
         self, 
         query: str, 
@@ -334,18 +438,14 @@ class DatabaseConnection:
     ) -> Optional[Dict]:
         with self.get_connection() as conn:
             cur = conn.cursor()
-
-            if self.database_url:
-                query = query.replace("?", "%s")
-
-            cur.execute(query, params)
+            adapted_query = self._adapt_query(query)
+            cur.execute(adapted_query, params)
         
             if fetch_one:
                 row = cur.fetchone()
                 return dict(row) if row else None
             return None
 
-    
     def execute_many(
         self, 
         query: str, 
@@ -353,29 +453,37 @@ class DatabaseConnection:
     ) -> int:
         with self.get_connection() as conn:
             cur = conn.cursor()
+            adapted_query = self._adapt_query(query)
             if params:
-                cur.executemany(query, params)
+                cur.executemany(adapted_query, params)
             else:
-                cur.execute(query)
+                cur.execute(adapted_query)
             return cur.rowcount
     
     def fetch_all(self, query: str, params: Tuple = ()) -> List[Dict]:
         with self.get_connection() as conn:
             cur = conn.cursor()
-
-            if self.database_url:
-                query = query.replace("?", "%s")
-
-            cur.execute(query, params)
+            adapted_query = self._adapt_query(query)
+            cur.execute(adapted_query, params)
             return [dict(row) for row in cur.fetchall()]
 
-    
     def fetch_one(self, query: str, params: Tuple = ()) -> Optional[Dict]:
         return self.execute(query, params, fetch_one=True)
     
-    def last_insert_id(self) -> int:
-        with self.get_connection() as conn:
-            return conn.cursor().lastrowid
+    def last_insert_id(self, cursor=None) -> int:
+        """Hämta senaste insert ID. OBS: För PostgreSQL krävs RETURNING."""
+        if self.database_url:
+            # För PostgreSQL ska vi använda RETURNING i INSERT istället
+            # Detta är en fallback som inte bör användas
+            logger.warning("last_insert_id() anropad för PostgreSQL - använd RETURNING istället!")
+            return None
+        else:
+            # SQLite
+            if cursor:
+                return cursor.lastrowid
+            # Om ingen cursor ges, hämta från ny connection (inte idealiskt)
+            with self.get_connection() as conn:
+                return conn.cursor().lastrowid
 
 
 # ============================================================================
@@ -409,12 +517,12 @@ class UserRepository(BaseRepository):
             if isinstance(val, datetime):
                 return val
             try:
-                return datetime.fromisoformat(str(val).replace('Z', '+00:00'))
+                # Hantera både ISO-format och PostgreSQL timestamp
+                if isinstance(val, str):
+                    return datetime.fromisoformat(val.replace('Z', '+00:00'))
+                return val
             except:
-                try:
-                    return val
-                except:
-                    return None
+                return None
         
         return User(
             id=row.get('id'),
@@ -438,108 +546,125 @@ class UserRepository(BaseRepository):
         encrypted_email = encryption.encrypt(email)
         email_hash = encryption.hash_email(email)
         
-        query = """
-            INSERT INTO users (name, email, email_hash, password, created_at, is_active)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
-        """
-        self.db.execute(query, (name, encrypted_email, email_hash, password_hash))
-        return self.db.last_insert_id()
+        if self.db.database_url:
+            # PostgreSQL - använd RETURNING
+            query = """
+                INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, TRUE)
+                RETURNING id
+            """
+            with self.db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(query, (name, encrypted_email, email_hash, password_hash))
+                row = cur.fetchone()
+                return row['id'] if row else None
+        else:
+            # SQLite
+            query = """
+                INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
+            """
+            self.db.execute(query, (name, encrypted_email, email_hash, password_hash))
+            return self.db.last_insert_id()
     
     def get_by_email(self, email: str) -> Optional[User]:
         email_hash = encryption.hash_email(email)
-        query = "SELECT * FROM users WHERE email_hash = ? AND is_active = TRUE"
+        query = f"SELECT * FROM users WHERE email_hash = {self.db.dialect.placeholder()} AND is_active = {self.db.dialect.boolean(True)}"
         row = self.db.fetch_one(query, (email_hash,))
         
         if row:
             return self.row_to_model(row)
         
         # Fallback för äldre användare utan hash
-        query = "SELECT * FROM users WHERE email = ? AND is_active = TRUE"
+        query = f"SELECT * FROM users WHERE email = {self.db.dialect.placeholder()} AND is_active = {self.db.dialect.boolean(True)}"
         row = self.db.fetch_one(query, (email.lower(),))
         return self.row_to_model(row) if row else None
     
     def get_by_id(self, user_id: int, include_password: bool = False) -> Optional[User]:
         if include_password:
-            query = "SELECT * FROM users WHERE id = ? AND is_active = TRUE"
+            query = f"SELECT * FROM users WHERE id = {self.db.dialect.placeholder()} AND is_active = {self.db.dialect.boolean(True)}"
         else:
-            query = """
+            query = f"""
                 SELECT id, name, email, email_hash, member_since, 
                        total_returns, is_premium, premium_until, premium_started_at,
                        last_login, created_at, is_active, deleted_at
-                FROM users WHERE id = ? AND is_active = TRUE
+                FROM users WHERE id = {self.db.dialect.placeholder()} AND is_active = {self.db.dialect.boolean(True)}
             """
         row = self.db.fetch_one(query, (user_id,))
         return self.row_to_model(row) if row else None
     
     def get_by_token(self, token: str) -> Optional[User]:
-        query = "SELECT * FROM users WHERE reset_token = ? AND is_active = TRUE"
+        query = f"SELECT * FROM users WHERE reset_token = {self.db.dialect.placeholder()} AND is_active = {self.db.dialect.boolean(True)}"
         row = self.db.fetch_one(query, (token,))
         return self.row_to_model(row) if row else None
     
     def soft_delete(self, user_id: int) -> bool:
-        query = """
+        query = f"""
             UPDATE users 
-            SET is_active = FALSE, deleted_at = CURRENT_TIMESTAMP,
+            SET is_active = {self.db.dialect.boolean(False)}, deleted_at = {self.db.dialect.current_timestamp()},
                 name = '[BORTTAGEN]', email = '[BORTTAGEN]',
                 email_hash = '', password = '[BORTTAGEN]'
-            WHERE id = ?
+            WHERE id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (user_id,))
         return True
     
     def update_password(self, user_id: int, password_hash: str) -> None:
-        query = """
+        query = f"""
             UPDATE users 
-            SET password = ?, reset_token = NULL 
-            WHERE id = ?
+            SET password = {self.db.dialect.placeholder()}, reset_token = NULL 
+            WHERE id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (password_hash, user_id))
     
     def set_reset_token(self, email: str, token: str) -> bool:
         email_hash = encryption.hash_email(email)
-        query = "UPDATE users SET reset_token = ? WHERE email_hash = ?"
+        query = f"UPDATE users SET reset_token = {self.db.dialect.placeholder()} WHERE email_hash = {self.db.dialect.placeholder()}"
         self.db.execute(query, (token, email_hash))
         return True
     
     def clear_reset_token(self, user_id: int) -> None:
-        query = "UPDATE users SET reset_token = NULL WHERE id = ?"
+        query = f"UPDATE users SET reset_token = NULL WHERE id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (user_id,))
     
     def update_last_login(self, user_id: int) -> None:
-        query = "UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?"
+        query = f"UPDATE users SET last_login = {self.db.dialect.current_timestamp()} WHERE id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (user_id,))
     
     def increment_returns(self, user_id: int) -> bool:
-        query = """
+        query = f"""
             UPDATE users 
             SET total_returns = total_returns + 1 
-            WHERE id = ?
+            WHERE id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (user_id,))
         return True
     
     def activate_premium(self, user_id: int, expires_at: Optional[datetime] = None) -> bool:
-        query = """
+        query = f"""
             UPDATE users 
-            SET is_premium = TRUE, premium_started_at = CURRENT_TIMESTAMP,
-                premium_until = ?
-            WHERE id = ?
+            SET is_premium = {self.db.dialect.boolean(True)}, premium_started_at = {self.db.dialect.current_timestamp()},
+                premium_until = {self.db.dialect.placeholder()}
+            WHERE id = {self.db.dialect.placeholder()}
         """
         expires_str = expires_at.isoformat() if expires_at else None
         self.db.execute(query, (expires_str, user_id))
         return True
     
     def deactivate_premium(self, user_id: int) -> bool:
-        query = """
+        query = f"""
             UPDATE users 
-            SET is_premium = FALSE, premium_until = NULL
-            WHERE id = ?
+            SET is_premium = {self.db.dialect.boolean(False)}, premium_until = NULL
+            WHERE id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (user_id,))
         return True
     
     def get_all_with_stats(self, active_only: bool = True) -> List[Dict]:
-        where_clause = "WHERE u.is_active = TRUE" if active_only else ""
+        where_clause = f"WHERE u.is_active = {self.db.dialect.boolean(True)}" if active_only else ""
+        
+        # Använd databasspecifik datumfunktion
+        date_expr = self.db.dialect.now_minus_days(7)
         
         query = f"""
             SELECT 
@@ -565,10 +690,10 @@ class UserRepository(BaseRepository):
         return rows
     
     def get_premium_count(self) -> int:
-        query = """
+        query = f"""
             SELECT COUNT(*) as count FROM users 
-            WHERE is_premium = TRUE AND is_active = TRUE
-            AND (premium_until IS NULL OR premium_until > CURRENT_TIMESTAMP)
+            WHERE is_premium = {self.db.dialect.boolean(True)} AND is_active = {self.db.dialect.boolean(True)}
+            AND (premium_until IS NULL OR premium_until > {self.db.dialect.current_timestamp()})
         """
         row = self.db.fetch_one(query)
         return row.get('count', 0) if row else 0
@@ -597,61 +722,86 @@ class PremiumSubscriptionRepository(BaseRepository):
         )
     
     def create(self, subscription: PremiumSubscription) -> int:
-        query = """
-            INSERT INTO premium_subscriptions 
-            (user_id, status, started_at, expires_at, payment_method, 
-             payment_id, amount_paid, currency, is_launch_offer, created_at)
-            VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """
-        self.db.execute(query, (
-            subscription.user_id,
-            subscription.status,
-            subscription.expires_at.isoformat() if subscription.expires_at else None,
-            subscription.payment_method,
-            subscription.payment_id,
-            subscription.amount_paid,
-            subscription.currency,
-            1 if subscription.is_launch_offer else 0
-        ))
-        return self.db.last_insert_id()
+        if self.db.database_url:
+            # PostgreSQL
+            query = """
+                INSERT INTO premium_subscriptions 
+                (user_id, status, started_at, expires_at, payment_method, 
+                 payment_id, amount_paid, currency, is_launch_offer, created_at)
+                VALUES (%s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                RETURNING id
+            """
+            with self.db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(query, (
+                    subscription.user_id,
+                    subscription.status,
+                    subscription.expires_at.isoformat() if subscription.expires_at else None,
+                    subscription.payment_method,
+                    subscription.payment_id,
+                    subscription.amount_paid,
+                    subscription.currency,
+                    1 if subscription.is_launch_offer else 0
+                ))
+                row = cur.fetchone()
+                return row['id'] if row else None
+        else:
+            # SQLite
+            query = """
+                INSERT INTO premium_subscriptions 
+                (user_id, status, started_at, expires_at, payment_method, 
+                 payment_id, amount_paid, currency, is_launch_offer, created_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """
+            self.db.execute(query, (
+                subscription.user_id,
+                subscription.status,
+                subscription.expires_at.isoformat() if subscription.expires_at else None,
+                subscription.payment_method,
+                subscription.payment_id,
+                subscription.amount_paid,
+                subscription.currency,
+                1 if subscription.is_launch_offer else 0
+            ))
+            return self.db.last_insert_id()
     
     def get_by_id(self, sub_id: int) -> Optional[PremiumSubscription]:
-        query = "SELECT * FROM premium_subscriptions WHERE id = ?"
+        query = f"SELECT * FROM premium_subscriptions WHERE id = {self.db.dialect.placeholder()}"
         row = self.db.fetch_one(query, (sub_id,))
         return self.row_to_model(row) if row else None
     
     def get_by_user(self, user_id: int, active_only: bool = True) -> List[PremiumSubscription]:
-        status_clause = "AND status = 'active'" if active_only else ""
+        status_clause = f"AND status = 'active'" if active_only else ""
         query = f"""
             SELECT * FROM premium_subscriptions 
-            WHERE user_id = ? {status_clause}
+            WHERE user_id = {self.db.dialect.placeholder()} {status_clause}
             ORDER BY created_at DESC
         """
         rows = self.db.fetch_all(query, (user_id,))
         return [self.row_to_model(row) for row in rows]
     
     def get_active_for_user(self, user_id: int) -> Optional[PremiumSubscription]:
-        query = """
+        query = f"""
             SELECT * FROM premium_subscriptions 
-            WHERE user_id = ? AND status = 'active'
-            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+            WHERE user_id = {self.db.dialect.placeholder()} AND status = 'active'
+            AND (expires_at IS NULL OR expires_at > {self.db.dialect.current_timestamp()})
             ORDER BY created_at DESC
             LIMIT 1
         """
-        row = self.db.fetch_one(query, (user_id,))
-        return self.row_to_model(row) if row else None
+        rows = self.db.fetch_all(query, (user_id,))
+        return self.row_to_model(rows[0]) if rows else None
     
     def cancel_subscription(self, sub_id: int) -> bool:
-        query = """
+        query = f"""
             UPDATE premium_subscriptions 
             SET status = 'cancelled'
-            WHERE id = ?
+            WHERE id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (sub_id,))
         return True
     
     def update_status(self, sub_id: int, status: str) -> bool:
-        query = "UPDATE premium_subscriptions SET status = ? WHERE id = ?"
+        query = f"UPDATE premium_subscriptions SET status = {self.db.dialect.placeholder()} WHERE id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (status, sub_id))
         return True
 
@@ -674,34 +824,43 @@ class QRCodeRepository(BaseRepository):
     
     def create(self, qr_id: str) -> bool:
         try:
-            query = "INSERT INTO qr_codes (qr_id) VALUES (?)"
+            query = f"INSERT INTO qr_codes (qr_id) VALUES ({self.db.dialect.placeholder()})"
             self.db.execute(query, (qr_id,))
             return True
-        except sqlite3.IntegrityError:
-            logger.warning(f"QR-kod {qr_id} finns redan")
+        except (sqlite3.IntegrityError, psycopg2.IntegrityError) as e:
+            logger.warning(f"QR-kod {qr_id} finns redan: {e}")
             return False
     
     def get_by_id(self, qr_id: str) -> Optional[QRCode]:
-        query = "SELECT * FROM qr_codes WHERE qr_id = ?"
+        query = f"SELECT * FROM qr_codes WHERE qr_id = {self.db.dialect.placeholder()}"
         row = self.db.fetch_one(query, (qr_id,))
         return self.row_to_model(row) if row else None
     
     def get_by_user(self, user_id: int) -> List[QRCode]:
-        query = "SELECT * FROM qr_codes WHERE user_id = ? ORDER BY created_at DESC"
+        query = f"SELECT * FROM qr_codes WHERE user_id = {self.db.dialect.placeholder()} ORDER BY created_at DESC"
         rows = self.db.fetch_all(query, (user_id,))
         return [self.row_to_model(row) for row in rows]
     
     def get_active_for_user(self, user_id: int) -> List[QRCode]:
         """Hämta alla aktiva och aktiverade QR-koder för användare."""
-        query = "SELECT * FROM qr_codes WHERE user_id = ? AND is_active = TRUE AND is_enabled = TRUE ORDER BY created_at DESC"
+        query = f"""
+            SELECT * FROM qr_codes 
+            WHERE user_id = {self.db.dialect.placeholder()} 
+            AND is_active = {self.db.dialect.boolean(True)} 
+            AND is_enabled = {self.db.dialect.boolean(True)} 
+            ORDER BY created_at DESC
+        """
         rows = self.db.fetch_all(query, (user_id,))
         return [self.row_to_model(row) for row in rows]
     
     def activate(self, qr_id: str, user_id: int) -> None:
-        query = """
+        query = f"""
             UPDATE qr_codes 
-            SET user_id = ?, is_active = TRUE, is_enabled = TRUE, activated_at = CURRENT_TIMESTAMP
-            WHERE qr_id = ?
+            SET user_id = {self.db.dialect.placeholder()}, 
+                is_active = {self.db.dialect.boolean(True)}, 
+                is_enabled = {self.db.dialect.boolean(True)}, 
+                activated_at = {self.db.dialect.current_timestamp()}
+            WHERE qr_id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (user_id, qr_id))
     
@@ -713,10 +872,13 @@ class QRCodeRepository(BaseRepository):
         if qr.user_id is not None:
             raise ValueError("QR-koden är redan tilldelad")
         
-        query = """
+        query = f"""
             UPDATE qr_codes 
-            SET user_id = ?, is_active = TRUE, is_enabled = TRUE, activated_at = CURRENT_TIMESTAMP
-            WHERE qr_id = ?
+            SET user_id = {self.db.dialect.placeholder()}, 
+                is_active = {self.db.dialect.boolean(True)}, 
+                is_enabled = {self.db.dialect.boolean(True)}, 
+                activated_at = {self.db.dialect.current_timestamp()}
+            WHERE qr_id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (user_id, qr_id))
         return True
@@ -727,12 +889,12 @@ class QRCodeRepository(BaseRepository):
         if not qr or qr.user_id != user_id:
             return False
         
-        query = "UPDATE qr_codes SET is_enabled = ? WHERE qr_id = ?"
-        self.db.execute(query, (True if enabled else False, qr_id))
+        query = f"UPDATE qr_codes SET is_enabled = {self.db.dialect.boolean(enabled)} WHERE qr_id = {self.db.dialect.placeholder()}"
+        self.db.execute(query, (qr_id,))
         return True
     
     def increment_scans(self, qr_id: str) -> None:
-        query = "UPDATE qr_codes SET total_scans = total_scans + 1 WHERE qr_id = ?"
+        query = f"UPDATE qr_codes SET total_scans = total_scans + 1 WHERE qr_id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (qr_id,))
     
     def get_all_with_users(self) -> List[Dict]:
@@ -771,17 +933,18 @@ class QRCodeRepository(BaseRepository):
         return rows
     
     def get_stats(self) -> Dict[str, int]:
+        # Använd COALESCE för att hantera NULL-värden i båda databaser
         queries = {
-            'active': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE",
-            'inactive': "SELECT COUNT(*) FROM qr_codes WHERE is_active = FALSE",
-            'enabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = TRUE",
-            'disabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = FALSE",
-            'total_scans': "SELECT SUM(total_scans) FROM qr_codes"
+            'active': f"SELECT COUNT(*) FROM qr_codes WHERE is_active = {self.db.dialect.boolean(True)}",
+            'inactive': f"SELECT COUNT(*) FROM qr_codes WHERE is_active = {self.db.dialect.boolean(False)}",
+            'enabled': f"SELECT COUNT(*) FROM qr_codes WHERE is_active = {self.db.dialect.boolean(True)} AND is_enabled = {self.db.dialect.boolean(True)}",
+            'disabled': f"SELECT COUNT(*) FROM qr_codes WHERE is_active = {self.db.dialect.boolean(True)} AND is_enabled = {self.db.dialect.boolean(False)}",
+            'total_scans': f"SELECT {self.db.dialect.coalesce('SUM(total_scans)', 0)} FROM qr_codes"
         }
         return {
             key: self.db.fetch_one(query).get(f'COUNT(*)', 0) or 0 
             if 'COUNT' in query else
-            self.db.fetch_one(query).get(f'SUM(total_scans)', 0) or 0
+            self.db.fetch_one(query).get(f'coalesce', 0) or 0
             for key, query in queries.items()
         }
 
@@ -808,38 +971,57 @@ class MissingDiscRepository(BaseRepository):
         )
     
     def create(self, disc: MissingDisc) -> int:
-        query = """
-            INSERT INTO missing_discs 
-            (user_id, disc_name, description, latitude, longitude, 
-             course_name, hole_number, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """
-        self.db.execute(query, (
-            disc.user_id, disc.disc_name, disc.description,
-            disc.latitude, disc.longitude, disc.course_name, disc.hole_number
-        ))
-        return self.db.last_insert_id()
+        if self.db.database_url:
+            # PostgreSQL
+            query = """
+                INSERT INTO missing_discs 
+                (user_id, disc_name, description, latitude, longitude, 
+                 course_name, hole_number, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                RETURNING id
+            """
+            with self.db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(query, (
+                    disc.user_id, disc.disc_name, disc.description,
+                    disc.latitude, disc.longitude, disc.course_name, disc.hole_number
+                ))
+                row = cur.fetchone()
+                return row['id'] if row else None
+        else:
+            # SQLite
+            query = """
+                INSERT INTO missing_discs 
+                (user_id, disc_name, description, latitude, longitude, 
+                 course_name, hole_number, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """
+            self.db.execute(query, (
+                disc.user_id, disc.disc_name, disc.description,
+                disc.latitude, disc.longitude, disc.course_name, disc.hole_number
+            ))
+            return self.db.last_insert_id()
     
     def get_by_id(self, disc_id: int) -> Optional[MissingDisc]:
-        query = "SELECT * FROM missing_discs WHERE id = ?"
+        query = f"SELECT * FROM missing_discs WHERE id = {self.db.dialect.placeholder()}"
         row = self.db.fetch_one(query, (disc_id,))
         return self.row_to_model(row) if row else None
     
     def get_by_user(self, user_id: int) -> List[MissingDisc]:
-        query = """
+        query = f"""
             SELECT * FROM missing_discs 
-            WHERE user_id = ? 
+            WHERE user_id = {self.db.dialect.placeholder()} 
             ORDER BY created_at DESC
         """
         rows = self.db.fetch_all(query, (user_id,))
         return [self.row_to_model(row) for row in rows]
     
     def get_all(self, status: str = 'missing') -> List[MissingDisc]:
-        query = """
+        query = f"""
             SELECT m.*, u.name as reporter_name 
             FROM missing_discs m
             LEFT JOIN users u ON m.user_id = u.id
-            WHERE m.status = ?
+            WHERE m.status = {self.db.dialect.placeholder()}
             ORDER BY m.created_at DESC
         """
         rows = self.db.fetch_all(query, (status,))
@@ -847,32 +1029,33 @@ class MissingDiscRepository(BaseRepository):
     
     def mark_found(self, disc_id: int, found_by_user_id: Optional[int] = None) -> None:
         if found_by_user_id:
-            query = """
+            query = f"""
                 UPDATE missing_discs 
-                SET status = 'found', found_by_user_id = ?, found_at = CURRENT_TIMESTAMP
-                WHERE id = ?
+                SET status = 'found', found_by_user_id = {self.db.dialect.placeholder()}, 
+                    found_at = {self.db.dialect.current_timestamp()}
+                WHERE id = {self.db.dialect.placeholder()}
             """
             self.db.execute(query, (found_by_user_id, disc_id))
         else:
-            query = """
+            query = f"""
                 UPDATE missing_discs 
-                SET status = 'found', found_at = CURRENT_TIMESTAMP
-                WHERE id = ?
+                SET status = 'found', found_at = {self.db.dialect.current_timestamp()}
+                WHERE id = {self.db.dialect.placeholder()}
             """
             self.db.execute(query, (disc_id,))
     
     def delete(self, disc_id: int, user_id: int) -> bool:
-        query = "DELETE FROM missing_discs WHERE id = ? AND user_id = ?"
+        query = f"DELETE FROM missing_discs WHERE id = {self.db.dialect.placeholder()} AND user_id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (disc_id, user_id))
         return True
     
     def get_user_stats(self, user_id: int) -> Tuple[int, int]:
-        query = """
+        query = f"""
             SELECT 
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'found' THEN 1 ELSE 0 END) as found
             FROM missing_discs 
-            WHERE user_id = ?
+            WHERE user_id = {self.db.dialect.placeholder()}
         """
         row = self.db.fetch_one(query, (user_id,))
         return row.get('total', 0) or 0, row.get('found', 0) or 0
@@ -940,21 +1123,41 @@ class HandoverRepository(BaseRepository):
         )
     
     def create(self, handover: Handover) -> int:
-        query = """
-            INSERT INTO handovers 
-            (qr_id, finder_user_id, finder_name, action, note, 
-             photo_path, latitude, longitude, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """
-        self.db.execute(query, (
-            handover.qr_id, handover.finder_user_id, handover.finder_name,
-            handover.action, handover.note, handover.photo_path,
-            handover.latitude, handover.longitude
-        ))
-        return self.db.last_insert_id()
+        if self.db.database_url:
+            # PostgreSQL
+            query = """
+                INSERT INTO handovers 
+                (qr_id, finder_user_id, finder_name, action, note, 
+                 photo_path, latitude, longitude, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                RETURNING id
+            """
+            with self.db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(query, (
+                    handover.qr_id, handover.finder_user_id, handover.finder_name,
+                    handover.action, handover.note, handover.photo_path,
+                    handover.latitude, handover.longitude
+                ))
+                row = cur.fetchone()
+                return row['id'] if row else None
+        else:
+            # SQLite
+            query = """
+                INSERT INTO handovers 
+                (qr_id, finder_user_id, finder_name, action, note, 
+                 photo_path, latitude, longitude, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """
+            self.db.execute(query, (
+                handover.qr_id, handover.finder_user_id, handover.finder_name,
+                handover.action, handover.note, handover.photo_path,
+                handover.latitude, handover.longitude
+            ))
+            return self.db.last_insert_id()
     
     def confirm(self, handover_id: int) -> None:
-        query = "UPDATE handovers SET confirmed = True WHERE id = ?"
+        query = f"UPDATE handovers SET confirmed = {self.db.dialect.boolean(True)} WHERE id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (handover_id,))
     
     def get_count(self) -> int:
@@ -963,17 +1166,19 @@ class HandoverRepository(BaseRepository):
         return row.get('count', 0) if row else 0
     
     def get_active_today(self) -> int:
-        query = """
+        """FIXAD för PostgreSQL - använd databasspecifik datumfunktion."""
+        date_expr = self.db.dialect.now_minus_days(1)
+        query = f"""
             SELECT COUNT(DISTINCT finder_user_id) as count
             FROM handovers 
-            WHERE created_at > datetime('now', '-1 day')
+            WHERE created_at > {date_expr}
         """
         row = self.db.fetch_one(query)
         return row.get('count', 0) if row else 0
 
 
 # ============================================================================
-# NYTT: Order Repository - LÄGG TILL HELA DENNA KLASS
+# Order Repository
 # ============================================================================
 
 class OrderRepository(BaseRepository):
@@ -1003,30 +1208,54 @@ class OrderRepository(BaseRepository):
         )
     
     def create(self, order: Order) -> int:
-        query = """
-            INSERT INTO orders 
-            (order_number, user_id, qr_id, package_type, quantity, total_amount,
-             currency, status, payment_method, payment_id, shipping_name,
-             shipping_address, shipping_postal_code, shipping_city, shipping_country,
-             created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-        """
-        self.db.execute(query, (
-            order.order_number, order.user_id, order.qr_id, order.package_type,
-            order.quantity, order.total_amount, order.currency, order.status,
-            order.payment_method, order.payment_id, order.shipping_name,
-            order.shipping_address, order.shipping_postal_code, order.shipping_city,
-            order.shipping_country
-        ))
-        return self.db.last_insert_id()
+        if self.db.database_url:
+            # PostgreSQL
+            query = """
+                INSERT INTO orders 
+                (order_number, user_id, qr_id, package_type, quantity, total_amount,
+                 currency, status, payment_method, payment_id, shipping_name,
+                 shipping_address, shipping_postal_code, shipping_city, shipping_country,
+                 created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                RETURNING id
+            """
+            with self.db.get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(query, (
+                    order.order_number, order.user_id, order.qr_id, order.package_type,
+                    order.quantity, order.total_amount, order.currency, order.status,
+                    order.payment_method, order.payment_id, order.shipping_name,
+                    order.shipping_address, order.shipping_postal_code, order.shipping_city,
+                    order.shipping_country
+                ))
+                row = cur.fetchone()
+                return row['id'] if row else None
+        else:
+            # SQLite
+            query = """
+                INSERT INTO orders 
+                (order_number, user_id, qr_id, package_type, quantity, total_amount,
+                 currency, status, payment_method, payment_id, shipping_name,
+                 shipping_address, shipping_postal_code, shipping_city, shipping_country,
+                 created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """
+            self.db.execute(query, (
+                order.order_number, order.user_id, order.qr_id, order.package_type,
+                order.quantity, order.total_amount, order.currency, order.status,
+                order.payment_method, order.payment_id, order.shipping_name,
+                order.shipping_address, order.shipping_postal_code, order.shipping_city,
+                order.shipping_country
+            ))
+            return self.db.last_insert_id()
     
     def get_by_id(self, order_id: int) -> Optional[Order]:
-        query = "SELECT * FROM orders WHERE id = ?"
+        query = f"SELECT * FROM orders WHERE id = {self.db.dialect.placeholder()}"
         row = self.db.fetch_one(query, (order_id,))
         return self.row_to_model(row) if row else None
     
     def get_by_order_number(self, order_number: str) -> Optional[Order]:
-        query = "SELECT * FROM orders WHERE order_number = ?"
+        query = f"SELECT * FROM orders WHERE order_number = {self.db.dialect.placeholder()}"
         row = self.db.fetch_one(query, (order_number,))
         return self.row_to_model(row) if row else None
     
@@ -1035,10 +1264,11 @@ class OrderRepository(BaseRepository):
         where_clause = "WHERE 1=1"
         params = []
         if status:
-            where_clause += " AND o.status = ?"
+            where_clause += f" AND o.status = {self.db.dialect.placeholder()}"
             params.append(status)
+        
+        limit_clause = self.db.dialect.limit_offset(limit, 0)
             
-        # VIKTIGT: Använd DISTINCT och GROUP BY för att undvika dubletter
         query = f"""
             SELECT DISTINCT
                 o.id,
@@ -1068,9 +1298,8 @@ class OrderRepository(BaseRepository):
             {where_clause}
             GROUP BY o.id, o.order_number
             ORDER BY o.created_at DESC
-            LIMIT ?
+            {limit_clause}
         """
-        params.append(limit)
         rows = self.db.fetch_all(query, tuple(params))
         
         # Dekryptera email
@@ -1096,21 +1325,26 @@ class OrderRepository(BaseRepository):
         return self.db.fetch_one(query) or {}
     
     def update_status(self, order_id: int, status: str) -> bool:
-        query = "UPDATE orders SET status = ? WHERE id = ?"
+        query = f"UPDATE orders SET status = {self.db.dialect.placeholder()} WHERE id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (status, order_id))
         return True
     
     def mark_as_paid(self, order_id: int, payment_id: str = None) -> bool:
-        query = """
+        query = f"""
             UPDATE orders 
-            SET status = 'paid', paid_at = CURRENT_TIMESTAMP, payment_id = ?
-            WHERE id = ?
+            SET status = 'paid', paid_at = {self.db.dialect.current_timestamp()}, 
+                payment_id = {self.db.dialect.placeholder()}
+            WHERE id = {self.db.dialect.placeholder()}
         """
         self.db.execute(query, (payment_id, order_id))
         return True
     
     def mark_as_shipped(self, order_id: int) -> bool:
-        query = "UPDATE orders SET status = 'shipped', shipped_at = CURRENT_TIMESTAMP WHERE id = ?"
+        query = f"""
+            UPDATE orders 
+            SET status = 'shipped', shipped_at = {self.db.dialect.current_timestamp()} 
+            WHERE id = {self.db.dialect.placeholder()}
+        """
         self.db.execute(query, (order_id,))
         return True
     
@@ -1118,8 +1352,17 @@ class OrderRepository(BaseRepository):
         """Generera unikt ordernummer: RET-YYYYMMDD-XXX"""
         today = datetime.now().strftime("%Y%m%d")
         
-        # Räkna dagens ordrar
-        query = "SELECT COUNT(*) as count FROM orders WHERE date(created_at) = date('now')"
+        # Räkna dagens ordrar - använd databasspecifik datumfunktion
+        if self.db.database_url:
+            # PostgreSQL
+            query = """
+                SELECT COUNT(*) as count FROM orders 
+                WHERE DATE(created_at) = CURRENT_DATE
+            """
+        else:
+            # SQLite
+            query = "SELECT COUNT(*) as count FROM orders WHERE date(created_at) = date('now')"
+        
         row = self.db.fetch_one(query)
         count = (row.get('count', 0) if row else 0) + 1
         
@@ -1133,15 +1376,30 @@ class OrderRepository(BaseRepository):
 class UnitOfWork:
     def __init__(self, db: DatabaseConnection):
         self.db = db
-        self.conn: Optional[sqlite3.Connection] = None
+        self.conn = None
     
     def __enter__(self):
-        self.conn = sqlite3.connect(
-            self.db.db_path, 
-            timeout=20, 
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        self.conn.row_factory = sqlite3.Row
+        # Skapa en ny connection för transaktionen
+        if self.db.database_url:
+            import psycopg2
+            from urllib.parse import urlparse
+            url = urlparse(self.db.database_url)
+            self.conn = psycopg2.connect(
+                host=url.hostname,
+                port=url.port,
+                user=url.username,
+                password=url.password,
+                dbname=url.path[1:]
+            )
+            self.conn.cursor_factory = psycopg2.extras.RealDictCursor
+        else:
+            import sqlite3
+            self.conn = sqlite3.connect(
+                self.db.db_path, 
+                timeout=20, 
+                detect_types=sqlite3.PARSE_DECLTYPES
+            )
+            self.conn.row_factory = sqlite3.Row
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -1152,21 +1410,27 @@ class UnitOfWork:
         self.conn.close()
     
     def execute(self, query: str, params: Tuple = ()):
-
         cur = self.conn.cursor()
-
+        
         # PostgreSQL använder %s istället för ?
-        if self.database_url:
+        if self.db.database_url:
             query = query.replace("?", "%s")
-
+            # Ersätt även datumfunktioner
+            query = query.replace("datetime('now')", "CURRENT_TIMESTAMP")
+            query = query.replace("date('now')", "CURRENT_DATE")
+        
         cur.execute(query, params)
-
-        # SQLite använder lastrowid
-        if not self.database_url:
+        
+        # Hantera lastrowid olika för PostgreSQL vs SQLite
+        if self.db.database_url:
+            # För PostgreSQL, försök hämta RETURNING
+            if 'RETURNING' in query.upper():
+                row = cur.fetchone()
+                return row[0] if row else None
+            return None
+        else:
+            # SQLite använder lastrowid
             return cur.lastrowid
-
-        return None
-
     
     def get_cursor(self):
         return self.conn.cursor()
@@ -1210,7 +1474,7 @@ class UserService:
                 INSERT INTO users (name, email, email_hash, password, created_at, is_active)
                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
             """, (name, encrypted_email, email_hash, password_hash))
-            user_id = cur.lastrowid
+            user_id = uow.execute("SELECT lastval()", ()) if self.db.database_url else cur.lastrowid
             
             qr_id = None
             for attempt in range(max_attempts):
@@ -1223,7 +1487,7 @@ class UserService:
                     """, (candidate, user_id))
                     qr_id = candidate
                     break
-                except sqlite3.IntegrityError:
+                except (sqlite3.IntegrityError, psycopg2.IntegrityError):
                     if attempt == max_attempts - 1:
                         raise RuntimeError("Kunde inte generera unik QR-kod")
                     continue
@@ -1244,7 +1508,7 @@ class UserService:
         missing, found = MissingDiscRepository(self.db).get_user_stats(user_id)
     
         return UserStats(
-            total_returns=user.total_returns,  # ÄNDRA FRÅN stats.total_returns
+            total_returns=user.total_returns,
             member_since=user.member_since,
             missing=missing,
             found=found
@@ -1330,12 +1594,21 @@ class PremiumService:
         )
     
     def check_and_update_expired_subscriptions(self) -> int:
-        query = """
-            SELECT id, user_id FROM premium_subscriptions
-            WHERE status = 'active' 
-            AND expires_at IS NOT NULL 
-            AND expires_at < CURRENT_TIMESTAMP
-        """
+        # Använd databasspecifik tidsjämförelse
+        if self.db.database_url:
+            query = """
+                SELECT id, user_id FROM premium_subscriptions
+                WHERE status = 'active' 
+                AND expires_at IS NOT NULL 
+                AND expires_at < CURRENT_TIMESTAMP
+            """
+        else:
+            query = """
+                SELECT id, user_id FROM premium_subscriptions
+                WHERE status = 'active' 
+                AND expires_at IS NOT NULL 
+                AND expires_at < datetime('now')
+            """
         expired = self.db.fetch_all(query)
         
         count = 0
@@ -1357,15 +1630,25 @@ class PremiumService:
         if not user:
             return {'has_premium': False, 'error': 'User not found'}
         
-        # Hämta aktiv prenumeration ELLER avbruten men fortfarande giltig
-        query = """
-            SELECT * FROM premium_subscriptions 
-            WHERE user_id = ? 
-            AND (status = 'active' OR status = 'cancelled')
-            AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-            ORDER BY created_at DESC
-            LIMIT 1
-        """
+        # Använd databasspecifik tidsjämförelse
+        if self.db.database_url:
+            query = """
+                SELECT * FROM premium_subscriptions 
+                WHERE user_id = %s 
+                AND (status = 'active' OR status = 'cancelled')
+                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                ORDER BY created_at DESC
+                LIMIT 1
+            """
+        else:
+            query = """
+                SELECT * FROM premium_subscriptions 
+                WHERE user_id = ? 
+                AND (status = 'active' OR status = 'cancelled')
+                AND (expires_at IS NULL OR expires_at > datetime('now'))
+                ORDER BY created_at DESC
+                LIMIT 1
+            """
         row = self.db.fetch_one(query, (user_id,))
         
         active_sub = None
@@ -1479,9 +1762,11 @@ class AdminService:
         )
     
     def _get_new_users_this_week(self) -> int:
-        query = """
+        """FIXAD för PostgreSQL - använd databasspecifik datumfunktion."""
+        date_expr = self.db.dialect.now_minus_days(7)
+        query = f"""
             SELECT COUNT(*) as count FROM users 
-            WHERE created_at > datetime('now', '-7 days') AND is_active = TRUE
+            WHERE created_at > {date_expr} AND is_active = {self.db.dialect.boolean(True)}
         """
         row = self.db.fetch_one(query)
         return row.get('count', 0) if row else 0
@@ -1510,6 +1795,7 @@ class AdminService:
 class DatabaseManager:
     def __init__(self, db: DatabaseConnection):
         self.db = db
+        self.dialect = db.dialect
     
     def init_tables(self) -> None:
         schema = self._get_schema()
@@ -1532,10 +1818,13 @@ class DatabaseManager:
             logger.info("Database initialized")
     
     def _get_schema(self) -> List[str]:
+        # Använd dialect för auto_increment
+        serial = self.dialect.auto_increment()
+        
         return [
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
+                id {serial} PRIMARY KEY,
                 name TEXT NOT NULL,
                 email TEXT NOT NULL,
                 email_hash TEXT,
@@ -1552,9 +1841,9 @@ class DatabaseManager:
                 deleted_at TIMESTAMP
             )
             """,
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS premium_subscriptions (
-                id SERIAL PRIMARY KEY,
+                id {serial} PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 status TEXT DEFAULT 'active',
                 started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1568,7 +1857,7 @@ class DatabaseManager:
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """,
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS qr_codes (
                 qr_id TEXT PRIMARY KEY,
                 user_id INTEGER,
@@ -1580,9 +1869,9 @@ class DatabaseManager:
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
             """,
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS handovers (
-                id SERIAL PRIMARY KEY,
+                id {serial} PRIMARY KEY,
                 qr_id TEXT,
                 finder_name TEXT,
                 finder_user_id INTEGER,
@@ -1597,9 +1886,9 @@ class DatabaseManager:
                 FOREIGN KEY (finder_user_id) REFERENCES users(id)
             )
             """,
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS missing_discs (
-                id SERIAL PRIMARY KEY,
+                id {serial} PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 disc_name TEXT NOT NULL,
                 description TEXT,
@@ -1615,9 +1904,9 @@ class DatabaseManager:
                 FOREIGN KEY (found_by_user_id) REFERENCES users(id)
             )
             """,
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS clubs (
-                id SERIAL PRIMARY KEY,
+                id {serial} PRIMARY KEY,
                 name TEXT NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
@@ -1626,9 +1915,9 @@ class DatabaseManager:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """,
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS orders (
-                id SERIAL PRIMARY KEY,
+                id {serial} PRIMARY KEY,
                 order_number TEXT UNIQUE NOT NULL,
                 user_id INTEGER NOT NULL,
                 qr_id TEXT,
@@ -1655,32 +1944,49 @@ class DatabaseManager:
     
     def _migrate_last_login(self, cursor) -> None:
         try:
-            cursor.execute("SELECT last_login FROM users LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP")
+            if self.db.database_url:
+                cursor.execute("SELECT last_login FROM users LIMIT 1")
+            else:
+                cursor.execute("SELECT last_login FROM users LIMIT 1")
+        except (sqlite3.OperationalError, psycopg2.Error) as e:
+            if self.db.database_url:
+                cursor.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP")
+            else:
+                cursor.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP")
             logger.info("La till kolumnen last_login")
     
     def _migrate_soft_delete(self, cursor) -> None:
         try:
             cursor.execute("SELECT is_active FROM users LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE")
-            cursor.execute("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP")
+        except (sqlite3.OperationalError, psycopg2.Error):
+            if self.db.database_url:
+                cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE")
+                cursor.execute("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP")
+            else:
+                cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE")
+                cursor.execute("ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP")
             logger.info("La till soft delete kolumner")
     
     def _migrate_email_encryption(self, cursor) -> None:
         try:
             cursor.execute("SELECT email_hash FROM users LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute("ALTER TABLE users ADD COLUMN email_hash TEXT")
+        except (sqlite3.OperationalError, psycopg2.Error):
+            if self.db.database_url:
+                cursor.execute("ALTER TABLE users ADD COLUMN email_hash TEXT")
+            else:
+                cursor.execute("ALTER TABLE users ADD COLUMN email_hash TEXT")
             logger.info("La till email_hash kolumn")
             
-            cursor.execute("SELECT id, email FROM users WHERE email_hash IS NULL OR email_hash = ''")
+            # Uppdatera befintliga rader
+            if self.db.database_url:
+                cursor.execute("SELECT id, email FROM users WHERE email_hash IS NULL OR email_hash = ''")
+            else:
+                cursor.execute("SELECT id, email FROM users WHERE email_hash IS NULL OR email_hash = ''")
             rows = cursor.fetchall()
             for row in rows:
                 email_hash = encryption.hash_email(row['email'])
                 cursor.execute(
-                    "UPDATE users SET email_hash = ? WHERE id = ?",
+                    "UPDATE users SET email_hash = %s WHERE id = %s" if self.db.database_url else "UPDATE users SET email_hash = ? WHERE id = ?",
                     (email_hash, row['id'])
                 )
             logger.info(f"Indexerade {len(rows)} befintliga användare")
@@ -1695,16 +2001,17 @@ class DatabaseManager:
         for column, data_type in migrations:
             try:
                 cursor.execute(f"SELECT {column} FROM users LIMIT 1")
-            except sqlite3.OperationalError:
+            except (sqlite3.OperationalError, psycopg2.Error):
                 cursor.execute(f"ALTER TABLE users ADD COLUMN {column} {data_type}")
                 logger.info(f"La till kolumnen {column}")
         
         try:
             cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute("""
+        except (sqlite3.OperationalError, psycopg2.Error):
+            serial = self.dialect.auto_increment()
+            cursor.execute(f"""
                 CREATE TABLE premium_subscriptions (
-                    id SERIAL PRIMARY KEY,
+                    id {serial} PRIMARY KEY,
                     user_id INTEGER NOT NULL,
                     status TEXT DEFAULT 'active',
                     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1733,9 +2040,6 @@ class DatabaseManager:
             ("idx_premium_user", "premium_subscriptions(user_id)"),
             ("idx_premium_status", "premium_subscriptions(status)"),
             ("idx_premium_expires", "premium_subscriptions(expires_at)"),
-            # ============================================================================
-            # NYTT: Index för orders - LÄGG TILL DETTA
-            # ============================================================================
             ("idx_orders_user", "orders(user_id)"),
             ("idx_orders_status", "orders(status)"),
             ("idx_orders_number", "orders(order_number)"),
@@ -1743,24 +2047,43 @@ class DatabaseManager:
         ]
         
         for name, columns in indexes:
-            cursor.execute(f"CREATE INDEX IF NOT EXISTS {name} ON {columns}")
+            try:
+                cursor.execute(f"CREATE INDEX IF NOT EXISTS {name} ON {columns}")
+            except Exception as e:
+                logger.warning(f"Kunde inte skapa index {name}: {e}")
     
     def _create_unique_email_constraint(self, cursor) -> None:
-        """🔴 NYTT: Skapa unique constraint på email_hash för att förhindra dubletter"""
+        """Skapa unique constraint på email_hash för att förhindra dubletter"""
         try:
-            # Först, ta bort befintliga dubletter (behåll den äldsta)
-            cursor.execute("""
-                DELETE FROM users 
-                WHERE id NOT IN (
-                    SELECT MIN(id) 
-                    FROM users 
-                    WHERE is_active = TRUE
-                    GROUP BY email_hash
-                )
-                AND is_active = TRUE
-                AND email_hash IS NOT NULL
-                AND email_hash != ''
-            """)
+            # Ta bort befintliga dubletter (behåll den äldsta)
+            if self.db.database_url:
+                # PostgreSQL syntax
+                cursor.execute("""
+                    DELETE FROM users 
+                    WHERE id NOT IN (
+                        SELECT MIN(id) 
+                        FROM users 
+                        WHERE is_active = TRUE
+                        GROUP BY email_hash
+                    )
+                    AND is_active = TRUE
+                    AND email_hash IS NOT NULL
+                    AND email_hash != ''
+                """)
+            else:
+                # SQLite syntax
+                cursor.execute("""
+                    DELETE FROM users 
+                    WHERE id NOT IN (
+                        SELECT MIN(id) 
+                        FROM users 
+                        WHERE is_active = TRUE
+                        GROUP BY email_hash
+                    )
+                    AND is_active = TRUE
+                    AND email_hash IS NOT NULL
+                    AND email_hash != ''
+                """)
             deleted = cursor.rowcount
             if deleted > 0:
                 logger.warning(f"Tog bort {deleted} dubletter av användare")
@@ -1773,20 +2096,18 @@ class DatabaseManager:
             """)
             logger.info("Skapade unique index på email_hash")
             
-        except sqlite3.OperationalError as e:
+        except (sqlite3.OperationalError, psycopg2.Error) as e:
             logger.warning(f"Kunde inte skapa unique constraint: {e}")
     
-    # ============================================================================
-    # NYTT: Migrera orders-tabell för befintliga databaser - LÄGG TILL DENNA METOD
-    # ============================================================================
     def _migrate_orders_table(self, cursor) -> None:
         """Skapa orders-tabell om den saknas (för befintliga databaser)"""
         try:
             cursor.execute("SELECT id FROM orders LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute("""
+        except (sqlite3.OperationalError, psycopg2.Error):
+            serial = self.dialect.auto_increment()
+            cursor.execute(f"""
                 CREATE TABLE orders (
-                    id SERIAL PRIMARY KEY,
+                    id {serial} PRIMARY KEY,
                     order_number TEXT UNIQUE NOT NULL,
                     user_id INTEGER NOT NULL,
                     qr_id TEXT,
@@ -1821,29 +2142,12 @@ class DatabaseManager:
         """Migrera is_enabled kolumn för befintliga QR-koder."""
         try:
             cursor.execute("SELECT is_enabled FROM qr_codes LIMIT 1")
-        except sqlite3.OperationalError:
-            cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT TRUE")
+        except (sqlite3.OperationalError, psycopg2.Error):
+            if self.db.database_url:
+                cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT TRUE")
+            else:
+                cursor.execute("ALTER TABLE qr_codes ADD COLUMN is_enabled BOOLEAN DEFAULT TRUE")
             logger.info("La till is_enabled kolumn i qr_codes")
-
-    def init_tables(self) -> None:
-        schema = self._get_schema()
-        
-        with self.db.get_connection() as conn:
-            cur = conn.cursor()
-            
-            for table_sql in schema:
-                cur.execute(table_sql)
-            
-            self._migrate_last_login(cur)
-            self._migrate_soft_delete(cur)
-            self._migrate_email_encryption(cur)
-            self._migrate_premium_columns(cur)
-            self._create_indexes(cur)
-            self._create_unique_email_constraint(cur)
-            self._migrate_orders_table(cur)
-            self._migrate_qr_enabled(cur)
-            
-            logger.info("Database initialized")
 
 
 # ============================================================================
@@ -2196,16 +2500,16 @@ class Database:
         with self._db.get_connection() as conn:
             cur = conn.cursor()
             
-            cur.execute("""
+            cur.execute(f"""
                 UPDATE qr_codes 
-                SET qr_id = ? 
-                WHERE qr_id = ?
+                SET qr_id = {self._db.dialect.placeholder()} 
+                WHERE qr_id = {self._db.dialect.placeholder()}
             """, (new_qr_id, old_qr_id))
             
-            cur.execute("""
+            cur.execute(f"""
                 UPDATE handovers 
-                SET qr_id = ? 
-                WHERE qr_id = ?
+                SET qr_id = {self._db.dialect.placeholder()} 
+                WHERE qr_id = {self._db.dialect.placeholder()}
             """, (new_qr_id, old_qr_id))
         
         try:
@@ -2225,23 +2529,33 @@ class Database:
         return True
     
     def toggle_user_premium(self, user_id: int, is_premium: bool) -> bool:
-        query = """
+        query = f"""
             UPDATE users 
-            SET is_premium = ? 
-            WHERE id = ? AND is_active = TRUE
+            SET is_premium = {self._db.dialect.boolean(is_premium)} 
+            WHERE id = {self._db.dialect.placeholder()} AND is_active = {self._db.dialect.boolean(True)}
         """
-        self._db.execute(query, (1 if is_premium else 0, user_id))
+        self._db.execute(query, (user_id,))
         logger.info(f"Användare {user_id} premium satt till {is_premium}")
         return True
     
     def get_user_payment_info(self, user_id: int) -> Optional[Dict]:
-        query = """
-            SELECT 
-                u.id, u.name, u.email, u.is_premium, u.created_at,
-                'ORD-' || substr(u.created_at, 1, 10) || '-' || u.id as order_id
-            FROM users u
-            WHERE u.id = ? AND u.is_active = TRUE
-        """
+        # Använd databasspecifik datumformatering
+        if self._db.database_url:
+            query = """
+                SELECT 
+                    u.id, u.name, u.email, u.is_premium, u.created_at,
+                    'ORD-' || TO_CHAR(u.created_at, 'YYYY-MM-DD') || '-' || u.id as order_id
+                FROM users u
+                WHERE u.id = %s AND u.is_active = TRUE
+            """
+        else:
+            query = """
+                SELECT 
+                    u.id, u.name, u.email, u.is_premium, u.created_at,
+                    'ORD-' || strftime('%Y-%m-%d', u.created_at) || '-' || u.id as order_id
+                FROM users u
+                WHERE u.id = ? AND u.is_active = TRUE
+            """
         row = self._db.fetch_one(query, (user_id,))
         return row
     
@@ -2267,17 +2581,30 @@ class Database:
             encrypted_email = encryption.encrypt(email)
             email_hash = encryption.hash_email(email)
             
-            cur.execute("""
-                INSERT INTO users (name, email, email_hash, password, created_at, is_active)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
-            """, (name, encrypted_email, email_hash, password_hash))
+            if self._db.database_url:
+                # PostgreSQL
+                cur.execute("""
+                    INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                    VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, TRUE)
+                    RETURNING id
+                """, (name, encrypted_email, email_hash, password_hash))
+                row = cur.fetchone()
+                user_id = row['id'] if row else None
+            else:
+                # SQLite
+                cur.execute("""
+                    INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
+                """, (name, encrypted_email, email_hash, password_hash))
+                user_id = cur.lastrowid
             
-            user_id = cur.lastrowid
-            
-            cur.execute("""
+            cur.execute(f"""
                 UPDATE qr_codes 
-                SET user_id = ?, is_active = TRUE, is_enabled = TRUE, activated_at = CURRENT_TIMESTAMP
-                WHERE qr_id = ?
+                SET user_id = {self._db.dialect.placeholder()}, 
+                    is_active = {self._db.dialect.boolean(True)}, 
+                    is_enabled = {self._db.dialect.boolean(True)}, 
+                    activated_at = {self._db.dialect.current_timestamp()}
+                WHERE qr_id = {self._db.dialect.placeholder()}
             """, (user_id, qr_id))
             
             conn.commit()
@@ -2286,15 +2613,27 @@ class Database:
         return user_id
     
     def get_qr_with_payment_info(self, qr_id: str) -> Optional[Dict]:
-        query = """
-            SELECT 
-                q.qr_id, q.is_active, q.is_enabled, q.activated_at, q.total_scans, q.created_at,
-                u.id as user_id, u.name, u.email, u.is_premium, u.created_at as user_created_at,
-                'ORD-' || substr(u.created_at, 1, 10) || '-' || u.id as order_id
-            FROM qr_codes q
-            LEFT JOIN users u ON q.user_id = u.id
-            WHERE q.qr_id = ?
-        """
+        # Använd databasspecifik datumformatering
+        if self._db.database_url:
+            query = """
+                SELECT 
+                    q.qr_id, q.is_active, q.is_enabled, q.activated_at, q.total_scans, q.created_at,
+                    u.id as user_id, u.name, u.email, u.is_premium, u.created_at as user_created_at,
+                    'ORD-' || TO_CHAR(u.created_at, 'YYYY-MM-DD') || '-' || u.id as order_id
+                FROM qr_codes q
+                LEFT JOIN users u ON q.user_id = u.id
+                WHERE q.qr_id = %s
+            """
+        else:
+            query = """
+                SELECT 
+                    q.qr_id, q.is_active, q.is_enabled, q.activated_at, q.total_scans, q.created_at,
+                    u.id as user_id, u.name, u.email, u.is_premium, u.created_at as user_created_at,
+                    'ORD-' || strftime('%Y-%m-%d', u.created_at) || '-' || u.id as order_id
+                FROM qr_codes q
+                LEFT JOIN users u ON q.user_id = u.id
+                WHERE q.qr_id = ?
+            """
         row = self._db.fetch_one(query, (qr_id,))
         
         if row:
@@ -2307,13 +2646,18 @@ class Database:
     def update_user(self, user_id: int, name: str = None, email: str = None) -> bool:
         try:
             if name:
-                query = "UPDATE users SET name = ? WHERE id = ?"
+                query = f"UPDATE users SET name = {self._db.dialect.placeholder()} WHERE id = {self._db.dialect.placeholder()}"
                 self._db.execute(query, (name, user_id))
             
             if email:
                 encrypted_email = encryption.encrypt(email)
                 email_hash = encryption.hash_email(email)
-                query = "UPDATE users SET email = ?, email_hash = ? WHERE id = ?"
+                query = f"""
+                    UPDATE users 
+                    SET email = {self._db.dialect.placeholder()}, 
+                        email_hash = {self._db.dialect.placeholder()} 
+                    WHERE id = {self._db.dialect.placeholder()}
+                """
                 self._db.execute(query, (encrypted_email, email_hash, user_id))
             
             logger.info(f"Användare {user_id} uppdaterad")
