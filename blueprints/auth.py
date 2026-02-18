@@ -662,7 +662,7 @@ def order_confirmation_stripe():
         session.pop('checkout_city', None)
         
         # Skicka mail till admin
-        admin_email = getattr(Config, 'ADMIN_EMAIL', None) or 'info@returnadisc.se'
+        admin_email = 'info@returnadisc.se'
         
         address_html = f"{shipping_name}<br>{shipping_address}<br>{shipping_postal_code} {shipping_city}"
         
