@@ -2309,8 +2309,8 @@ class Database:
         return self._premium_service.get_user_subscription_status(user_id)
     
     def get_user_premium_status(self, user_id: int) -> Dict:
-    """Alias för get_user_subscription_status för bakåtkompatibilitet."""
-    return self.get_user_subscription_status(user_id)
+        """Alias för get_user_subscription_status för bakåtkompatibilitet."""
+        return self.get_user_subscription_status(user_id)
     
     def check_expired_subscriptions(self) -> int:
         return self._premium_service.check_and_update_expired_subscriptions()
