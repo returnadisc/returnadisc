@@ -194,7 +194,7 @@
         font-weight: 600;
     }
 
-    /* QR-kort */
+    /* QR-kort - FIXED LAYOUT */
     .qr-grid {
         display: grid;
         gap: 20px;
@@ -203,11 +203,10 @@
     .qr-card {
         background: white;
         border-radius: 16px;
-        padding: 25px;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 20px;
+        padding: 20px 25px;
+        display: flex;
         align-items: center;
+        gap: 20px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         border: 2px solid transparent;
         transition: all 0.3s ease;
@@ -228,17 +227,23 @@
     }
 
     .qr-image-small {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
         border-radius: 12px;
         object-fit: contain;
         background: white;
         padding: 5px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+    }
+
+    .qr-info {
+        flex: 1;
+        min-width: 0;
     }
 
     .qr-info h3 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         color: #166534;
         font-family: monospace;
         letter-spacing: 2px;
@@ -251,6 +256,7 @@
         flex-wrap: wrap;
         font-size: 0.85rem;
         color: #6b7280;
+        align-items: center;
     }
 
     .qr-meta span {
@@ -263,9 +269,9 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 12px;
+        padding: 4px 10px;
         border-radius: 20px;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
     }
 
@@ -279,24 +285,25 @@
         color: #991b1b;
     }
 
+    /* FIXED BUTTONS - Horizontal layout */
     .qr-actions {
         display: flex;
         gap: 10px;
-        flex-direction: column;
+        flex-shrink: 0;
     }
 
     .btn-toggle {
-        padding: 10px 20px;
+        padding: 10px 18px;
         border-radius: 10px;
         border: none;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
-        gap: 8px;
-        justify-content: center;
+        gap: 6px;
+        white-space: nowrap;
     }
 
     .btn-toggle.disable {
@@ -320,15 +327,21 @@
     }
 
     .btn-download-small {
-        padding: 10px 20px;
+        padding: 10px 18px;
         background: #f3f4f6;
         color: #374151;
         border-radius: 10px;
         text-decoration: none;
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         text-align: center;
         transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        border: none;
+        cursor: pointer;
     }
 
     .btn-download-small:hover {
@@ -407,10 +420,11 @@
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 640px) {
         .qr-card {
-            grid-template-columns: 1fr;
+            flex-direction: column;
             text-align: center;
+            padding: 20px;
         }
 
         .qr-image-small {
@@ -418,7 +432,7 @@
         }
 
         .qr-actions {
-            flex-direction: row;
+            width: 100%;
             justify-content: center;
         }
 
@@ -428,6 +442,19 @@
 
         .activate-form input {
             width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .qr-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .btn-toggle,
+        .btn-download-small {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -502,20 +529,30 @@
                                     <span class="status-badge active">● Aktiv</span>
                                     <span>📊 {{ qr.total_scans }} scanningar</span>
                                     {% if qr.activated_at %}
-                                    <span>📅 Aktiverad {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
+                                    <span>📅 {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
                                     {% endif %}
                                 </div>
                             </div>
                             <div class="qr-actions">
-                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST">
+                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST" style="display: inline;">
                                     <input type="hidden" name="action" value="disable">
                                     <button type="submit" class="btn-toggle disable" onclick="return confirm('Inaktivera QR-koden {{ qr.qr_id }}? Den kommer inte att fungera vid scanning.')">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M18 6L6 18M6 6l12 12"></path>
+                                        </svg>
                                         Inaktivera
                                     </button>
                                 </form>
                                 <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                                    download="returnadisc-{{ qr.qr_id }}.png"
-                                   class="btn-download-small">Ladda ner</a>
+                                   class="btn-download-small">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    Ladda ner
+                                </a>
                             </div>
                         </div>
                         {% endfor %}
@@ -540,20 +577,30 @@
                                     <span class="status-badge disabled">● Inaktiv</span>
                                     <span>📊 {{ qr.total_scans }} scanningar</span>
                                     {% if qr.activated_at %}
-                                    <span>📅 Aktiverad {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
+                                    <span>📅 {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
                                     {% endif %}
                                 </div>
                             </div>
                             <div class="qr-actions">
-                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST">
+                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST" style="display: inline;">
                                     <input type="hidden" name="action" value="enable">
                                     <button type="submit" class="btn-toggle enable">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
                                         Aktivera
                                     </button>
                                 </form>
                                 <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                                    download="returnadisc-{{ qr.qr_id }}.png"
-                                   class="btn-download-small">Ladda ner</a>
+                                   class="btn-download-small">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    Ladda ner
+                                </a>
                             </div>
                         </div>
                         {% endfor %}
