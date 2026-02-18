@@ -137,8 +137,8 @@ class SQLDialect:
     def random(self) -> str:
         """Returnera SQL för slumpmässigt tal."""
         if self.is_postgres:
-            return "RANDOM()"  # PostgreSQL har RANDOM() som returnerar 0.0 till 1.0
-        return "RANDOM()"  # SQLite har också RANDOM()
+            return "RANDOM()"
+        return "RANDOM()"
     
     def random_order(self) -> str:
         """Returnera SQL för slumpmässig sortering."""
@@ -157,7 +157,7 @@ class SQLDialect:
         args_str = ', '.join(str(a) for a in args)
         if self.is_postgres:
             return f"COALESCE({args_str})"
-        return f"COALESCE({args_str})"  # SQLite har också COALESCE
+        return f"COALESCE({args_str})"
     
     def boolean(self, value: bool) -> str:
         """Returnera SQL för boolean-värde."""
@@ -430,34 +430,31 @@ class DatabaseConnection:
         
         return adapted
     
-    def execute(self, query: str, params: Tuple = ()):
-        cur = self.conn.cursor()
-        
-        # PostgreSQL använder %s istället för ?
-        if self.db.database_url:
-            query = query.replace("?", "%s")
-            # Ersätt även datumfunktioner
-            query = query.replace("datetime('now')", "CURRENT_TIMESTAMP")
-            query = query.replace("date('now')", "CURRENT_DATE")
-        
-        adapted_query = self.db._adapt_query(query)
-        cur.execute(adapted_query, params)
-        
-        # Hantera lastrowid olika för PostgreSQL vs SQLite
-        if self.db.database_url:
-            # För PostgreSQL, försök hämta RETURNING
-            if 'RETURNING' in query.upper():
-                row = cur.fetchone()
-                return row[0] if row else None
-            return None
-        else:
-            # SQLite använder lastrowid
-            return cur.lastrowid
-        
-            if fetch_one:
-                row = cur.fetchone()
-                return dict(row) if row else None
-            return None
+    def execute(self, query: str, params: Tuple = (), fetch_one: bool = False):
+        """FIXAD: Använder nu get_connection() context manager istället för self.conn"""
+        with self.get_connection() as conn:
+            cur = conn.cursor()
+            
+            # PostgreSQL använder %s istället för ?
+            if self.database_url:
+                query = query.replace("?", "%s")
+                # Ersätt även datumfunktioner
+                query = query.replace("datetime('now')", "CURRENT_TIMESTAMP")
+                query = query.replace("date('now')", "CURRENT_DATE")
+            
+            adapted_query = self._adapt_query(query)
+            cur.execute(adapted_query, params)
+            
+            # Hantera lastrowid olika för PostgreSQL vs SQLite
+            if self.database_url:
+                # För PostgreSQL, försök hämta RETURNING
+                if 'RETURNING' in query.upper():
+                    row = cur.fetchone()
+                    return row[0] if row else None
+                return None
+            else:
+                # SQLite använder lastrowid
+                return cur.lastrowid
 
     def execute_many(
         self, 
@@ -481,16 +478,12 @@ class DatabaseConnection:
             return [dict(row) for row in cur.fetchall()]
 
     def fetch_one(self, query: str, params: Tuple = ()) -> Optional[Dict]:
-
         with self.get_connection() as conn:
             cur = conn.cursor()
             adapted_query = self._adapt_query(query)
             cur.execute(adapted_query, params)
-
             row = cur.fetchone()
-
             return dict(row) if row else None
-
     
     def last_insert_id(self, cursor=None) -> int:
         """Hämta senaste insert ID. OBS: För PostgreSQL krävs RETURNING."""
