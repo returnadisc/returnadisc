@@ -750,7 +750,7 @@ class PremiumSubscriptionRepository(BaseRepository):
                     subscription.payment_id,
                     subscription.amount_paid,
                     subscription.currency,
-                    1 if subscription.is_launch_offer else 0
+                    subscription.is_launch_offer  # ÄNDRAT: Boolean direkt för PostgreSQL
                 ))
                 row = cur.fetchone()
                 return row['id'] if row else None
@@ -770,7 +770,7 @@ class PremiumSubscriptionRepository(BaseRepository):
                 subscription.payment_id,
                 subscription.amount_paid,
                 subscription.currency,
-                1 if subscription.is_launch_offer else 0
+                1 if subscription.is_launch_offer else 0  # SQLite använder 1/0
             ))
             return self.db.last_insert_id()
     
