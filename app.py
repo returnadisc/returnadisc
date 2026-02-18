@@ -84,15 +84,6 @@ def create_app(config_name=None):
     return app
 
 
-
-@app.before_request
-def check_expired_premium():
-    """Kolla utgångna prenumerationer vid varje request."""
-    from database import db
-    db.check_expired_subscriptions()
-
-
-
 # Skapa app-instansen
 app = create_app()
 

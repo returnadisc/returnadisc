@@ -2269,8 +2269,14 @@ class Database:
         sub = self._premium_service.activate_free_launch_premium(user_id)
         return sub.to_dict() if sub else None
     
-    def get_user_premium_status(self, user_id: int) -> Dict:
-        return self._premium_service.get_user_subscription_status(user_id)
+    def get_user_subscription_status(self, user_id: int) -> Dict:
+        """Hämta fullständig prenumerationsstatus för en användare."""
+        # Kolla utgångna prenumerationer först
+        self.check_expired_subscriptions()
+    
+        user = self.users.get_by_id(user_id)
+        if not user:
+            return {'has_premium': False, 'error': 'User not found'}
     
     def check_expired_subscriptions(self) -> int:
         return self._premium_service.check_and_update_expired_subscriptions()
