@@ -2703,30 +2703,42 @@ class Database:
         with self._db.get_connection() as conn:
             cur = conn.cursor()
             
-            # Uppdatera qr_codes
-            cur.execute(f"""
-                UPDATE qr_codes 
-                SET qr_id = {self._db.dialect.placeholder()} 
-                WHERE qr_id = {self._db.dialect.placeholder()}
-            """, (new_qr_id, old_qr_id))
-            
-            # Uppdatera handovers
-            cur.execute(f"""
-                UPDATE handovers 
-                SET qr_id = {self._db.dialect.placeholder()} 
-                WHERE qr_id = {self._db.dialect.placeholder()}
-            """, (new_qr_id, old_qr_id))
-            
-            # NYTT: Uppdatera qr_images (fungerar både för SQLite och PostgreSQL)
+            # Uppdatera qr_codes - använd rätt placeholder
             if self._db.database_url:
-                # PostgreSQL
+                cur.execute("""
+                    UPDATE qr_codes 
+                    SET qr_id = %s 
+                    WHERE qr_id = %s
+                """, (new_qr_id, old_qr_id))
+                
+                # Uppdatera handovers
+                cur.execute("""
+                    UPDATE handovers 
+                    SET qr_id = %s 
+                    WHERE qr_id = %s
+                """, (new_qr_id, old_qr_id))
+                
+                # NYTT: Uppdatera qr_images
                 cur.execute("""
                     UPDATE qr_images 
                     SET qr_id = %s 
                     WHERE qr_id = %s
                 """, (new_qr_id, old_qr_id))
             else:
-                # SQLite
+                cur.execute("""
+                    UPDATE qr_codes 
+                    SET qr_id = ? 
+                    WHERE qr_id = ?
+                """, (new_qr_id, old_qr_id))
+                
+                # Uppdatera handovers
+                cur.execute("""
+                    UPDATE handovers 
+                    SET qr_id = ? 
+                    WHERE qr_id = ?
+                """, (new_qr_id, old_qr_id))
+                
+                # NYTT: Uppdatera qr_images
                 cur.execute("""
                     UPDATE qr_images 
                     SET qr_id = ? 
