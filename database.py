@@ -1477,7 +1477,7 @@ class UserService:
             email_hash = encryption.hash_email(email)
             
             # 🔴 VIKTIGT: Kontrollera om email redan finns innan vi skapar
-            adapted_query = self._adapt_query("SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE")
+            adapted_query = self.db._adapt_query("SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE")
             cur.execute(adapted_query, (email_hash,))
 
             if cur.fetchone():
