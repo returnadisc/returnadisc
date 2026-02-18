@@ -1,6 +1,7 @@
 """Database-hantering med Repository Pattern och kryptering."""
 import sqlite3
 import psycopg2
+import psycopg2.extras
 from urllib.parse import urlparse
 import logging
 import os
@@ -286,10 +287,12 @@ class DatabaseConnection:
                 dbname=url.path[1:]
             )
 
+            conn.cursor_factory = psycopg2.extras.RealDictCursor
+
             try:
                 yield conn
                 conn.commit()
-            except Exception as e:
+            except Exception:
                 conn.rollback()
                 raise
             finally:
@@ -297,20 +300,19 @@ class DatabaseConnection:
 
         # Lokal SQLite
         else:
-            conn = sqlite3.connect(
-                self.db_path,
-                timeout=20,
-            )
+            conn = sqlite3.connect(self.db_path)
             conn.row_factory = sqlite3.Row
 
             try:
                 yield conn
                 conn.commit()
-            except Exception as e:
+            except Exception:
                 conn.rollback()
                 raise
             finally:
                 conn.close()
+
+
 
     
     @contextmanager
