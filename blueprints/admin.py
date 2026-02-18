@@ -990,13 +990,23 @@ def delete_qr(qr_id: str):
             flash('Kan inte radera QR-kod som är tilldelad en användare', 'error')
             return redirect(url_for('admin.edit_qr', qr_id=qr_id))
         
-        # Radera handovers först (pga foreign key constraint)
-        query = "DELETE FROM handovers WHERE qr_id = ?"
-        db._db.execute(query, (qr_id,))
+        # VIKTIGT: Radera handovers först (pga foreign key constraint)
+        # Använd rätt syntax för respektive databas
+        if db._db.database_url:
+            # PostgreSQL använder %s
+            delete_handovers = "DELETE FROM handovers WHERE qr_id = %s"
+            delete_qr = "DELETE FROM qr_codes WHERE qr_id = %s"
+        else:
+            # SQLite använder ?
+            delete_handovers = "DELETE FROM handovers WHERE qr_id = ?"
+            delete_qr = "DELETE FROM qr_codes WHERE qr_id = ?"
         
-        # Radera från databasen
-        query = "DELETE FROM qr_codes WHERE qr_id = ?"
-        db._db.execute(query, (qr_id,))
+        # Kör båda deletes i samma transaction
+        with db._db.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(delete_handovers, (qr_id,))
+            cur.execute(delete_qr, (qr_id,))
+            conn.commit()
         
         # Radera bildfil
         import os
