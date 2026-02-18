@@ -118,6 +118,43 @@
         box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
     }
 
+    /* Kom ihåg mig & Glömt lösenord */
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+
+    .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #4b5563;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .remember-me input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #166534;
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        color: #166534;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+    }
+
+    .forgot-link:hover {
+        color: #22c55e;
+    }
+
     .btn-login {
         width: 100%;
         background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
@@ -157,11 +194,6 @@
         color: #22c55e;
     }
 
-    .link-divider {
-        color: #9ca3af;
-        margin: 0 12px;
-    }
-
     .back-link {
         display: block;
         text-align: center;
@@ -191,6 +223,12 @@
         .login-header h1 {
             font-size: 1.5rem;
         }
+
+        .form-options {
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+        }
     }
 </style>
 {% endblock %}
@@ -201,6 +239,7 @@
     <div class="login-bg" style="background-image: url('{{ url_for('static', filename='images/login-bg.png') }}');"></div>
     <div class="login-overlay"></div>
     
+	
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
@@ -220,6 +259,14 @@
                     <input type="password" id="password" name="password" required 
                            placeholder="Ditt lösenord" autocomplete="current-password">
                 </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember" id="remember">
+                        <span>Kom ihåg mig</span>
+                    </label>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Glömt lösenord?</a>
+                </div>
                 
                 <button type="submit" class="btn-login">
                     Logga in
@@ -227,8 +274,6 @@
             </form>
             
             <div class="login-links">
-                <a href="{{ url_for('auth.forgot_password') }}">Glömt lösenord?</a>
-                <span class="link-divider">|</span>
                 <a href="{{ url_for('auth.signup') }}">Skapa konto</a>
             </div>
         </div>
