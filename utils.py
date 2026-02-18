@@ -306,7 +306,6 @@ def create_small_qr_for_pdf(qr_id: str, size: int = 200) -> io.BytesIO:
     
     return img_buffer
 
-
 def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
     """
     Generera PDF med QR-koder för en order.
