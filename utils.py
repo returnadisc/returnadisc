@@ -235,9 +235,8 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         qr_img = qr_img.convert('RGB')
     
     try:
-        # STÖRRE FONTER (som den blåa versionen)
-        font_large = ImageFont.truetype(font_path, 140)  # Var 112, nu 140
-        font_small = ImageFont.truetype(font_path, 90)   # Var 72, nu 90
+        font_large = ImageFont.truetype(font_path, 140)
+        font_small = ImageFont.truetype(font_path, 90)
         
         draw = ImageDraw.Draw(qr_img)
         
@@ -253,9 +252,9 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         width, height = qr_img.size
         
-        margin_top = 16
-        line_spacing = 10
-        margin_bottom = 30
+        margin_top = 8           # VAR 16, NU 8 (närmare QR-koden)
+        line_spacing = 8         # VAR 10, NU 8 (tätare mellan texterna)
+        margin_bottom = 20       # VAR 30, NU 20 (mindre i botten)
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
@@ -271,7 +270,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         x_id = (width - int(width_id)) // 2
         y_id = y_se + height_se + line_spacing
-        draw.text((x_id, y_id), text_id, fill='#000000', font=font_large)  # Svart istället för blå
+        draw.text((x_id, y_id), text_id, fill='#000000', font=font_large)
         
         final_width = 400
         current_width, current_height = new_img.size
