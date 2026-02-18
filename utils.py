@@ -212,7 +212,17 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
+    # DEBUG
+    logger.info(f"=== CREATE_QR_CODE DEBUG ===")
+    logger.info(f"qr_id: {qr_id}")
+    logger.info(f"qr_folder: {qr_folder}")
+    logger.info(f"QR_FOLDER env: {os.environ.get('QR_FOLDER', 'NOT SET')}")
+    logger.info(f"Absolute path: {os.path.abspath(qr_folder)}")
+    logger.info(f"Folder exists BEFORE: {os.path.exists(qr_folder)}")
+    
     os.makedirs(qr_folder, exist_ok=True)
+    
+    logger.info(f"Folder exists AFTER: {os.path.exists(qr_folder)}")
     
     font_path = 'static/fonts/arial.ttf'
     if not os.path.exists(font_path):
@@ -252,9 +262,9 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         width, height = qr_img.size
         
-        margin_top = 8           # VAR 16, NU 8 (närmare QR-koden)
-        line_spacing = 8         # VAR 10, NU 8 (tätare mellan texterna)
-        margin_bottom = 50       # VAR 30, NU 20 (mindre i botten)
+        margin_top = 8
+        line_spacing = 8
+        margin_bottom = 50
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
@@ -285,9 +295,19 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
-    qr_img.save(filepath, quality=95)
     
-    logger.info(f"Created QR code: {filename}")
+    # DEBUG
+    logger.info(f"Saving to filepath: {filepath}")
+    
+    try:
+        qr_img.save(filepath, quality=95)
+        logger.info(f"File saved: {os.path.exists(filepath)}")
+        logger.info(f"File size: {os.path.getsize(filepath) if os.path.exists(filepath) else 'N/A'} bytes")
+    except Exception as e:
+        logger.error(f"Failed to save file: {e}")
+        raise
+    
+    logger.info(f"=== CREATE_QR_CODE END ===")
     return filename
 
 
