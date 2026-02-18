@@ -34,12 +34,12 @@
                     
                     <div class="disc-actions">
                         {% if disc.status == 'missing' %}
-                            <form method="post" action="{{ url_for('missing.mark_found', disc_id=disc.id) }}" style="display: inline;">
+                            <form method="post" action="/missing/mark-found/{{ disc.id }}" style="display: inline;">
                                 <button type="submit" class="btn-success btn-small">Jag hittade den!</button>
                             </form>
                         {% endif %}
                         
-                        <form method="post" action="{{ url_for('missing.delete', disc_id=disc.id) }}" 
+                        <form method="post" action="/missing/delete/{{ disc.id }}" 
                               style="display: inline;" 
                               onsubmit="return confirm('Ta bort denna rapport?');">
                             <button type="submit" class="btn-danger btn-small">Ta bort</button>
