@@ -800,3 +800,8 @@ def signup_with_purchased_qr():
             return redirect(url_for('auth.signup_with_purchased_qr'))
     
     return render_template('auth/signup_with_purchased_qr.html')
+    
+    
+@auth_bp.route('/faq')
+def faq():
+    return render_template('faq.html')
