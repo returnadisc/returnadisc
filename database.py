@@ -2733,5 +2733,10 @@ class Database:
             raise
 
 
+    def get_user_premium_status(self, user_id: int) -> Dict:
+        result = self._premium_service.get_user_subscription_status(user_id)
+        print(f"DEBUG get_user_premium_status: {type(result)}, value: {result}")
+        return result
+
 # Skapa global databasinstans
 db = Database(DB_PATH)
