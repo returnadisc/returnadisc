@@ -14,7 +14,7 @@ from flask import (
 )
 
 from database import db
-from utils import create_small_qr_for_pdf, serve_qr_image
+from utils import create_small_qr_for_pdf, serve_qr_image, create_qr_code
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -326,6 +326,39 @@ def dashboard():
         return redirect(url_for('auth.login'))
 
 
+@bp.route('/qr-image/<qr_id>')
+@login_required
+def qr_image(qr_id):
+    """Visa QR-bild från databasen (för användning i <img> taggar)."""
+    validation = QRValidationService.validate(qr_id)
+    if not validation.is_valid:
+        return "Ogiltigt QR-ID", 400
+    
+    # Verifiera att användaren äger QR-koden
+    qr = db.get_qr(qr_id)
+    if not qr or qr.get('user_id') != g.user_id:
+        return "Åtkomst nekad", 403
+    
+    img_buffer = serve_qr_image(qr_id)
+    
+    if not img_buffer:
+        # Försök generera om bilden saknas
+        try:
+            create_qr_code(qr_id, g.user_id)
+            img_buffer = serve_qr_image(qr_id)
+        except Exception as e:
+            logger.error(f"Kunde inte generera QR: {e}")
+    
+    if not img_buffer:
+        return "QR-kod hittades inte", 404
+    
+    return send_file(
+        img_buffer,
+        mimetype='image/png',
+        as_attachment=False
+    )
+
+
 @bp.route('/download-qr/<qr_id>')
 @login_required
 @require_ownership
@@ -342,7 +375,6 @@ def download_qr(qr_id):
     if not img_buffer:
         # Om inte i databasen, försök generera ny
         try:
-            from utils import create_qr_code
             create_qr_code(qr_id, g.user_id)
             # Försök igen
             img_buffer = serve_qr_image(qr_id)

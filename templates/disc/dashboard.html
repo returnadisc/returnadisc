@@ -471,27 +471,6 @@
         font-weight: 600;
     }
 
-    /* QR Fallback */
-    .qr-fallback {
-        display: none;
-        padding: 20px;
-        text-align: center;
-    }
-
-    .qr-fallback-code {
-        font-size: 2rem;
-        color: #166534;
-        font-weight: bold;
-        font-family: monospace;
-        letter-spacing: 3px;
-        margin-bottom: 10px;
-    }
-
-    .qr-fallback-text {
-        color: #666;
-        font-size: 0.9rem;
-    }
-
     /* Responsive */
     @media (max-width: 900px) {
         .dashboard-grid {
@@ -589,7 +568,7 @@
                     {% if is_launch and premium_status and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
                         <small>(Gratis till 1 mars 2027)</small>
                     {% elif premium_status and premium_status.premium_until %}
-                        <<small>(till {{ premium_status.premium_until.strftime('%Y-%m-%d') }})</small>
+                        <small>(till {{ premium_status.premium_until.strftime('%Y-%m-%d') }})</small>
                     {% endif %}
                 </div>
             {% else %}
@@ -649,23 +628,18 @@
                     </div>
                     
                     <div class="qr-image-container">
-                        <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                        <!-- VIKTIGT: Använd qr_image route istället för statisk fil -->
+                        <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="Din QR-kod {{ qr.qr_id }}" 
-                             class="qr-image"
-                             id="qrImage"
-                             onerror="document.getElementById('qrImage').style.display='none'; document.getElementById('qrFallback').style.display='block';">
-                        
-                        <div id="qrFallback" class="qr-fallback">
-                            <div class="qr-fallback-code">{{ qr.qr_id }}</div>
-                            <div class="qr-fallback-text">QR-bild saknas - kontakta support</div>
-                        </div>
+                             class="qr-image">
                         
                         <div class="qr-id">{{ qr.qr_id }}</div>
                     </div>
                     
                     <!-- Knappar bredvid varandra -->
                     <div class="qr-buttons">
-                        <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                        <!-- VIKTIGT: Använd download_qr route -->
+                        <a href="{{ url_for('disc.download_qr', qr_id=qr.qr_id) }}" 
                            download="returnadisc-{{ qr.qr_id }}.png"
                            class="btn-download">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
