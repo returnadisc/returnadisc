@@ -254,7 +254,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         
         margin_top = 8           # VAR 16, NU 8 (närmare QR-koden)
         line_spacing = 8         # VAR 10, NU 8 (tätare mellan texterna)
-        margin_bottom = 25       # VAR 30, NU 20 (mindre i botten)
+        margin_bottom = 50       # VAR 30, NU 20 (mindre i botten)
         
         total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
         
