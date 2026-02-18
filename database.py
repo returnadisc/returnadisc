@@ -2391,6 +2391,10 @@ class Database:
             'member_since': stats.member_since
         }
     
+    def get_user_premium_status(self, user_id: int) -> Dict:
+        return self._premium_service.get_user_subscription_status(user_id)
+    
+    
     def get_user_missing_stats(self, user_id: int) -> Dict:
         stats = self._user_service.get_stats(user_id)
         return {
