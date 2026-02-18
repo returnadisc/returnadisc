@@ -1632,17 +1632,18 @@ class PremiumService:
         )
     
     def check_and_update_expired_subscriptions(self) -> int:
+        """Kontrollera och uppdatera utgångna prenumerationer. Returnerar antal uppdaterade."""
         # Använd databasspecifik tidsjämförelse
         if self.db.database_url:
             query = """
-                SELECT id, user_id FROM premium_subscriptions
+                SELECT id, user_id, expires_at FROM premium_subscriptions
                 WHERE status = 'active' 
                 AND expires_at IS NOT NULL 
                 AND expires_at < CURRENT_TIMESTAMP
             """
         else:
             query = """
-                SELECT id, user_id FROM premium_subscriptions
+                SELECT id, user_id, expires_at FROM premium_subscriptions
                 WHERE status = 'active' 
                 AND expires_at IS NOT NULL 
                 AND expires_at < datetime('now')
@@ -1653,32 +1654,33 @@ class PremiumService:
             cur.execute(query)
             rows = cur.fetchall()
             
-            print(f"DEBUG: Hittade {len(rows)} utgångna prenumerationer")
-            
             count = 0
             for row in rows:
                 # Hantera både dict och tuple format
                 if isinstance(row, dict):
                     sub_id = row.get('id')
                     user_id = row.get('user_id')
+                    expires_at = row.get('expires_at')
                 else:
                     sub_id = row[0]
                     user_id = row[1]
-                
-                print(f"DEBUG: Bearbetar sub_id={sub_id}, user_id={user_id}")
+                    expires_at = row[2]
                 
                 # Uppdatera prenumeration till expired
                 self.subs.update_status(sub_id, 'expired')
                 
                 # Kolla om användaren har andra aktiva prenumerationer
                 active_subs = self.subs.get_by_user(user_id, active_only=True)
-                print(f"DEBUG: Aktiva prenumerationer för user_id {user_id}: {len(active_subs)}")
                 
                 if not active_subs:
-                    print(f"DEBUG: Deaktiverar premium för user_id {user_id}")
+                    # 🔴 VIKTIGT: Deaktivera även i users-tabellen!
                     self.users.deactivate_premium(user_id)
+                    logger.info(f"Premium deaktiverat för användare {user_id} (prenumeration {sub_id} utgången)")
                 else:
-                    print(f"DEBUG: Har fortfarande aktiva prenumerationer, hoppar över deaktivering")
+                    # Uppdatera till senaste aktiva prenumerationens expiry
+                    latest = active_subs[0]
+                    self.users.activate_premium(user_id, latest.expires_at)
+                    logger.info(f"Premium uppdaterat för användare {user_id} till nytt expiry: {latest.expires_at}")
                 
                 count += 1
             
@@ -1690,9 +1692,10 @@ class PremiumService:
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
         
-        # 🔴 VIKTIGT: Uppdatera utgångna prenumerationer först
+        # 🔴 VIKTIGT: Uppdatera utgångna prenumerationer först (alltid!)
         self.check_and_update_expired_subscriptions()
         
+        # Hämta färsk användardata efter potentiell uppdatering
         user = self.users.get_by_id(user_id)
         if not user:
             return {'has_premium': False, 'error': 'User not found'}
@@ -2417,12 +2420,6 @@ class Database:
             'total_returns': stats.total_returns,
             'member_since': stats.member_since
         }
-    
-    # 🔴 BORTTAGEN: Dublett metod - använd get_user_subscription_status istället
-    # def get_user_premium_status(self, user_id: int) -> Dict:
-    #     result = self._premium_service.get_user_subscription_status(user_id)
-    #     print(f"DEBUG get_user_premium_status: {type(result)}, value: {result}")
-    #     return result
     
     def get_user_missing_stats(self, user_id: int) -> Dict:
         stats = self._user_service.get_stats(user_id)
