@@ -537,3 +537,5 @@ def send_email_with_attachment(to_email: str, subject: str, html_content: str,
     thread = threading.Thread(target=send)
     thread.daemon = True
     thread.start()
+    
+    
