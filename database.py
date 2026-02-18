@@ -1428,7 +1428,9 @@ class UnitOfWork:
             query = query.replace("datetime('now')", "CURRENT_TIMESTAMP")
             query = query.replace("date('now')", "CURRENT_DATE")
         
-        cur.execute(query, params)
+        adapted_query = self._adapt_query(query)
+        cur.execute(adapted_query, params)
+
         
         # Hantera lastrowid olika för PostgreSQL vs SQLite
         if self.db.database_url:
@@ -1475,7 +1477,9 @@ class UserService:
             email_hash = encryption.hash_email(email)
             
             # 🔴 VIKTIGT: Kontrollera om email redan finns innan vi skapar
-            cur.execute("SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE", (email_hash,))
+            adapted_query = self._adapt_query("SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE")
+            cur.execute(adapted_query, (email_hash,))
+
             if cur.fetchone():
                 raise ValueError("Det finns redan ett konto med denna emailadress.")
             

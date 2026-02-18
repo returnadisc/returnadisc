@@ -480,7 +480,8 @@ def logout():
     """Admin logout."""
     if session.get('is_admin'):
         audit = AuditLogService()
-        audit.destroy_session(session, request.remote_addr)
+        session.clear()
+
     
     session.pop('is_admin', None)
     session.pop('admin_email', None)
