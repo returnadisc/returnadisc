@@ -990,6 +990,10 @@ def delete_qr(qr_id: str):
             flash('Kan inte radera QR-kod som är tilldelad en användare', 'error')
             return redirect(url_for('admin.edit_qr', qr_id=qr_id))
         
+        # Radera handovers först (pga foreign key constraint)
+        query = "DELETE FROM handovers WHERE qr_id = ?"
+        db._db.execute(query, (qr_id,))
+        
         # Radera från databasen
         query = "DELETE FROM qr_codes WHERE qr_id = ?"
         db._db.execute(query, (qr_id,))
