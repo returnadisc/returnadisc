@@ -126,8 +126,8 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     
     # 3. Lägg till text under QR-koden
     qr_width, qr_height = qr_img.size
-    margin = 16
-    text_height = 110
+    margin = 12  # Mindre marginal för mer utrymme till text
+    text_height = 130  # Ännu mer utrymme för text
     total_height = qr_height + text_height
     
     # Skapa ny bild med utrymme för text
@@ -137,24 +137,26 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     # 4. Rita texten
     draw = ImageDraw.Draw(final_img)
     
-    # Ladda typsnitt
+    # Ladda typsnitt - NU ÄNNU STÖRRE!
     try:
-        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 32)
-        font_id = ImageFont.truetype("static/fonts/arial.ttf", 52)
+        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 42)  # VAR 32, NU 42!
+        font_id = ImageFont.truetype("static/fonts/arial.ttf", 48)      # Lite mindre för att ge plats åt domänen
     except:
         font_domain = ImageFont.load_default()
         font_id = ImageFont.load_default()
     
-    # Rita "returnadisc.se" i grått
+    # === Rita "returnadisc.se" i grått - NU STÖRST! ===
     text1 = "returnadisc.se"
     bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
     text1_width = bbox1[2] - bbox1[0]
     text1_height = bbox1[3] - bbox1[1]
     
     available_width = qr_width - (2 * margin)
+    
+    # Om för bred, skala ner proportionerligt
     if text1_width > available_width:
         scale = available_width / text1_width
-        new_size = int(32 * scale)
+        new_size = int(42 * scale)
         try:
             font_domain = ImageFont.truetype("static/fonts/arial.ttf", new_size)
         except:
@@ -164,15 +166,15 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
         text1_height = bbox1[3] - bbox1[1]
     
     x1 = (qr_width - text1_width) // 2
-    y1 = qr_height + 5
-    draw.text((x1, y1), text1, fill="#555555", font=font_domain)
+    y1 = qr_height + 4  # Ännu närmare QR-koden
+    draw.text((x1, y1), text1, fill="#444444", font=font_domain)  # Mörkare grå för bättre kontrast
     
-    # Rita QR-ID i KOLSVART
+    # === Rita QR-ID i KOLSVART ===
     bbox_domain_bottom = y1 + text1_height
-    remaining_space = total_height - bbox_domain_bottom - 8
+    remaining_space = total_height - bbox_domain_bottom - 6
     
-    id_font_size = 56
-    min_font_size = 24
+    id_font_size = 44  # Starta lite mindre för att ge plats åt domänen
+    min_font_size = 28
     
     while id_font_size >= min_font_size:
         try:
@@ -191,7 +193,8 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
         id_font_size -= 2
     
     x2 = (qr_width - text2_width) // 2
-    y2 = bbox_domain_bottom + 3
+    y2 = bbox_domain_bottom + 2  # Minimal mellanrum
+    
     draw.text((x2, y2), qr_id, fill="#000000", font=font_id)
     
     # Om target_size anges, skala ner bilden
