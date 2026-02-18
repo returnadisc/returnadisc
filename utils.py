@@ -106,7 +106,6 @@ def generate_random_qr_id(length: int = 5) -> str:
 def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) -> Image.Image:
     """
     Skapa QR-kod med ReturnaDisc-design.
-    Om target_size anges, skalas bilden ner till den storleken (för PDF).
     """
     # 1. Skapa QR-koden
     qr = qrcode.QRCode(
@@ -124,80 +123,85 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     qr_img = qr.make_image(fill_color="black", back_color="white")
     qr_img = qr_img.convert('RGB')
     
-    # 3. Lägg till text under QR-koden
     qr_width, qr_height = qr_img.size
-    margin = 12  # Mindre marginal för mer utrymme till text
-    text_height = 130  # Ännu mer utrymme för text
-    total_height = qr_height + text_height
+    margin = 16
     
-    # Skapa ny bild med utrymme för text
-    final_img = Image.new('RGB', (qr_width, total_height), 'white')
-    final_img.paste(qr_img, (0, 0))
-    
-    # 4. Rita texten
-    draw = ImageDraw.Draw(final_img)
-    
-    # Ladda typsnitt - NU ÄNNU STÖRRE!
-    try:
-        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 42)  # VAR 32, NU 42!
-        font_id = ImageFont.truetype("static/fonts/arial.ttf", 48)      # Lite mindre för att ge plats åt domänen
-    except:
-        font_domain = ImageFont.load_default()
-        font_id = ImageFont.load_default()
-    
-    # === Rita "returnadisc.se" i grått - NU STÖRST! ===
-    text1 = "returnadisc.se"
-    bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
-    text1_width = bbox1[2] - bbox1[0]
-    text1_height = bbox1[3] - bbox1[1]
+    # 3. Beräkna textstorlekar DYNAMISKT baserat på QR-kodens bredd
+    draw = ImageDraw.Draw(Image.new('RGB', (1, 1), 'white'))  # Temp för beräkningar
     
     available_width = qr_width - (2 * margin)
     
-    # Om för bred, skala ner proportionerligt
-    if text1_width > available_width:
-        scale = available_width / text1_width
-        new_size = int(42 * scale)
+    # === Beräkna storlek för returnadisc.se ===
+    # Mål: ta upp ~60% av bredden
+    domain_target_size = 38
+    try:
+        font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_target_size)
+    except:
+        font_domain = ImageFont.load_default()
+    
+    bbox_domain = draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+    domain_width = bbox_domain[2] - bbox_domain[0]
+    domain_height = bbox_domain[3] - bbox_domain[1]
+    
+    # Skala om för stor
+    if domain_width > available_width * 0.9:
+        scale = (available_width * 0.9) / domain_width
+        domain_target_size = int(domain_target_size * scale)
         try:
-            font_domain = ImageFont.truetype("static/fonts/arial.ttf", new_size)
+            font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_target_size)
         except:
             font_domain = ImageFont.load_default()
-        bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
-        text1_width = bbox1[2] - bbox1[0]
-        text1_height = bbox1[3] - bbox1[1]
+        bbox_domain = draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+        domain_width = bbox_domain[2] - bbox_domain[0]
+        domain_height = bbox_domain[3] - bbox_domain[1]
     
-    x1 = (qr_width - text1_width) // 2
-    y1 = qr_height + 4  # Ännu närmare QR-koden
-    draw.text((x1, y1), text1, fill="#444444", font=font_domain)  # Mörkare grå för bättre kontrast
+    # === Beräkna storlek för QR-ID ===
+    # Mål: ta upp ~80% av bredden, men får inte vara högre än domänen
+    id_target_size = min(52, int(domain_target_size * 1.4))  # Max 40% större än domänen
     
-    # === Rita QR-ID i KOLSVART ===
-    bbox_domain_bottom = y1 + text1_height
-    remaining_space = total_height - bbox_domain_bottom - 6
+    try:
+        font_id = ImageFont.truetype("static/fonts/arial.ttf", id_target_size)
+    except:
+        font_id = ImageFont.load_default()
     
-    id_font_size = 44  # Starta lite mindre för att ge plats åt domänen
-    min_font_size = 28
+    bbox_id = draw.textbbox((0, 0), qr_id, font=font_id)
+    id_width = bbox_id[2] - bbox_id[0]
+    id_height = bbox_id[3] - bbox_id[1]
     
-    while id_font_size >= min_font_size:
+    # Skala om för stor
+    if id_width > available_width * 0.95:
+        scale = (available_width * 0.95) / id_width
+        id_target_size = int(id_target_size * scale)
         try:
-            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_font_size)
+            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_target_size)
         except:
             font_id = ImageFont.load_default()
-            break
-        
-        bbox2 = draw.textbbox((0, 0), qr_id, font=font_id)
-        text2_width = bbox2[2] - bbox2[0]
-        text2_height = bbox2[3] - bbox2[1]
-        
-        if text2_width <= available_width and text2_height <= remaining_space:
-            break
-        
-        id_font_size -= 2
+        bbox_id = draw.textbbox((0, 0), qr_id, font=font_id)
+        id_width = bbox_id[2] - bbox_id[0]
+        id_height = bbox_id[3] - bbox_id[1]
     
-    x2 = (qr_width - text2_width) // 2
-    y2 = bbox_domain_bottom + 2  # Minimal mellanrum
+    # 4. Beräkna total höjd
+    gap_between = 6  # Mellanrum mellan texterna
+    bottom_margin = 10
+    text_height = domain_height + gap_between + id_height + bottom_margin
+    total_height = qr_height + text_height
     
-    draw.text((x2, y2), qr_id, fill="#000000", font=font_id)
+    # 5. Skapa bild
+    final_img = Image.new('RGB', (qr_width, total_height), 'white')
+    final_img.paste(qr_img, (0, 0))
+    draw = ImageDraw.Draw(final_img)
     
-    # Om target_size anges, skala ner bilden
+    # 6. Rita domänen (returnadisc.se)
+    x_domain = (qr_width - domain_width) // 2
+    y_domain = qr_height + 5  # Lite luft under QR-koden
+    draw.text((x_domain, y_domain), "returnadisc.se", fill="#555555", font=font_domain)
+    
+    # 7. Rita QR-ID (KOLSVART)
+    x_id = (qr_width - id_width) // 2
+    y_id = y_domain + domain_height + gap_between  # Efter domänen + mellanrum
+    draw.text((x_id, y_id), qr_id, fill="#000000", font=font_id)
+    
+    # 8. Om target_size anges, skala ner
     if target_size:
         final_img = final_img.resize((target_size, target_size), Image.Resampling.LANCZOS)
     
