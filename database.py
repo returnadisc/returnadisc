@@ -1647,20 +1647,32 @@ class PremiumService:
                 AND expires_at IS NOT NULL 
                 AND expires_at < datetime('now')
             """
-        expired = self.db.fetch_all(query)
         
-        count = 0
-        for row in expired:
-            self.subs.update_status(row['id'], 'expired')
-            active_subs = self.subs.get_by_user(row['user_id'], active_only=True)
-            if not active_subs:
-                self.users.deactivate_premium(row['user_id'])
-            count += 1
-        
-        if count > 0:
-            logger.info(f"Uppdaterade {count} utgångna prenumerationer")
-        
-        return count
+        with self.db.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(query)
+            rows = cur.fetchall()
+            
+            count = 0
+            for row in rows:
+                # Hantera både dict och tuple format
+                if isinstance(row, dict):
+                    sub_id = row.get('id')
+                    user_id = row.get('user_id')
+                else:
+                    sub_id = row[0]
+                    user_id = row[1]
+                
+                self.subs.update_status(sub_id, 'expired')
+                active_subs = self.subs.get_by_user(user_id, active_only=True)
+                if not active_subs:
+                    self.users.deactivate_premium(user_id)
+                count += 1
+            
+            if count > 0:
+                logger.info(f"Uppdaterade {count} utgångna prenumerationer")
+            
+            return count
     
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
