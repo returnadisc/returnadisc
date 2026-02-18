@@ -1462,58 +1462,75 @@ class UserService:
         self.users = user_repo
         self.qrs = qr_repo
     
-def create_user_with_qr(
-    self, 
-    name: str, 
-    email: str, 
-    password_hash: str,
-    qr_generator: callable
-) -> Tuple[int, str, str]:
-    max_attempts = 10
-    
-    with UnitOfWork(self.db) as uow:
-        cur = uow.get_cursor()
-        encrypted_email = encryption.encrypt(email)
-        email_hash = encryption.hash_email(email)
+    def create_user_with_qr(
+        self, 
+        name: str, 
+        email: str, 
+        password_hash: str,
+        qr_generator: callable
+    ) -> Tuple[int, str, str]:
+        max_attempts = 10
         
-        # 🔴 VIKTIGT: Kontrollera om email redan finns innan vi skapar
-        uow.execute("SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE", (email_hash,))
-        
-        if cur.fetchone():
-            raise ValueError("Det finns redan ett konto med denna emailadress.")
-        
-        # Använd uow.execute för INSERT som returnerar lastrowid
-        user_id = uow.execute("""
-            INSERT INTO users (name, email, email_hash, password, created_at, is_active)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
-        """, (name, encrypted_email, email_hash, password_hash))
-        
-        if self.db.database_url:
-            user_id = uow.execute("SELECT lastval()", ())
-        
-        qr_id = None
-        for attempt in range(max_attempts):
-            candidate = qr_generator()
+        with UnitOfWork(self.db) as uow:
+            cur = uow.get_cursor()
+            encrypted_email = encryption.encrypt(email)
+            email_hash = encryption.hash_email(email)
             
-            try:
-                uow.execute("""
-                    INSERT INTO qr_codes (qr_id, user_id, is_active, activated_at, created_at)
-                    VALUES (?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                """, (candidate, user_id))
-                qr_id = candidate
-                break
-            except (sqlite3.IntegrityError, psycopg2.IntegrityError):
-                if attempt == max_attempts - 1:
-                    raise RuntimeError("Kunde inte generera unik QR-kod")
-                continue
+            # 🔴 VIKTIGT: Kontrollera om email redan finns innan vi skapar
+            check_query = "SELECT id FROM users WHERE email_hash = %s AND is_active = TRUE" if self.db.database_url else "SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE"
+            cur.execute(check_query, (email_hash,))
+
+            if cur.fetchone():
+                raise ValueError("Det finns redan ett konto med denna emailadress.")
+            
+            # Använd rätt syntax för respektive databas
+            if self.db.database_url:
+                # PostgreSQL
+                cur.execute("""
+                    INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                    VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, TRUE)
+                    RETURNING id
+                """, (name, encrypted_email, email_hash, password_hash))
+                user_id = cur.fetchone()['id']
+            else:
+                # SQLite
+                cur.execute("""
+                    INSERT INTO users (name, email, email_hash, password, created_at, is_active)
+                    VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 1)
+                """, (name, encrypted_email, email_hash, password_hash))
+                user_id = cur.lastrowid
+            
+            qr_id = None
+            for attempt in range(max_attempts):
+                candidate = qr_generator()
+                
+                try:
+                    if self.db.database_url:
+                        # PostgreSQL
+                        cur.execute("""
+                            INSERT INTO qr_codes (qr_id, user_id, is_active, is_enabled, activated_at, created_at)
+                            VALUES (%s, %s, TRUE, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        """, (candidate, user_id))
+                    else:
+                        # SQLite
+                        cur.execute("""
+                            INSERT INTO qr_codes (qr_id, user_id, is_active, is_enabled, activated_at, created_at)
+                            VALUES (?, ?, 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                        """, (candidate, user_id))
+                    qr_id = candidate
+                    break
+                except (sqlite3.IntegrityError, psycopg2.IntegrityError):
+                    if attempt == max_attempts - 1:
+                        raise RuntimeError("Kunde inte generera unik QR-kod")
+                    continue
+            
+            if not qr_id:
+                raise RuntimeError("QR-kod generering misslyckades")
         
-        if not qr_id:
-            raise RuntimeError("QR-kod generering misslyckades")
-    
-    from utils import create_qr_code
-    qr_filename = create_qr_code(qr_id, user_id)
-    
-    return user_id, qr_id, qr_filename
+        from utils import create_qr_code
+        qr_filename = create_qr_code(qr_id, user_id)
+        
+        return user_id, qr_id, qr_filename
     
     def get_stats(self, user_id: int) -> UserStats:
         user = self.users.get_by_id(user_id)
