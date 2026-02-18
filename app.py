@@ -46,6 +46,11 @@ def create_app(config_name=None):
     app.register_blueprint(premium.bp)  # Premium-blueprint registrerad här   
     app.register_blueprint(qr.bp)
     
+    # Debug: Skriv ut alla registrerade endpoints
+    with app.app_context():
+        for rule in app.url_map.iter_rules():
+            print(f"Endpoint: {rule.endpoint}")
+    
     # Skapa databastabeller
     with app.app_context():
         from database import db
