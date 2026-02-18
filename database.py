@@ -1653,6 +1653,8 @@ class PremiumService:
             cur.execute(query)
             rows = cur.fetchall()
             
+            print(f"DEBUG: Hittade {len(rows)} utgångna prenumerationer")
+            
             count = 0
             for row in rows:
                 # Hantera både dict och tuple format
@@ -1663,14 +1665,20 @@ class PremiumService:
                     sub_id = row[0]
                     user_id = row[1]
                 
+                print(f"DEBUG: Bearbetar sub_id={sub_id}, user_id={user_id}")
+                
                 # Uppdatera prenumeration till expired
                 self.subs.update_status(sub_id, 'expired')
                 
                 # Kolla om användaren har andra aktiva prenumerationer
                 active_subs = self.subs.get_by_user(user_id, active_only=True)
+                print(f"DEBUG: Aktiva prenumerationer för user_id {user_id}: {len(active_subs)}")
+                
                 if not active_subs:
-                    # Inga aktiva prenumerationer - avaktivera premium
+                    print(f"DEBUG: Deaktiverar premium för user_id {user_id}")
                     self.users.deactivate_premium(user_id)
+                else:
+                    print(f"DEBUG: Har fortfarande aktiva prenumerationer, hoppar över deaktivering")
                 
                 count += 1
             
