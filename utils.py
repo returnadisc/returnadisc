@@ -9,13 +9,11 @@ import io
 from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 
-
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-
 
 from config import Config
 
@@ -23,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
-# Email Service - SendGrid API (NY VERSION)
+# Email Service
 # ============================================================================
 
 class EmailService:
@@ -51,7 +49,6 @@ class EmailService:
                 from sendgrid import SendGridAPIClient
                 from sendgrid.helpers.mail import Mail, Email, ReplyTo
                 
-                # Skapa meddelande
                 message = Mail(
                     from_email=Email(self.from_email, self.from_name),
                     to_emails=to_email,
@@ -59,11 +56,9 @@ class EmailService:
                     html_content=html_content
                 )
                 
-                # Sätt reply-to om angivet
                 if reply_to:
                     message.reply_to = ReplyTo(reply_to)
                 
-                # Skicka via SendGrid
                 sg = SendGridAPIClient(self.api_key)
                 response = sg.send(message)
                 
@@ -80,7 +75,6 @@ class EmailService:
         thread.start()
 
 
-# Global email service instance
 email_service = EmailService()
 
 
@@ -90,10 +84,19 @@ def send_email_async(to_email: str, subject: str, html_content: str, plain_text:
 
 
 # ============================================================================
-# QR Code Generation (oförändrad)
+# QR Code Generation
 # ============================================================================
 
-# 1. HJÄLPFUNKTION (måste ligga FÖRST!)
+def generate_random_qr_id(length: int = 5) -> str:
+    """Generera ett slumpmässigt QR-ID."""
+    import random
+    import string
+    
+    chars = ''.join(c for c in (string.ascii_uppercase + string.digits) 
+                   if c not in 'IOQ10')
+    return ''.join(random.choices(chars, k=length))
+
+
 def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) -> Image.Image:
     """
     Skapa QR-kod med ReturnaDisc-design.
@@ -160,7 +163,6 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     return final_img
 
 
-# 2. SPARA TILL FIL (använder hjälpfunktionen)
 def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     """
     Skapa QR-kod bild med ReturnaDisc-design och spara den.
@@ -197,7 +199,6 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     return filename
 
 
-# 3. FÖR PDF (använder hjälpfunktionen)
 def create_small_qr_for_pdf(qr_id: str, size: int = 200) -> io.BytesIO:
     """
     Skapa en QR-kod med design för PDF-användning.
@@ -214,7 +215,6 @@ def create_small_qr_for_pdf(qr_id: str, size: int = 200) -> io.BytesIO:
     return img_buffer
 
 
-# 4. PDF GENERERING (använder create_small_qr_for_pdf)
 def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
     """
     Generera PDF med QR-koder för en order.
@@ -267,7 +267,7 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
 
 
 # ============================================================================
-# Validation Utilities (oförändrad)
+# Validation Utilities
 # ============================================================================
 
 def is_valid_email(email: str) -> bool:
@@ -288,7 +288,7 @@ def sanitize_input(text: str, max_length: int = 500) -> str:
 
 
 # ============================================================================
-# File Utilities (oförändrad)
+# File Utilities
 # ============================================================================
 
 def allowed_file(filename: str, allowed_extensions: set = None) -> bool:
@@ -314,7 +314,7 @@ def save_uploaded_file(file, folder: str, filename: str = None) -> str:
     filepath = os.path.join(folder, filename)
     file.save(filepath)
     
-    return filename  # Returnera bara filnamnet
+    return filename
 
 
 def save_uploaded_photo(file, folder: str = None) -> Optional[str]:
@@ -341,7 +341,7 @@ def save_uploaded_photo(file, folder: str = None) -> Optional[str]:
 
 
 # ============================================================================
-# Date/Time Utilities (oförändrad)
+# Date/Time Utilities
 # ============================================================================
 
 def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M") -> str:
@@ -374,8 +374,8 @@ def time_ago(dt: datetime) -> str:
         return f"för {int(days)} dagar sedan"
     else:
         return format_datetime(dt)
-        
-        
+
+
 def notify_admin_new_order(user_data: dict, qr_id: str):
     """Skicka email till admin vid ny beställning."""
     admin_email = getattr(Config, 'ADMIN_EMAIL', 'info@returnadisc.se')
@@ -392,8 +392,8 @@ def notify_admin_new_order(user_data: dict, qr_id: str):
     """
     
     send_email_async(admin_email, subject, html)
-    
-    
+
+
 def send_email_with_attachment(to_email: str, subject: str, html_content: str, 
                                attachment_path: str = None, attachment_cid: str = None) -> None:
     """Skicka email med bifogad bild via SendGrid API."""
@@ -411,7 +411,7 @@ def send_email_with_attachment(to_email: str, subject: str, html_content: str,
                 from_email=Email(email_service.from_email, email_service.from_name),
                 to_emails=to_email,
                 subject=subject,
-                html_content=html_content  # HTML är huvudinnehållet, inte attachment
+                html_content=html_content
             )
             
             # Bifoga bild som inline om angiven
