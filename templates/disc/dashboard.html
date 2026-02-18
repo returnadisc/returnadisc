@@ -589,7 +589,7 @@
                     {% if is_launch and premium_status and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
                         <small>(Gratis till 1 mars 2027)</small>
                     {% elif premium_status and premium_status.premium_until %}
-                        <small>(till {{ premium_status.premium_until[:10] }})</small>
+                        <<small>(till {{ premium_status.premium_until.strftime('%Y-%m-%d') }})</small>
                     {% endif %}
                 </div>
             {% else %}
