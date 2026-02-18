@@ -435,39 +435,39 @@ class UserRepository(BaseRepository):
     
     def get_by_email(self, email: str) -> Optional[User]:
         email_hash = encryption.hash_email(email)
-        query = "SELECT * FROM users WHERE email_hash = ? AND is_active = 1"
+        query = "SELECT * FROM users WHERE email_hash = ? AND is_active = TRUE"
         row = self.db.fetch_one(query, (email_hash,))
         
         if row:
             return self.row_to_model(row)
         
         # Fallback för äldre användare utan hash
-        query = "SELECT * FROM users WHERE email = ? AND is_active = 1"
+        query = "SELECT * FROM users WHERE email = ? AND is_active = TRUE"
         row = self.db.fetch_one(query, (email.lower(),))
         return self.row_to_model(row) if row else None
     
     def get_by_id(self, user_id: int, include_password: bool = False) -> Optional[User]:
         if include_password:
-            query = "SELECT * FROM users WHERE id = ? AND is_active = 1"
+            query = "SELECT * FROM users WHERE id = ? AND is_active = TRUE"
         else:
             query = """
                 SELECT id, name, email, email_hash, member_since, 
                        total_returns, is_premium, premium_until, premium_started_at,
                        last_login, created_at, is_active, deleted_at
-                FROM users WHERE id = ? AND is_active = 1
+                FROM users WHERE id = ? AND is_active = TRUE
             """
         row = self.db.fetch_one(query, (user_id,))
         return self.row_to_model(row) if row else None
     
     def get_by_token(self, token: str) -> Optional[User]:
-        query = "SELECT * FROM users WHERE reset_token = ? AND is_active = 1"
+        query = "SELECT * FROM users WHERE reset_token = ? AND is_active = TRUE"
         row = self.db.fetch_one(query, (token,))
         return self.row_to_model(row) if row else None
     
     def soft_delete(self, user_id: int) -> bool:
         query = """
             UPDATE users 
-            SET is_active = 0, deleted_at = CURRENT_TIMESTAMP,
+            SET is_active = FALSE, deleted_at = CURRENT_TIMESTAMP,
                 name = '[BORTTAGEN]', email = '[BORTTAGEN]',
                 email_hash = '', password = '[BORTTAGEN]'
             WHERE id = ?
@@ -527,7 +527,7 @@ class UserRepository(BaseRepository):
         return True
     
     def get_all_with_stats(self, active_only: bool = True) -> List[Dict]:
-        where_clause = "WHERE u.is_active = 1" if active_only else ""
+        where_clause = "WHERE u.is_active = TRUE" if active_only else ""
         
         query = f"""
             SELECT 
@@ -555,7 +555,7 @@ class UserRepository(BaseRepository):
     def get_premium_count(self) -> int:
         query = """
             SELECT COUNT(*) as count FROM users 
-            WHERE is_premium = 1 AND is_active = 1
+            WHERE is_premium = 1 AND is_active = TRUE
             AND (premium_until IS NULL OR premium_until > CURRENT_TIMESTAMP)
         """
         row = self.db.fetch_one(query)
@@ -681,14 +681,14 @@ class QRCodeRepository(BaseRepository):
     
     def get_active_for_user(self, user_id: int) -> List[QRCode]:
         """Hämta alla aktiva och aktiverade QR-koder för användare."""
-        query = "SELECT * FROM qr_codes WHERE user_id = ? AND is_active = 1 AND is_enabled = 1 ORDER BY created_at DESC"
+        query = "SELECT * FROM qr_codes WHERE user_id = ? AND is_active = TRUE AND is_enabled = 1 ORDER BY created_at DESC"
         rows = self.db.fetch_all(query, (user_id,))
         return [self.row_to_model(row) for row in rows]
     
     def activate(self, qr_id: str, user_id: int) -> None:
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
+            SET user_id = ?, is_active = TRUE, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
@@ -703,7 +703,7 @@ class QRCodeRepository(BaseRepository):
         
         query = """
             UPDATE qr_codes 
-            SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
+            SET user_id = ?, is_active = TRUE, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
             WHERE qr_id = ?
         """
         self.db.execute(query, (user_id, qr_id))
@@ -760,10 +760,10 @@ class QRCodeRepository(BaseRepository):
     
     def get_stats(self) -> Dict[str, int]:
         queries = {
-            'active': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 1",
-            'inactive': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 0",
-            'enabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 1 AND is_enabled = 1",
-            'disabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = 1 AND is_enabled = 0",
+            'active': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE",
+            'inactive': "SELECT COUNT(*) FROM qr_codes WHERE is_active = FALSE",
+            'enabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = 1",
+            'disabled': "SELECT COUNT(*) FROM qr_codes WHERE is_active = TRUE AND is_enabled = 0",
             'total_scans': "SELECT SUM(total_scans) FROM qr_codes"
         }
         return {
@@ -1178,7 +1178,7 @@ class UserService:
             email_hash = encryption.hash_email(email)
             
             # 🔴 VIKTIGT: Kontrollera om email redan finns innan vi skapar
-            cur.execute("SELECT id FROM users WHERE email_hash = ? AND is_active = 1", (email_hash,))
+            cur.execute("SELECT id FROM users WHERE email_hash = ? AND is_active = TRUE", (email_hash,))
             if cur.fetchone():
                 raise ValueError("Det finns redan ett konto med denna emailadress.")
             
@@ -1457,7 +1457,7 @@ class AdminService:
     def _get_new_users_this_week(self) -> int:
         query = """
             SELECT COUNT(*) as count FROM users 
-            WHERE created_at > datetime('now', '-7 days') AND is_active = 1
+            WHERE created_at > datetime('now', '-7 days') AND is_active = TRUE
         """
         row = self.db.fetch_one(query)
         return row.get('count', 0) if row else 0
@@ -1730,10 +1730,10 @@ class DatabaseManager:
                 WHERE id NOT IN (
                     SELECT MIN(id) 
                     FROM users 
-                    WHERE is_active = 1
+                    WHERE is_active = TRUE
                     GROUP BY email_hash
                 )
-                AND is_active = 1
+                AND is_active = TRUE
                 AND email_hash IS NOT NULL
                 AND email_hash != ''
             """)
@@ -1745,7 +1745,7 @@ class DatabaseManager:
             cursor.execute("""
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_hash_unique 
                 ON users(email_hash) 
-                WHERE is_active = 1
+                WHERE is_active = TRUE
             """)
             logger.info("Skapade unique index på email_hash")
             
@@ -2204,7 +2204,7 @@ class Database:
         query = """
             UPDATE users 
             SET is_premium = ? 
-            WHERE id = ? AND is_active = 1
+            WHERE id = ? AND is_active = TRUE
         """
         self._db.execute(query, (1 if is_premium else 0, user_id))
         logger.info(f"Användare {user_id} premium satt till {is_premium}")
@@ -2216,7 +2216,7 @@ class Database:
                 u.id, u.name, u.email, u.is_premium, u.created_at,
                 'ORD-' || substr(u.created_at, 1, 10) || '-' || u.id as order_id
             FROM users u
-            WHERE u.id = ? AND u.is_active = 1
+            WHERE u.id = ? AND u.is_active = TRUE
         """
         row = self._db.fetch_one(query, (user_id,))
         return row
@@ -2252,7 +2252,7 @@ class Database:
             
             cur.execute("""
                 UPDATE qr_codes 
-                SET user_id = ?, is_active = 1, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
+                SET user_id = ?, is_active = TRUE, is_enabled = 1, activated_at = CURRENT_TIMESTAMP
                 WHERE qr_id = ?
             """, (user_id, qr_id))
             
