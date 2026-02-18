@@ -11,6 +11,7 @@ from contextlib import contextmanager
 from typing import Optional, List, Dict, Tuple, Any
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from utils import create_qr_code
 from abc import ABC, abstractmethod
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -2702,30 +2703,45 @@ class Database:
         with self._db.get_connection() as conn:
             cur = conn.cursor()
             
+            # Uppdatera qr_codes
             cur.execute(f"""
                 UPDATE qr_codes 
                 SET qr_id = {self._db.dialect.placeholder()} 
                 WHERE qr_id = {self._db.dialect.placeholder()}
             """, (new_qr_id, old_qr_id))
             
+            # Uppdatera handovers
             cur.execute(f"""
                 UPDATE handovers 
                 SET qr_id = {self._db.dialect.placeholder()} 
                 WHERE qr_id = {self._db.dialect.placeholder()}
             """, (new_qr_id, old_qr_id))
             
-            # Uppdatera även qr_images tabellen
-            cur.execute(f"""
-                UPDATE qr_images 
-                SET qr_id = {self._db.dialect.placeholder()} 
-                WHERE qr_id = {self._db.dialect.placeholder()}
-            """, (new_qr_id, old_qr_id))
+            # NYTT: Uppdatera qr_images (fungerar både för SQLite och PostgreSQL)
+            if self._db.database_url:
+                # PostgreSQL
+                cur.execute("""
+                    UPDATE qr_images 
+                    SET qr_id = %s 
+                    WHERE qr_id = %s
+                """, (new_qr_id, old_qr_id))
+            else:
+                # SQLite
+                cur.execute("""
+                    UPDATE qr_images 
+                    SET qr_id = ? 
+                    WHERE qr_id = ?
+                """, (new_qr_id, old_qr_id))
+            
+            conn.commit()
         
+        # Skapa ny QR-bild med nya ID:t
         try:
             create_qr_code(new_qr_id, user_id)
         except Exception as e:
             logger.error(f"Kunde inte skapa ny QR-bild: {e}")
         
+        # Ta bort gammal fil om den finns
         qr_folder = os.environ.get('QR_FOLDER', 'static/qr')
         old_filepath = os.path.join(qr_folder, f"qr_{old_qr_id}.png")
         if os.path.exists(old_filepath):
