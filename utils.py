@@ -105,85 +105,42 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     """
     Skapa QR-kod bild och spara den.
     """
+    
+    logger = logging.getLogger(__name__)
+    
+    # Logga alla miljövariabler
     qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
-    os.makedirs(qr_folder, exist_ok=True)
+    logger.info(f"=== QR CODE DEBUG ===")
+    logger.info(f"qr_id: {qr_id}")
+    logger.info(f"QR_FOLDER env: {os.environ.get('QR_FOLDER', 'NOT SET')}")
+    logger.info(f"Config.QR_FOLDER: {getattr(Config, 'QR_FOLDER', 'NOT SET')}")
+    logger.info(f"Final qr_folder: {qr_folder}")
+    logger.info(f"Absolute path: {os.path.abspath(qr_folder)}")
+    logger.info(f"Folder exists before: {os.path.exists(qr_folder)}")
     
-    font_path = 'static/fonts/arial.ttf'
-    if not os.path.exists(font_path):
-        font_path = 'C:/Windows/Fonts/arial.ttf'
-    
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=20,
-        border=2,
-    )
-    
-    qr_url = f"{public_url}/found/{qr_id}"
-    qr.add_data(qr_url)
-    qr.make(fit=True)
-    
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    
-    if qr_img.mode != 'RGB':
-        qr_img = qr_img.convert('RGB')
-    
+    # Skapa mappen
     try:
-        font_large = ImageFont.truetype(font_path, 112)
-        font_small = ImageFont.truetype(font_path, 72)
-        
-        draw = ImageDraw.Draw(qr_img)
-        
-        text_se = "returnadisc.se"
-        text_id = qr_id
-        
-        bbox_se = draw.textbbox((0, 0), text_se, font=font_small)
-        width_se = bbox_se[2] - bbox_se[0]
-        height_se = bbox_se[3] - bbox_se[1]
-        bbox_id = draw.textbbox((0, 0), text_id, font=font_large)
-        width_id = bbox_id[2] - bbox_id[0]
-        height_id = bbox_id[3] - bbox_id[1]
-        
-        width, height = qr_img.size
-        
-        margin_top = 16
-        line_spacing = 10
-        margin_bottom = 30
-        
-        total_text_height = margin_top + height_se + line_spacing + height_id + margin_bottom
-        
-        new_height = height + int(total_text_height)
-        new_img = Image.new('RGB', (width, new_height), 'white')
-        new_img.paste(qr_img, (0, 0))
-        
-        draw = ImageDraw.Draw(new_img)
-        
-        x_se = (width - int(width_se)) // 2
-        y_se = height + margin_top
-        draw.text((x_se, y_se), text_se, fill='#888888', font=font_small)
-        
-        x_id = (width - int(width_id)) // 2
-        y_id = y_se + height_se + line_spacing
-        draw.text((x_id, y_id), text_id, fill='#0066CC', font=font_large)
-        
-        final_width = 400
-        current_width, current_height = new_img.size
-        scale = final_width / current_width
-        final_height = int(current_height * scale)
-        
-        qr_img = new_img.resize((final_width, final_height), Image.Resampling.LANCZOS)
-        
+        os.makedirs(qr_folder, exist_ok=True)
+        logger.info(f"Folder created/exists: {qr_folder}")
     except Exception as e:
-        logger.error(f"Font fel: {e}")
-        raise
-    
+        logger.error(f"Failed to create folder: {e}")
+        
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
-    qr_img.save(filepath, quality=95)
     
-    logger.info(f"Created QR code: {filename}")
+    logger.info(f"Saving to: {filepath}")
+    
+    try:
+        qr_img.save(filepath, quality=95)
+        logger.info(f"File saved successfully: {os.path.exists(filepath)}")
+        logger.info(f"File size: {os.path.getsize(filepath) if os.path.exists(filepath) else 'N/A'}")
+    except Exception as e:
+        logger.error(f"Failed to save file: {e}")
+        raise
+    
+    logger.info(f"=== END QR DEBUG ===")
     return filename
 
 
