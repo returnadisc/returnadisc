@@ -9,11 +9,13 @@ import io
 from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 
+
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+
 
 from config import Config
 
@@ -101,10 +103,107 @@ def generate_random_qr_id(length: int = 5) -> str:
     return ''.join(random.choices(chars, k=length))
 
 
+def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) -> Image.Image:
+    """
+    Skapa QR-kod med ReturnaDisc-design.
+    Om target_size anges, skalas bilden ner till den storleken (för PDF).
+    """
+    # 1. Skapa QR-koden
+    qr = qrcode.QRCode(
+        version=4,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=12,
+        border=2,
+    )
+    
+    qr_url = f"{public_url}/found/{qr_id}"
+    qr.add_data(qr_url)
+    qr.make(fit=True)
+    
+    # 2. Generera QR-bilden
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qr_img.convert('RGB')
+    
+    # 3. Lägg till text under QR-koden
+    qr_width, qr_height = qr_img.size
+    margin = 16
+    text_height = 110
+    total_height = qr_height + text_height
+    
+    # Skapa ny bild med utrymme för text
+    final_img = Image.new('RGB', (qr_width, total_height), 'white')
+    final_img.paste(qr_img, (0, 0))
+    
+    # 4. Rita texten
+    draw = ImageDraw.Draw(final_img)
+    
+    # Ladda typsnitt
+    try:
+        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 32)
+        font_id = ImageFont.truetype("static/fonts/arial.ttf", 52)
+    except:
+        font_domain = ImageFont.load_default()
+        font_id = ImageFont.load_default()
+    
+    # Rita "returnadisc.se" i grått
+    text1 = "returnadisc.se"
+    bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
+    text1_width = bbox1[2] - bbox1[0]
+    text1_height = bbox1[3] - bbox1[1]
+    
+    available_width = qr_width - (2 * margin)
+    if text1_width > available_width:
+        scale = available_width / text1_width
+        new_size = int(32 * scale)
+        try:
+            font_domain = ImageFont.truetype("static/fonts/arial.ttf", new_size)
+        except:
+            font_domain = ImageFont.load_default()
+        bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
+        text1_width = bbox1[2] - bbox1[0]
+        text1_height = bbox1[3] - bbox1[1]
+    
+    x1 = (qr_width - text1_width) // 2
+    y1 = qr_height + 5
+    draw.text((x1, y1), text1, fill="#555555", font=font_domain)
+    
+    # Rita QR-ID i KOLSVART
+    bbox_domain_bottom = y1 + text1_height
+    remaining_space = total_height - bbox_domain_bottom - 8
+    
+    id_font_size = 56
+    min_font_size = 24
+    
+    while id_font_size >= min_font_size:
+        try:
+            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_font_size)
+        except:
+            font_id = ImageFont.load_default()
+            break
+        
+        bbox2 = draw.textbbox((0, 0), qr_id, font=font_id)
+        text2_width = bbox2[2] - bbox2[0]
+        text2_height = bbox2[3] - bbox2[1]
+        
+        if text2_width <= available_width and text2_height <= remaining_space:
+            break
+        
+        id_font_size -= 2
+    
+    x2 = (qr_width - text2_width) // 2
+    y2 = bbox_domain_bottom + 3
+    draw.text((x2, y2), qr_id, fill="#000000", font=font_id)
+    
+    # Om target_size anges, skala ner bilden
+    if target_size:
+        final_img = final_img.resize((target_size, target_size), Image.Resampling.LANCZOS)
+    
+    return final_img
+
+
 def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     """
     Skapa QR-kod bild med ReturnaDisc-design och spara den.
-    Design: QR-kod med text under (returnadisc.se + QR-ID i svart)
     """
     
     logger = logging.getLogger(__name__)
@@ -126,101 +225,10 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
     
-    # === SKAPA QR-KOD MED DESIGN ===
+    # Skapa QR med design
+    final_img = create_qr_with_design(qr_id, public_url)
     
-    # 1. Skapa QR-koden
-    qr = qrcode.QRCode(
-        version=4,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=12,
-        border=2,
-    )
-    
-    qr_url = f"{public_url}/found/{qr_id}"
-    qr.add_data(qr_url)
-    qr.make(fit=True)
-    
-    # 2. Generera QR-bilden
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    qr_img = qr_img.convert('RGB')
-    
-    # 3. Lägg till text under QR-koden
-    qr_width, qr_height = qr_img.size
-    margin = 16  # Lite mindre marginal för mer utrymme till text
-    text_height = 110  # Mer utrymme för text
-    total_height = qr_height + text_height
-    
-    # Skapa ny bild med utrymme för text
-    final_img = Image.new('RGB', (qr_width, total_height), 'white')
-    final_img.paste(qr_img, (0, 0))
-    
-    # 4. Rita texten
-    draw = ImageDraw.Draw(final_img)
-    
-    # Ladda typsnitt
-    try:
-        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 32)  # Ännu större
-        font_id = ImageFont.truetype("static/fonts/arial.ttf", 52)      # Ännu större för QR-ID
-    except:
-        font_domain = ImageFont.load_default()
-        font_id = ImageFont.load_default()
-    
-    # === Rita "returnadisc.se" i grått ===
-    text1 = "returnadisc.se"
-    bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
-    text1_width = bbox1[2] - bbox1[0]
-    text1_height = bbox1[3] - bbox1[1]
-    
-    # Centrera men med marginal på sidorna
-    available_width = qr_width - (2 * margin)
-    if text1_width > available_width:
-        scale = available_width / text1_width
-        new_size = int(32 * scale)
-        try:
-            font_domain = ImageFont.truetype("static/fonts/arial.ttf", new_size)
-        except:
-            font_domain = ImageFont.load_default()
-        bbox1 = draw.textbbox((0, 0), text1, font=font_domain)
-        text1_width = bbox1[2] - bbox1[0]
-        text1_height = bbox1[3] - bbox1[1]
-    
-    x1 = (qr_width - text1_width) // 2
-    y1 = qr_height + 5  # Ännu närmare QR-koden (var 8, nu 5)
-    draw.text((x1, y1), text1, fill="#555555", font=font_domain)  # Mörkgrå
-    
-    # === Rita QR-ID i KOLSVART ===
-    bbox_domain_bottom = y1 + text1_height
-    remaining_space = total_height - bbox_domain_bottom - 8  # 8px marginal i botten
-    
-    # Börja med ännu större storlek
-    id_font_size = 56  # Ökat från 48
-    min_font_size = 24
-    
-    while id_font_size >= min_font_size:
-        try:
-            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_font_size)
-        except:
-            font_id = ImageFont.load_default()
-            break
-        
-        bbox2 = draw.textbbox((0, 0), qr_id, font=font_id)
-        text2_width = bbox2[2] - bbox2[0]
-        text2_height = bbox2[3] - bbox2[1]
-        
-        # Kolla om det får plats i bredd och höjd
-        if text2_width <= available_width and text2_height <= remaining_space:
-            break
-        
-        id_font_size -= 2
-    
-    # Centrera QR-ID
-    x2 = (qr_width - text2_width) // 2
-    y2 = bbox_domain_bottom + 3  # Minimal mellanrum
-    
-    # KOLSVART (#000000)
-    draw.text((x2, y2), qr_id, fill="#000000", font=font_id)
-    
-    # 5. Spara bilden
+    # Spara bilden
     logger.info(f"Saving to: {filepath}")
     try:
         final_img.save(filepath, 'PNG', quality=95)
@@ -233,32 +241,17 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     return filename
 
 
-def create_small_qr_for_pdf(qr_id: str, size: int = 100) -> io.BytesIO:
+def create_small_qr_for_pdf(qr_id: str, size: int = 200) -> io.BytesIO:
     """
-    Skapa en liten QR-kod för PDF-användning.
+    Skapa en QR-kod med design för PDF-användning.
     """
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=5,
-        border=2,
-    )
-    
-    qr_url = f"{public_url}/found/{qr_id}"
-    qr.add_data(qr_url)
-    qr.make(fit=True)
-    
-    qr_img = qr.make_image(fill_color="black", back_color="white")
-    
-    if qr_img.mode != 'RGB':
-        qr_img = qr_img.convert('RGB')
-    
-    qr_img = qr_img.resize((size, size), Image.Resampling.LANCZOS)
+    # Skapa QR med design och skala ner
+    final_img = create_qr_with_design(qr_id, public_url, target_size=size)
     
     img_buffer = io.BytesIO()
-    qr_img.save(img_buffer, format='PNG')
+    final_img.save(img_buffer, format='PNG')
     img_buffer.seek(0)
     
     return img_buffer
@@ -268,7 +261,6 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
     """
     Generera PDF med QR-koder för en order.
     """
-    qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     pdf_folder = getattr(Config, 'PDF_FOLDER', 'static/pdfs')
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -299,21 +291,16 @@ def generate_qr_pdf_for_order(qr_codes: List[Dict], base_url: str) -> str:
             c.showPage()
         
         x = x_positions[col]
-        y = y_start - (row % rows) * (qr_size + y_spacing + 40)
+        y = y_start - (row % rows) * (qr_size + y_spacing)
         
         qr_id = qr_data['qr_id']
-        qr_filename = qr_data.get('qr_filename', f"qr_{qr_id}.png")
-        qr_path = os.path.join(qr_folder, qr_filename)
         
-        if os.path.exists(qr_path):
-            c.drawImage(qr_path, x, y, width=qr_size, height=qr_size)
-        
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(x + qr_size/2, y - 20, f"ID: {qr_id}")
-        
-        c.setFont("Helvetica", 10)
-        url_text = f"{base_url}/found/{qr_id}"
-        c.drawCentredString(x + qr_size/2, y - 35, url_text)
+        # Skapa QR med design direkt (ingen extra text under)
+        try:
+            qr_buffer = create_small_qr_for_pdf(qr_id, size=qr_size)
+            c.drawImage(ImageReader(qr_buffer), x, y, width=qr_size, height=qr_size)
+        except Exception as e:
+            logger.error(f"Kunde inte rita QR {qr_id} i PDF: {e}")
     
     c.save()
     logger.info(f"Created PDF: {pdf_path}")
