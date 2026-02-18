@@ -222,7 +222,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
         box_size=20,
-        border=2,
+        border=1,
     )
     
     qr_url = f"{public_url}/found/{qr_id}"
