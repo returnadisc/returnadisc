@@ -221,7 +221,7 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=15,
+        box_size=22,
         border=1,
     )
     
