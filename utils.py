@@ -103,57 +103,88 @@ def generate_random_qr_id(length: int = 5) -> str:
 
 def create_qr_code(qr_id: str, user_id: Optional[int] = None) -> str:
     """
-    Skapa QR-kod bild och spara den.
+    Skapa QR-kod bild med ReturnaDisc-design och spara den.
+    Design: QR-kod med text under (returnadisc.se + QR-ID i blått)
     """
     
     logger = logging.getLogger(__name__)
     
-    # Logga alla miljövariabler
+    # Konfiguration
     qr_folder = os.environ.get('QR_FOLDER', getattr(Config, 'QR_FOLDER', 'static/qr'))
     public_url = getattr(Config, 'PUBLIC_URL', 'http://localhost:5000')
     
     logger.info(f"=== QR CODE DEBUG ===")
     logger.info(f"qr_id: {qr_id}")
-    logger.info(f"QR_FOLDER env: {os.environ.get('QR_FOLDER', 'NOT SET')}")
-    logger.info(f"Config.QR_FOLDER: {getattr(Config, 'QR_FOLDER', 'NOT SET')}")
-    logger.info(f"Final qr_folder: {qr_folder}")
-    logger.info(f"Absolute path: {os.path.abspath(qr_folder)}")
-    logger.info(f"Folder exists before: {os.path.exists(qr_folder)}")
+    logger.info(f"QR_FOLDER: {qr_folder}")
     
     # Skapa mappen
     try:
         os.makedirs(qr_folder, exist_ok=True)
-        logger.info(f"Folder created/exists: {qr_folder}")
     except Exception as e:
         logger.error(f"Failed to create folder: {e}")
+        raise
         
     filename = f"qr_{qr_id}.png"
     filepath = os.path.join(qr_folder, filename)
     
-    # SKAPA QR-KODEN (DETTA SAKNADES!)
+    # === SKAPA QR-KOD MED DESIGN ===
+    
+    # 1. Skapa QR-koden
     qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_M,
-        box_size=10,
-        border=4,
+        version=4,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=12,
+        border=2,
     )
     
     qr_url = f"{public_url}/found/{qr_id}"
     qr.add_data(qr_url)
     qr.make(fit=True)
     
+    # 2. Generera QR-bilden
     qr_img = qr.make_image(fill_color="black", back_color="white")
+    qr_img = qr_img.convert('RGB')
     
-    # Konvertera till RGB om nödvändigt
-    if qr_img.mode != 'RGB':
-        qr_img = qr_img.convert('RGB')
+    # 3. Lägg till text under QR-koden
+    qr_width, qr_height = qr_img.size
+    text_height = 80
+    total_height = qr_height + text_height
     
-    logger.info(f"Saving to: {filepath}")
+    # Skapa ny bild med utrymme för text
+    final_img = Image.new('RGB', (qr_width, total_height), 'white')
+    final_img.paste(qr_img, (0, 0))
     
+    # 4. Rita texten
+    draw = ImageDraw.Draw(final_img)
+    
+    # Försök ladda typsnitt
     try:
-        qr_img.save(filepath, quality=95)
+        font_large = ImageFont.truetype("static/fonts/arial.ttf", 36)
+        font_small = ImageFont.truetype("static/fonts/arial.ttf", 24)
+    except:
+        font_large = ImageFont.load_default()
+        font_small = ImageFont.load_default()
+    
+    # Rita "returnadisc.se" i grått
+    text1 = "returnadisc.se"
+    bbox1 = draw.textbbox((0, 0), text1, font=font_small)
+    text1_width = bbox1[2] - bbox1[0]
+    x1 = (qr_width - text1_width) // 2
+    y1 = qr_height + 10
+    draw.text((x1, y1), text1, fill="#808080", font=font_small)
+    
+    # Rita QR-ID i blått
+    bbox2 = draw.textbbox((0, 0), qr_id, font=font_large)
+    text2_width = bbox2[2] - bbox2[0]
+    x2 = (qr_width - text2_width) // 2
+    y2 = qr_height + 38
+    draw.text((x2, y2), qr_id, fill="#0066CC", font=font_large)
+    
+    # 5. Spara bilden
+    logger.info(f"Saving to: {filepath}")
+    try:
+        final_img.save(filepath, 'PNG', quality=95)
         logger.info(f"File saved successfully: {os.path.exists(filepath)}")
-        logger.info(f"File size: {os.path.getsize(filepath) if os.path.exists(filepath) else 'N/A'}")
     except Exception as e:
         logger.error(f"Failed to save file: {e}")
         raise
