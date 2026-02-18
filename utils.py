@@ -124,84 +124,45 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     qr_img = qr_img.convert('RGB')
     
     qr_width, qr_height = qr_img.size
-    margin = 16
     
-    # 3. Beräkna textstorlekar DYNAMISKT baserat på QR-kodens bredd
-    draw = ImageDraw.Draw(Image.new('RGB', (1, 1), 'white'))  # Temp för beräkningar
-    
-    available_width = qr_width - (2 * margin)
-    
-    # === Beräkna storlek för returnadisc.se ===
-    # Mål: ta upp ~60% av bredden
-    domain_target_size = 38
+    # 3. Fasta, säkra storlekar
     try:
-        font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_target_size)
+        font_domain = ImageFont.truetype("static/fonts/arial.ttf", 28)
+        font_id = ImageFont.truetype("static/fonts/arial.ttf", 36)
     except:
         font_domain = ImageFont.load_default()
-    
-    bbox_domain = draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
-    domain_width = bbox_domain[2] - bbox_domain[0]
-    domain_height = bbox_domain[3] - bbox_domain[1]
-    
-    # Skala om för stor
-    if domain_width > available_width * 0.9:
-        scale = (available_width * 0.9) / domain_width
-        domain_target_size = int(domain_target_size * scale)
-        try:
-            font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_target_size)
-        except:
-            font_domain = ImageFont.load_default()
-        bbox_domain = draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
-        domain_width = bbox_domain[2] - bbox_domain[0]
-        domain_height = bbox_domain[3] - bbox_domain[1]
-    
-    # === Beräkna storlek för QR-ID ===
-    # Mål: ta upp ~80% av bredden, men får inte vara högre än domänen
-    id_target_size = min(52, int(domain_target_size * 1.4))  # Max 40% större än domänen
-    
-    try:
-        font_id = ImageFont.truetype("static/fonts/arial.ttf", id_target_size)
-    except:
         font_id = ImageFont.load_default()
     
-    bbox_id = draw.textbbox((0, 0), qr_id, font=font_id)
-    id_width = bbox_id[2] - bbox_id[0]
-    id_height = bbox_id[3] - bbox_id[1]
+    # 4. Mät texten först
+    temp_draw = ImageDraw.Draw(Image.new('RGB', (1, 1)))
     
-    # Skala om för stor
-    if id_width > available_width * 0.95:
-        scale = (available_width * 0.95) / id_width
-        id_target_size = int(id_target_size * scale)
-        try:
-            font_id = ImageFont.truetype("static/fonts/arial.ttf", id_target_size)
-        except:
-            font_id = ImageFont.load_default()
-        bbox_id = draw.textbbox((0, 0), qr_id, font=font_id)
-        id_width = bbox_id[2] - bbox_id[0]
-        id_height = bbox_id[3] - bbox_id[1]
+    bbox_d = temp_draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+    domain_h = bbox_d[3] - bbox_d[1]
     
-    # 4. Beräkna total höjd
-    gap_between = 6  # Mellanrum mellan texterna
-    bottom_margin = 10
-    text_height = domain_height + gap_between + id_height + bottom_margin
-    total_height = qr_height + text_height
+    bbox_i = temp_draw.textbbox((0, 0), qr_id, font=font_id)
+    id_h = bbox_i[3] - bbox_i[1]
     
-    # 5. Skapa bild
+    # 5. Beräkna total höjd (QR + luft + domän + mellanrum + ID + botten)
+    total_height = qr_height + 5 + domain_h + 8 + id_h + 10
+    
+    # 6. Skapa bild
     final_img = Image.new('RGB', (qr_width, total_height), 'white')
     final_img.paste(qr_img, (0, 0))
     draw = ImageDraw.Draw(final_img)
     
-    # 6. Rita domänen (returnadisc.se)
-    x_domain = (qr_width - domain_width) // 2
-    y_domain = qr_height + 5  # Lite luft under QR-koden
-    draw.text((x_domain, y_domain), "returnadisc.se", fill="#555555", font=font_domain)
+    # 7. Rita domän (centra)
+    domain_w = bbox_d[2] - bbox_d[0]
+    x_d = (qr_width - domain_w) // 2
+    y_d = qr_height + 5
+    draw.text((x_d, y_d), "returnadisc.se", fill="#666666", font=font_domain)
     
-    # 7. Rita QR-ID (KOLSVART)
-    x_id = (qr_width - id_width) // 2
-    y_id = y_domain + domain_height + gap_between  # Efter domänen + mellanrum
-    draw.text((x_id, y_id), qr_id, fill="#000000", font=font_id)
+    # 8. Rita ID (centra)
+    id_w = bbox_i[2] - bbox_i[0]
+    x_i = (qr_width - id_w) // 2
+    y_i = y_d + domain_h + 8
+    draw.text((x_i, y_i), qr_id, fill="#000000", font=font_id)
     
-    # 8. Om target_size anges, skala ner
+    # 9. Skala om för PDF om nödvändigt
     if target_size:
         final_img = final_img.resize((target_size, target_size), Image.Resampling.LANCZOS)
     
