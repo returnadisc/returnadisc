@@ -802,6 +802,7 @@ def signup_with_purchased_qr():
     return render_template('auth/signup_with_purchased_qr.html')
     
     
-@auth_bp.route('/faq')
+@bp.route('/faq')
 def faq():
+    """Vanliga frågor om ReturnaDisc."""
     return render_template('faq.html')
