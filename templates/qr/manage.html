@@ -453,7 +453,8 @@
                 <div class="qr-grid">
                     {% for qr in all_qrs %}
                     <div class="qr-card">
-                        <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                        <!-- VIKTIGT: Använd admin.qr_image route istället för static -->
+                        <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="QR {{ qr.qr_id }}" 
                              class="qr-image-small"
                              onerror="this.style.display='none'">
@@ -468,7 +469,8 @@
                             </div>
                         </div>
                         <div class="qr-actions">
-                            <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                            <!-- VIKTIGT: Använd admin.download_qr route -->
+                            <a href="{{ url_for('disc.download_qr', qr_id=qr.qr_id) }}" 
                                download="returnadisc-{{ qr.qr_id }}.png"
                                class="btn-download-small">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

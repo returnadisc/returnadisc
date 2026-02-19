@@ -958,38 +958,37 @@ def update_order_status(order_id: int):
 def download_qr(qr_id: str):
     """Ladda ner QR-kod som PNG från databasen."""
     import io
-    from flask import send_file
+    from flask import send_file, Response
     
     try:
-        query = "SELECT image_data FROM qr_images WHERE qr_id = ?"
+        # Hämta bild från databasen
+        query = "SELECT image_data FROM qr_images WHERE qr_id = %s" if db._db.database_url else "SELECT image_data FROM qr_images WHERE qr_id = ?"
         result = db._db.fetch_one(query, (qr_id,))
         
         if result and result.get('image_data'):
             image_data = result['image_data']
+            
+            # Hantera både bytes och str (base64)
             if isinstance(image_data, str):
                 import base64
                 image_data = base64.b64decode(image_data)
             
-            return send_file(
-                io.BytesIO(image_data),
+            # Returnera som fil
+            return Response(
+                image_data,
                 mimetype='image/png',
-                as_attachment=True,
-                download_name=f'returnadisc_{qr_id}.png'
+                headers={
+                    'Content-Disposition': f'attachment; filename=returnadisc_{qr_id}.png',
+                    'Content-Type': 'image/png'
+                }
             )
         else:
-            import os
-            from flask import current_app
-            
-            filepath = os.path.join(current_app.root_path, 'static', 'qr', f"qr_{qr_id}.png")
-            if os.path.exists(filepath):
-                return send_file(filepath, as_attachment=True, download_name=f'returnadisc_{qr_id}.png')
-            
-            flash(f'QR-kod {qr_id} hittades inte', 'error')
+            flash(f'QR-kod {qr_id} hittades inte i databasen', 'error')
             return redirect(url_for('admin.list_qr_codes'))
             
     except Exception as e:
-        logger.error(f"Fel vid nedladdning av QR {qr_id}: {e}")
-        flash('Ett fel uppstod vid nedladdning', 'error')
+        logger.error(f"Fel vid nedladdning av QR {qr_id}: {e}", exc_info=True)
+        flash(f'Ett fel uppstod: {str(e)}', 'error')
         return redirect(url_for('admin.list_qr_codes'))
 
 
