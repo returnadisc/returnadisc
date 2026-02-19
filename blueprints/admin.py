@@ -956,31 +956,40 @@ def update_order_status(order_id: int):
 @bp.route('/download-qr/<qr_id>')
 @admin_required
 def download_qr(qr_id: str):
-    """Ladda ner QR-kod som PNG."""
-    import os
-    from flask import send_file, current_app
+    """Ladda ner QR-kod som PNG från databasen."""
+    import io
+    from flask import send_file
     
-    # Försök flera möjliga sökvägar
-    possible_paths = [
-        # Standard QR-mapp
-        os.path.join(current_app.root_path, 'static', 'qr', f"qr_{qr_id}.png"),
-        # Miljövariabel
-        os.path.join(os.environ.get('QR_FOLDER', 'static/qr'), f"qr_{qr_id}.png"),
-        # Absolut sökväg från root
-        os.path.join('static', 'qr', f"qr_{qr_id}.png"),
-    ]
-    
-    filepath = None
-    for path in possible_paths:
-        if os.path.exists(path):
-            filepath = path
-            break
-    
-    if filepath:
-        return send_file(filepath, as_attachment=True, download_name=f'returnadisc_{qr_id}.png')
-    else:
-        logger.error(f"QR-bild hittades inte för {qr_id}. Sökte i: {possible_paths}")
-        flash(f'QR-kod {qr_id} hittades inte. Kontrollera att bilden finns i static/qr/', 'error')
+    try:
+        query = "SELECT image_data FROM qr_images WHERE qr_id = ?"
+        result = db._db.fetch_one(query, (qr_id,))
+        
+        if result and result.get('image_data'):
+            image_data = result['image_data']
+            if isinstance(image_data, str):
+                import base64
+                image_data = base64.b64decode(image_data)
+            
+            return send_file(
+                io.BytesIO(image_data),
+                mimetype='image/png',
+                as_attachment=True,
+                download_name=f'returnadisc_{qr_id}.png'
+            )
+        else:
+            import os
+            from flask import current_app
+            
+            filepath = os.path.join(current_app.root_path, 'static', 'qr', f"qr_{qr_id}.png")
+            if os.path.exists(filepath):
+                return send_file(filepath, as_attachment=True, download_name=f'returnadisc_{qr_id}.png')
+            
+            flash(f'QR-kod {qr_id} hittades inte', 'error')
+            return redirect(url_for('admin.list_qr_codes'))
+            
+    except Exception as e:
+        logger.error(f"Fel vid nedladdning av QR {qr_id}: {e}")
+        flash('Ett fel uppstod vid nedladdning', 'error')
         return redirect(url_for('admin.list_qr_codes'))
 
 
@@ -990,9 +999,9 @@ def download_qr(qr_id: str):
 
 @bp.route('/qr/<qr_id>/delete', methods=['POST'])
 @admin_required
-@audit_log("DELETE_QR", "Delete QR code from user")
+@audit_log("DELETE_QR_USER", "Remove QR from user")
 def delete_qr(qr_id: str):
-    """Radera QR-kod koppling från användare (avregistrera den)."""
+    """Ta bort QR-kod från användare (avregistrera den)."""
     try:
         qr = db.get_qr(qr_id)
         
@@ -1000,25 +1009,62 @@ def delete_qr(qr_id: str):
             flash('QR-koden hittades inte', 'error')
             return redirect(url_for('admin.list_qr_codes'))
         
-        # VIKTIGT: Ta bort kopplingen till användaren, inte radera själva QR-koden
-        # Detta gör att QR-koden blir "ledig" men finns kvar i systemet
+        # Ta bort kopplingen till användaren
         if db._db.database_url:
-            # PostgreSQL
             update_query = "UPDATE qr_codes SET user_id = NULL, is_active = FALSE WHERE qr_id = %s"
         else:
-            # SQLite
             update_query = "UPDATE qr_codes SET user_id = NULL, is_active = FALSE WHERE qr_id = ?"
         
         db._db.execute(update_query, (qr_id,))
         
-        flash(f'QR-kod {qr_id} är nu avregistrerad från användaren och kan tilldelas någon annan', 'success')
-        logger.info(f"Admin {g.admin_email} avregistrerade QR-kod {qr_id} från användare")
+        flash(f'QR-kod {qr_id} är nu avregistrerad från användaren', 'success')
+        logger.info(f"Admin {g.admin_email} avregistrerade QR-kod {qr_id}")
         
     except Exception as e:
         logger.error(f"Fel vid avregistrering av QR: {e}")
         flash('Ett fel uppstod', 'error')
     
     return redirect(url_for('admin.list_qr_codes'))
+
+
+@bp.route('/qr/<qr_id>/destroy', methods=['POST'])
+@admin_required
+@audit_log("DESTROY_QR", "Permanently delete QR from system")
+def destroy_qr(qr_id: str):
+    """Radera QR-kod permanent från hela systemet."""
+    try:
+        qr = db.get_qr(qr_id)
+        
+        if not qr:
+            flash('QR-koden hittades inte', 'error')
+            return redirect(url_for('admin.list_qr_codes'))
+        
+        # Radera från qr_images först (foreign key)
+        if db._db.database_url:
+            delete_images = "DELETE FROM qr_images WHERE qr_id = %s"
+            delete_handovers = "DELETE FROM handovers WHERE qr_id = %s"
+            delete_qr = "DELETE FROM qr_codes WHERE qr_id = %s"
+        else:
+            delete_images = "DELETE FROM qr_images WHERE qr_id = ?"
+            delete_handovers = "DELETE FROM handovers WHERE qr_id = ?"
+            delete_qr = "DELETE FROM qr_codes WHERE qr_id = ?"
+        
+        with db._db.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(delete_images, (qr_id,))
+            cur.execute(delete_handovers, (qr_id,))
+            cur.execute(delete_qr, (qr_id,))
+            conn.commit()
+        
+        flash(f'QR-kod {qr_id} är permanent raderad från systemet', 'success')
+        logger.warning(f"Admin {g.admin_email} RADERADE permanent QR-kod {qr_id}")
+        
+    except Exception as e:
+        logger.error(f"Fel vid radering av QR: {e}")
+        flash('Ett fel uppstod vid radering', 'error')
+    
+    return redirect(url_for('admin.list_qr_codes'))
+
 
 
 @bp.route('/user/<int:user_id>/delete', methods=['POST'])
@@ -1303,25 +1349,34 @@ def check_expired_premium():
 @bp.route('/qr-image/<qr_id>')
 @admin_required
 def qr_image(qr_id: str):
-    """Visa QR-kod som bild (för img-taggar)."""
-    import os
-    from flask import send_file, current_app
+    """Visa QR-kod som bild från databasen."""
+    import io
+    from flask import send_file
     
-    # Försök flera möjliga sökvägar
-    possible_paths = [
-        os.path.join(current_app.root_path, 'static', 'qr', f"qr_{qr_id}.png"),
-        os.path.join(os.environ.get('QR_FOLDER', 'static/qr'), f"qr_{qr_id}.png"),
-        os.path.join('static', 'qr', f"qr_{qr_id}.png"),
-    ]
-    
-    filepath = None
-    for path in possible_paths:
-        if os.path.exists(path):
-            filepath = path
-            break
-    
-    if filepath:
-        return send_file(filepath)
-    else:
-        logger.error(f"QR-bild hittades inte för {qr_id}")
+    try:
+        query = "SELECT image_data FROM qr_images WHERE qr_id = ?"
+        result = db._db.fetch_one(query, (qr_id,))
+        
+        if result and result.get('image_data'):
+            image_data = result['image_data']
+            if isinstance(image_data, str):
+                import base64
+                image_data = base64.b64decode(image_data)
+            
+            return send_file(
+                io.BytesIO(image_data),
+                mimetype='image/png'
+            )
+        else:
+            import os
+            from flask import current_app
+            
+            filepath = os.path.join(current_app.root_path, 'static', 'qr', f"qr_{qr_id}.png")
+            if os.path.exists(filepath):
+                return send_file(filepath)
+            
+            return "QR-kod hittades inte", 404
+            
+    except Exception as e:
+        logger.error(f"Fel vid visning av QR {qr_id}: {e}")
         return "QR-kod hittades inte", 404
