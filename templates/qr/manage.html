@@ -127,7 +127,7 @@
         box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
     }
 
-    /* Köp nya stickers - ny sektion */
+    /* Köp nya stickers */
     .buy-stickers-section {
         text-align: center;
         margin-top: 20px;
@@ -194,7 +194,7 @@
         font-weight: 600;
     }
 
-    /* QR-kort - FIXED LAYOUT */
+    /* QR-grid */
     .qr-grid {
         display: grid;
         gap: 20px;
@@ -217,10 +217,14 @@
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     }
 
+    .qr-card.favorite {
+        border-color: #fbbf24;
+        background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+    }
+
     .qr-card.archived {
-        opacity: 0.7;
+        opacity: 0.85;
         background: #f9fafb;
-        border-color: #e5e7eb;
     }
 
     .qr-image-small {
@@ -236,7 +240,7 @@
 
     .qr-card.archived .qr-image-small {
         filter: grayscale(100%);
-        opacity: 0.6;
+        opacity: 0.7;
     }
 
     .qr-info {
@@ -250,6 +254,14 @@
         font-family: monospace;
         letter-spacing: 2px;
         margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .favorite-star {
+        color: #fbbf24;
+        font-size: 1.1rem;
     }
 
     .qr-card.archived .qr-info h3 {
@@ -281,9 +293,9 @@
         font-weight: 600;
     }
 
-    .status-badge.active {
-        background: #d1fae5;
-        color: #065f46;
+    .status-badge.favorite {
+        background: #fef3c7;
+        color: #92400e;
     }
 
     .status-badge.archived {
@@ -291,15 +303,16 @@
         color: #6b7280;
     }
 
-    /* FIXED BUTTONS - Horizontal layout */
+    /* Knappar */
     .qr-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         flex-shrink: 0;
+        flex-wrap: wrap;
     }
 
-    .btn-remove {
-        padding: 10px 18px;
+    .btn-favorite {
+        padding: 10px 16px;
         border-radius: 10px;
         border: none;
         font-weight: 600;
@@ -310,17 +323,42 @@
         align-items: center;
         gap: 6px;
         white-space: nowrap;
-        background: #fee2e2;
-        color: #991b1b;
+        background: #fef3c7;
+        color: #92400e;
     }
 
-    .btn-remove:hover {
-        background: #ef4444;
-        color: white;
+    .btn-favorite:hover {
+        background: #fbbf24;
+        color: #78350f;
+    }
+
+    .btn-favorite.active {
+        background: #fbbf24;
+        color: #78350f;
+    }
+
+    .btn-archive {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-archive:hover {
+        background: #d1d5db;
     }
 
     .btn-restore {
-        padding: 10px 18px;
+        padding: 10px 16px;
         border-radius: 10px;
         border: none;
         font-weight: 600;
@@ -340,8 +378,29 @@
         color: white;
     }
 
+    .btn-remove-permanent {
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-remove-permanent:hover {
+        background: #ef4444;
+        color: white;
+    }
+
     .btn-download-small {
-        padding: 10px 18px;
+        padding: 10px 16px;
         background: #f3f4f6;
         color: #374151;
         border-radius: 10px;
@@ -380,7 +439,7 @@
         margin-bottom: 10px;
     }
 
-    /* Info-box */
+    /* Info-boxar */
     .info-box {
         background: #dbeafe;
         border-left: 4px solid #3b82f6;
@@ -395,6 +454,15 @@
         font-size: 0.95rem;
     }
 
+    .info-box.warning {
+        background: #fef3c7;
+        border-left-color: #f59e0b;
+    }
+
+    .info-box.warning p {
+        color: #92400e;
+    }
+
     /* Separata sektioner */
     .qr-section {
         margin-bottom: 30px;
@@ -406,6 +474,17 @@
         margin-bottom: 15px;
         padding-bottom: 10px;
         border-bottom: 2px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .qr-section h3 .count {
+        background: #e5e7eb;
+        color: #374151;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
     }
 
     /* Tillbaka-knapp */
@@ -539,7 +618,7 @@
     }
 
     /* Responsive */
-    @media (max-width: 640px) {
+    @media (max-width: 768px) {
         .qr-card {
             flex-direction: column;
             text-align: center;
@@ -570,8 +649,10 @@
             width: 100%;
         }
 
-        .btn-remove,
+        .btn-favorite,
+        .btn-archive,
         .btn-restore,
+        .btn-remove-permanent,
         .btn-download-small {
             width: 100%;
             justify-content: center;
@@ -592,7 +673,7 @@
     <div class="qr-manage-content">
         <div class="qr-manage-header">
             <h1>Hantera QR-koder</h1>
-            <p>Lägg till eller ta bort QR-koder från ditt konto</p>
+            <p>Välj vilka QR-koder som ska visas på din dashboard</p>
         </div>
 
         <!-- Aktivera ny QR -->
@@ -610,7 +691,6 @@
                 <button type="submit" class="btn-activate">Lägg till på mitt konto</button>
             </form>
             
-            <!-- Köp nya stickers -->
             <div class="buy-stickers-section">
                 <p class="buy-stickers-text">Behöver du fler QR-koder?</p>
                 <a href="{{ url_for('auth.buy_stickers') }}" class="btn-buy-small">
@@ -633,24 +713,36 @@
 
             {% if all_qrs %}
                 <div class="info-box">
-                    <p>💡 <strong>Tips:</strong> Du kan ha obegränsat med QR-koder kopplade till ditt konto. Ta bort koder du inte använder längre för att hålla listan ren. QR-koden fungerar fortfarande om någon hittar den – du kan alltid lägga till den igen senare.</p>
+                    <p>⭐ <strong>Favoriter</strong> visas på din dashboard. <strong>Arkiverade</strong> är fortfarande kopplade till ditt konto men syns inte på dashboard – perfekt när du byter stickers men vill behålla gamla koder som backup.</p>
                 </div>
 
-                <!-- Aktiva QR-koder -->
-                {% if active_qrs %}
+                {% if favorite_qrs|length == 0 %}
+                <div class="info-box warning">
+                    <p>⚠️ Du har ingen favoritmarkerad QR-kod. Välj minst en som visas på dashboard!</p>
+                </div>
+                {% endif %}
+
+                <!-- Favoriter (visas på dashboard) -->
+                {% if favorite_qrs %}
                 <div class="qr-section">
-                    <h3>Aktiva på mitt konto ({{ active_qrs|length }})</h3>
+                    <h3>
+                        ⭐ Favoriter (visas på dashboard)
+                        <span class="count">{{ favorite_qrs|length }}</span>
+                    </h3>
                     <div class="qr-grid">
-                        {% for qr in active_qrs %}
-                        <div class="qr-card">
+                        {% for qr in favorite_qrs %}
+                        <div class="qr-card favorite">
                             <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                                  alt="QR {{ qr.qr_id }}" 
                                  class="qr-image-small"
                                  onerror="this.style.display='none'">
                             <div class="qr-info">
-                                <h3>{{ qr.qr_id }}</h3>
+                                <h3>
+                                    {{ qr.qr_id }}
+                                    <span class="favorite-star">⭐</span>
+                                </h3>
                                 <div class="qr-meta">
-                                    <span class="status-badge active">● Aktiv på konto</span>
+                                    <span class="status-badge favorite">⭐ Synlig på dashboard</span>
                                     <span>📊 {{ qr.total_scans }} scanningar</span>
                                     {% if qr.activated_at %}
                                     <span>📅 {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
@@ -658,12 +750,26 @@
                                 </div>
                             </div>
                             <div class="qr-actions">
-                                <button type="button" class="btn-remove" onclick="showRemoveModal('{{ qr.qr_id }}')">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M18 6L6 18M6 6l12 12"></path>
-                                    </svg>
-                                    Ta bort
-                                </button>
+                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="action" value="unfavorite">
+                                    <button type="submit" class="btn-favorite active" title="Ta bort från favoriter">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                        </svg>
+                                        Favorit
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST" style="display: inline;">
+                                    <input type="hidden" name="action" value="archive">
+                                    <button type="submit" class="btn-archive" title="Arkivera (dölj från dashboard)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                            <rect x="1" y="3" width="22" height="5"></rect>
+                                            <line x1="10" y1="12" x2="14" y2="12"></line>
+                                        </svg>
+                                        Arkivera
+                                    </button>
+                                </form>
                                 <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                                    download="returnadisc-{{ qr.qr_id }}.png"
                                    class="btn-download-small">
@@ -681,10 +787,13 @@
                 </div>
                 {% endif %}
 
-                <!-- Borttagna QR-koder -->
+                <!-- Arkiverade (kopplade till konto men ej på dashboard) -->
                 {% if archived_qrs %}
                 <div class="qr-section">
-                    <h3>Tidigare borttagna ({{ archived_qrs|length }})</h3>
+                    <h3>
+                        📦 Arkiverade (ej på dashboard)
+                        <span class="count">{{ archived_qrs|length }}</span>
+                    </h3>
                     <div class="qr-grid">
                         {% for qr in archived_qrs %}
                         <div class="qr-card archived">
@@ -695,7 +804,7 @@
                             <div class="qr-info">
                                 <h3>{{ qr.qr_id }}</h3>
                                 <div class="qr-meta">
-                                    <span class="status-badge archived">○ Ej på konto</span>
+                                    <span class="status-badge archived">📦 Arkiverad</span>
                                     <span>📊 {{ qr.total_scans }} scanningar</span>
                                     {% if qr.activated_at %}
                                     <span>📅 {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
@@ -704,14 +813,20 @@
                             </div>
                             <div class="qr-actions">
                                 <form action="{{ url_for('qr.toggle', qr_id=qr.qr_id) }}" method="POST" style="display: inline;">
-                                    <input type="hidden" name="action" value="restore">
-                                    <button type="submit" class="btn-restore">
+                                    <input type="hidden" name="action" value="favorite">
+                                    <button type="submit" class="btn-restore" title="Gör till favorit (visa på dashboard)">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                                         </svg>
-                                        Lägg till igen
+                                        Gör till favorit
                                     </button>
                                 </form>
+                                <button type="button" class="btn-remove-permanent" onclick="showRemoveModal('{{ qr.qr_id }}')" title="Ta bort från konto permanent">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M18 6L6 18M6 6l12 12"></path>
+                                    </svg>
+                                    Ta bort
+                                </button>
                                 <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                                    download="returnadisc-{{ qr.qr_id }}.png"
                                    class="btn-download-small">
@@ -760,30 +875,30 @@
     </div>
 </section>
 
-<!-- Modal för borttagning -->
+<!-- Modal för permanent borttagning -->
 <div class="modal-overlay" id="removeModal">
     <div class="modal-content">
         <div class="modal-header">
             <div class="modal-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
             </div>
-            <h3>Ta bort QR-kod?</h3>
+            <h3>Ta bort QR-kod permanent?</h3>
         </div>
         <div class="modal-body">
-            <p>Är du säker på att du vill ta bort <strong id="modalQrId">ABC123</strong> från ditt konto?</p>
+            <p>Är du säker på att du vill ta bort <strong id="modalQrId">ABC123</strong> från ditt konto permanent?</p>
             <p style="margin-top: 12px; font-size: 0.9rem; color: #6b7280;">
-                ⚠️ QR-koden kommer fortfarande att fungera om någon hittar och skannar den, men du kommer inte se den i din lista längre. Du kan alltid lägga till den igen senare.
+                ⚠️ Detta kan inte ångras. QR-koden blir ledig och kan användas av någon annan. Om du har denna kod på en disc kommer du inte längre att kunna få tillbaka den om den hittas.
             </p>
         </div>
         <div class="modal-actions">
             <button type="button" class="btn-modal-secondary" onclick="closeModal()">Avbryt</button>
             <form action="" method="POST" id="removeForm" style="flex: 1;">
                 <input type="hidden" name="action" value="remove">
-                <button type="submit" class="btn-modal-primary" style="width: 100%;">Ja, ta bort</button>
+                <button type="submit" class="btn-modal-primary" style="width: 100%;">Ja, ta bort permanent</button>
             </form>
         </div>
     </div>
@@ -800,18 +915,12 @@
         document.getElementById('removeModal').classList.remove('active');
     }
 
-    // Stäng modal vid klick utanför
     document.getElementById('removeModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
+        if (e.target === this) closeModal();
     });
 
-    // Stäng modal med Escape
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeModal();
-        }
+        if (e.key === 'Escape') closeModal();
     });
 </script>
 {% endblock %}
