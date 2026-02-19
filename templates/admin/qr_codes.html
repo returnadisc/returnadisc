@@ -185,6 +185,16 @@
         color: white;
     }
 
+    .btn-remove {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-remove:hover {
+        background: #f59e0b;
+        color: white;
+    }
+
     .btn-delete {
         background: #fee2e2;
         color: #991b1b;
@@ -323,12 +333,19 @@
                                 <a href="{{ url_for('admin.edit_qr', qr_id=qr.qr_id) }}" class="btn-action btn-edit" title="Redigera">
                                     ✏️ Redigera
                                 </a>
-                                <a href="{{ url_for('admin.download_qr', qr_id=qr.qr_id) }}" class="btn-action btn-download" title="Ladda ner">
+                                <a href="{{ url_for('admin.download_qr', qr_id=qr.qr_id) }}" class="btn-action btn-download" title="Ladda ner bild">
                                     ⬇️ Bild
                                 </a>
-                                <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Är du säker på att du vill ta bort QR-koden {{ qr.qr_id }} från användaren? QR-koden blir ledig och kan tilldelas någon annan.');">
-                                    <button type="submit" class="btn-action btn-delete" title="Ta bort från användare">
-                                        🗑️ Ta bort från konto
+                                {% if qr.user_id %}
+                                <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Ta bort QR-koden {{ qr.qr_id }} från användaren {{ qr.name }}? QR-koden blir ledig och kan tilldelas någon annan.');">
+                                    <button type="submit" class="btn-action btn-remove" title="Ta bort från användare">
+                                        👤 Ta bort från konto
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('admin.destroy_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('⚠️ ÄR DU SÄKER? Detta raderar QR-koden {{ qr.qr_id }} PERMANENT från hela systemet! Detta kan inte ångras.');">
+                                    <button type="submit" class="btn-action btn-delete" title="Radera permanent från systemet">
+                                        🗑️ Radera helt
                                     </button>
                                 </form>
                             </div>
