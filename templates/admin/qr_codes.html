@@ -326,9 +326,9 @@
                                 <a href="{{ url_for('admin.download_qr', qr_id=qr.qr_id) }}" class="btn-action btn-download" title="Ladda ner">
                                     ⬇️ Bild
                                 </a>
-                                <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Är du säker på att du vill ta bort QR-koden {{ qr.qr_id }}? Detta kan inte ångras.');">
-                                    <button type="submit" class="btn-action btn-delete" title="Ta bort">
-                                        🗑️ Ta bort
+                                <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Är du säker på att du vill ta bort QR-koden {{ qr.qr_id }} från användaren? QR-koden blir ledig och kan tilldelas någon annan.');">
+                                    <button type="submit" class="btn-action btn-delete" title="Ta bort från användare">
+                                        🗑️ Ta bort från konto
                                     </button>
                                 </form>
                             </div>
