@@ -447,6 +447,99 @@
         font-size: 0.85rem;
     }
 
+    /* FAQ Card - NY STIL */
+    .faq-card {
+        background: linear-gradient(145deg, rgba(245, 245, 220, 0.98) 0%, rgba(240, 240, 210, 0.95) 100%);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        text-align: center;
+    }
+
+    .faq-card h3 {
+        font-size: 1.1rem;
+        color: #166534;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-weight: 600;
+    }
+
+    .faq-card h3 svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .faq-card p {
+        color: #4b5563;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .faq-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-faq {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #166534;
+        color: white;
+        padding: 14px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-faq:hover {
+        background: #14532d;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+    }
+
+    .btn-faq svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .btn-contact {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: transparent;
+        color: #166534;
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: 2px solid #166534;
+        transition: all 0.2s ease;
+    }
+
+    .btn-contact:hover {
+        background: #166534;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-contact svg {
+        width: 18px;
+        height: 18px;
+    }
+
     /* QR Error State */
     .qr-error {
         background: #fee2e2;
@@ -507,6 +600,17 @@
             width: 100%;
             justify-content: center;
         }
+
+        .faq-buttons {
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn-faq, .btn-contact {
+            flex: 1;
+            min-width: 140px;
+        }
     }
 
     @media (max-width: 480px) {
@@ -538,6 +642,18 @@
 
         .stickers-promo {
             padding: 16px;
+        }
+
+        .faq-card {
+            padding: 24px;
+        }
+
+        .faq-buttons {
+            flex-direction: column;
+        }
+
+        .btn-faq, .btn-contact {
+            width: 100%;
         }
     }
 </style>
@@ -722,18 +838,34 @@
                         </ul>
                     </div>
                     
-                    <div class="info-card">
+                    <!-- FAQ Card - Ersätter PDGA-kortet -->
+                    <div class="faq-card">
                         <h3>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
                             </svg>
-                            PDGA Tävling
+                            Har du frågor?
                         </h3>
-                        <p>Enligt <strong>PDGA 813.01</strong> måste discar vara identifierbara. Skriv <code>{{ qr.qr_id }}</code> med tusch = regelföljd + anonymt!</p>
+                        <p>Kolla in våra vanligaste frågor och svar, eller kontakta oss om du behöver hjälp.</p>
+                        <div class="faq-buttons">
+                            <a href="{{ url_for('auth.faq') }}" class="btn-faq">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                                Vanliga frågor
+                            </a>
+                            <a href="mailto:info@returnadisc.se" class="btn-contact">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                Kontakta oss
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
