@@ -961,12 +961,12 @@ def download_qr(qr_id: str):
     from flask import send_file, Response
     
     try:
-        # Hämta bild från databasen
-        query = "SELECT image_data FROM qr_images WHERE qr_id = %s" if db._db.database_url else "SELECT image_data FROM qr_images WHERE qr_id = ?"
+        # Hämta bild från databasen - ÄNDRAT: image_base64 istället för image_data
+        query = "SELECT image_base64 FROM qr_images WHERE qr_id = %s" if db._db.database_url else "SELECT image_base64 FROM qr_images WHERE qr_id = ?"
         result = db._db.fetch_one(query, (qr_id,))
         
-        if result and result.get('image_data'):
-            image_data = result['image_data']
+        if result and result.get('image_base64'):
+            image_data = result['image_base64']
             
             # Hantera både bytes och str (base64)
             if isinstance(image_data, str):
@@ -1353,11 +1353,11 @@ def qr_image(qr_id: str):
     from flask import send_file
     
     try:
-        query = "SELECT image_data FROM qr_images WHERE qr_id = ?"
+        query = "SELECT image_base64 FROM qr_images WHERE qr_id = %s"
         result = db._db.fetch_one(query, (qr_id,))
         
         if result and result.get('image_data'):
-            image_data = result['image_data']
+            image_data = result['image_base64']
             if isinstance(image_data, str):
                 import base64
                 image_data = base64.b64decode(image_data)
