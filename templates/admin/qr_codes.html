@@ -100,7 +100,7 @@
         transform: none;
     }
 
-    /* NYTT: Laddningsindikator */
+    /* Laddningsindikator */
     .loading-spinner {
         display: none;
         width: 20px;
@@ -373,7 +373,6 @@
         <!-- Generera QR-koder sektion -->
         <div class="generate-section">
             <h2>⚡ Generera nya QR-koder</h2>
-            <!-- NYTT: onsubmit för att hantera submit och refresh -->
             <form method="post" action="{{ url_for('admin.qr_pdf') }}" class="generate-form" id="generateForm" onsubmit="handleGenerate(event)">
                 <label for="count">Antal:</label>
                 <input type="number" id="count" name="count" min="1" max="10" value="1" required>
@@ -382,7 +381,7 @@
                     <div class="loading-spinner" id="loadingSpinner"></div>
                 </button>
             </form>
-            <p class="generate-note">Genererar 1-10 QR-koder som PDF. Max 10 per gång.</p>
+            <p class="generate-note">Genererar 1-10 QR-koder. Max 10 per gång.</p>
         </div>
         
         <div class="stats-summary">
@@ -486,7 +485,7 @@
     </div>
 </div>
 
-<!-- NYTT: JavaScript för att hantera generering och refresh -->
+<!-- Förenklad JavaScript - ingen PDF-hantering -->
 <script>
 function handleGenerate(event) {
     event.preventDefault();
@@ -501,43 +500,17 @@ function handleGenerate(event) {
     btnText.textContent = 'Genererar...';
     spinner.style.display = 'block';
     
-    // Skicka formuläret via fetch för att kunna vänta på nedladdning
+    // Skicka formuläret via fetch
     fetch(form.action, {
         method: 'POST',
         body: new FormData(form)
     })
-    .then(response => {
-        if (response.ok) {
-            // Om det är en fil (PDF), ladda ner den först
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/pdf')) {
-                return response.blob().then(blob => {
-                    // Ladda ner filen
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'returnadisc-qr-batch.pdf';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                    
-                    // Vänta lite så nedladdningen hinner starta, sedan refresha
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1000);
-                });
-            } else {
-                // Om det är redirect (felmeddelande), följ den
-                window.location.reload();
-            }
-        } else {
-            // Fel - refresha ändå så flash-meddelanden visas
-            window.location.reload();
-        }
+    .then(() => {
+        // Refresha sidan oavsett svar (flash-meddelanden visas efter reload)
+        window.location.reload();
     })
-    .catch(error => {
-        console.error('Fel:', error);
+    .catch(() => {
+        // Vid fel, refresha ändå så flash-meddelanden visas
         window.location.reload();
     });
 }

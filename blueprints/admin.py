@@ -525,38 +525,29 @@ def create_qr():
 
 @bp.route('/qr-pdf', methods=['POST'])
 @admin_required
-@audit_log("GENERATE_QR_PDF", "Generated QR code PDF")
+@audit_log("GENERATE_QR_CODES", "Generated QR codes")
 def qr_pdf():
-    """Generera QR-PDF."""
+    """Generera QR-koder utan PDF."""
     try:
         count = int(request.form.get('count', 1))
         
-        # ÄNDRAT: Max 10 istället för MAX_QR_PER_REQUEST
+        # Max 10 QR-koder per gång
         if count < 1 or count > 10:
             flash('Antal måste vara mellan 1 och 10.', 'error')
             return redirect(url_for('admin.list_qr_codes'))
         
-        # Generera QR-koder
+        # Generera QR-koder (endast i databasen, ingen PDF)
         qr_service = QRGenerationService(db)
         qr_codes = qr_service.generate_batch(count, Config.PUBLIC_URL)
-        
-        # Skapa PDF med befintlig funktion från utils
-        from utils import generate_qr_pdf_for_order
-        
-        qr_codes_data = [{'qr_id': qid, 'qr_filename': f'qr_{qid}.png'} for qid in qr_codes]
-        pdf_path = generate_qr_pdf_for_order(qr_codes_data, Config.PUBLIC_URL)
         
         logger.info(f"Admin {g.admin_email} generated {count} QR codes from {g.admin_ip}")
         flash(f'{len(qr_codes)} QR-koder genererade!', 'success')
         
-        return send_file(
-            pdf_path, 
-            as_attachment=True, 
-            download_name=f'returnadisc-qr-batch-{count}st.pdf'
-        )
+        # Redirect tillbaka till listan (ingen PDF)
+        return redirect(url_for('admin.list_qr_codes'))
         
     except Exception as e:
-        logger.error(f"PDF generation failed: {e}")
+        logger.error(f"QR generation failed: {e}")
         flash(f'Fel vid generering: {str(e)}', 'error')
         return redirect(url_for('admin.list_qr_codes'))
 
