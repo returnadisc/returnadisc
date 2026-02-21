@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}QR-koder & Användare - Admin{% endblock %}
+{% block title %}QR-koder - Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -121,21 +121,21 @@
         color: #6b7280;
     }
 
-    /* NYTT: Stats grid med fler kort */
     .stats-summary {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 20px;
+        display: flex;
+        gap: 30px;
         margin-bottom: 30px;
+        flex-wrap: wrap;
     }
 
     .summary-item {
         background: white;
-        padding: 25px 20px;
+        padding: 25px 35px;
         border-radius: 16px;
         text-align: center;
         box-shadow: 0 4px 15px rgba(0,0,0,0.08);
         border: 1px solid rgba(22, 101, 52, 0.1);
+        min-width: 140px;
     }
 
     .summary-number {
@@ -155,22 +155,9 @@
         color: #d97706;
     }
 
-    /* NYTT: Färger för komprimerade stats */
-    .summary-number.missing {
-        color: #dc2626;
-    }
-
-    .summary-number.found {
-        color: #166534;
-    }
-
-    .summary-number.handovers {
-        color: #2563eb;
-    }
-
     .summary-label {
         color: #374151;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -187,12 +174,11 @@
     .admin-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.9rem;
     }
 
     .admin-table th,
     .admin-table td {
-        padding: 14px 12px;
+        padding: 18px;
         text-align: left;
         border-bottom: 1px solid #e5e7eb;
     }
@@ -202,12 +188,13 @@
         color: white;
         font-weight: 700;
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.85rem;
         letter-spacing: 0.5px;
     }
 
     .admin-table td {
         color: #1f2937;
+        font-size: 0.95rem;
     }
 
     .admin-table tr:hover {
@@ -218,67 +205,20 @@
         border-bottom: none;
     }
 
-    /* NYTT: Mindre text för att få plats */
     .admin-table code {
         background: #ecfdf5;
-        padding: 4px 8px;
+        padding: 6px 10px;
         border-radius: 6px;
         font-family: monospace;
         font-weight: 700;
         color: #166534;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
-
-    /* NYTT: User ID styling */
-    .user-id {
-        font-weight: 700;
-        color: #166534;
-        font-size: 0.85rem;
-    }
-
-    /* NYTT: Email truncation */
-    .email-cell {
-        max-width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    /* NYTT: Datum kompakt */
-    .date-cell {
-        font-size: 0.85rem;
-        color: #6b7280;
-    }
-
-    /* NYTT: Stats komprimerade */
-    .stats-compressed {
-        display: flex;
-        gap: 12px;
-        font-size: 0.8rem;
-    }
-
-    .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .stat-item .label {
-        color: #6b7280;
-    }
-
-    .stat-item .value {
-        font-weight: 700;
-    }
-
-    .stat-item .value.missing { color: #dc2626; }
-    .stat-item .value.found { color: #166534; }
-    .stat-item .value.handovers { color: #2563eb; }
 
     .badge {
-        padding: 4px 10px;
+        padding: 6px 14px;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.85rem;
         font-weight: 700;
         display: inline-block;
     }
@@ -305,15 +245,15 @@
 
     .action-buttons {
         display: flex;
-        gap: 6px;
+        gap: 8px;
         flex-wrap: wrap;
     }
 
     .btn-action {
-        padding: 5px 10px;
-        border-radius: 6px;
+        padding: 6px 12px;
+        border-radius: 8px;
         text-decoration: none;
-        font-size: 0.75rem;
+        font-size: 0.85rem;
         font-weight: 600;
         border: none;
         cursor: pointer;
@@ -363,7 +303,6 @@
     .unassigned {
         color: #9ca3af;
         font-style: italic;
-        font-size: 0.85rem;
     }
 
     .back-link {
@@ -389,31 +328,24 @@
         color: white;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 768px) {
+        .stats-summary {
+            justify-content: center;
+        }
+        
         .admin-table {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
         
         .admin-table th,
         .admin-table td {
-            padding: 10px 8px;
+            padding: 12px;
         }
         
         .action-buttons {
             flex-direction: column;
         }
-        
-        .btn-action {
-            width: 100%;
-            text-align: center;
-        }
-    }
 
-    @media (max-width: 768px) {
-        .stats-summary {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
         .generate-form {
             flex-direction: column;
             width: 100%;
@@ -427,15 +359,6 @@
             width: 100%;
             justify-content: center;
         }
-        
-        /* Scrollbar tabell på mobil */
-        .table-card {
-            overflow-x: auto;
-        }
-        
-        .admin-table {
-            min-width: 900px;
-        }
     }
 </style>
 {% endblock %}
@@ -444,7 +367,7 @@
 <div class="admin-qr-list">
     <div class="admin-container">
         <div class="admin-header">
-            <h1>📋 QR-koder & Användare</h1>
+            <h1>📋 Alla QR-koder</h1>
         </div>
         
         <!-- Generera QR-koder sektion -->
@@ -461,40 +384,22 @@
             <p class="generate-note">Genererar 1-10 QR-koder. Max 10 per gång.</p>
         </div>
         
-        <!-- NYTT: Kombinerad stats med user count -->
         <div class="stats-summary">
             <div class="summary-item">
-                <span class="summary-number">{{ total_users|default(0) }}</span>
-                <span class="summary-label">Totalt antal användare</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-number">{{ qr_codes|length if qr_codes else 0 }}</span>
-                <span class="summary-label">Totalt antal QR-koder</span>
-            </div>
-            <div class="summary-item">
                 <span class="summary-number">{{ qr_codes|selectattr('is_active', 'equalto', true)|list|length if qr_codes else 0 }}</span>
-                <span class="summary-label">Aktiva QR</span>
+                <span class="summary-label">Aktiva</span>
             </div>
             <div class="summary-item">
                 <span class="summary-number inactive">{{ qr_codes|selectattr('is_active', 'equalto', false)|list|length if qr_codes else 0 }}</span>
-                <span class="summary-label">Inaktiva QR</span>
+                <span class="summary-label">Inaktiva</span>
             </div>
             <div class="summary-item">
                 <span class="summary-number premium">{{ qr_codes|selectattr('is_premium', 'equalto', true)|list|length if qr_codes else 0 }}</span>
                 <span class="summary-label">Premium</span>
             </div>
-            <!-- NYTT: Komprimerade stats från users -->
             <div class="summary-item">
-                <span class="summary-number missing">{{ total_missing|default(0) }}</span>
-                <span class="summary-label">Saknade discar</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-number found">{{ total_found|default(0) }}</span>
-                <span class="summary-label">Hittade</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-number handovers">{{ total_handovers|default(0) }}</span>
-                <span class="summary-label">Återlämningar</span>
+                <span class="summary-number">{{ qr_codes|sum(attribute='total_scans') if qr_codes else 0 }}</span>
+                <span class="summary-label">Totala scanningar</span>
             </div>
         </div>
         
@@ -502,12 +407,11 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>User ID</th>
                         <th>QR-ID</th>
+                        <th>Ägare</th>
                         <th>Email</th>
-                        <th>Medlem sedan</th>
-                        <th>Stats</th>
                         <th>Status</th>
+                        <th>Scanningar</th>
                         <th>Premium</th>
                         <th>Åtgärder</th>
                     </tr>
@@ -515,54 +419,19 @@
                 <tbody>
                     {% for qr in qr_codes %}
                     <tr>
-                        <!-- NYTT: User ID (samma för flera QR om samma user) -->
-                        <td>
-                            {% if qr.user_id %}
-                                <span class="user-id">#{{ qr.user_id }}</span>
-                            {% else %}
-                                <span class="unassigned">-</span>
-                            {% endif %}
-                        </td>
                         <td>
                             <code>{{ qr.qr_id }}</code>
                         </td>
-                        <!-- NYTT: Email (från users) -->
-                        <td class="email-cell">
-                            {% if qr.email %}
-                                {{ qr.email }}
+                        <td>
+                            {% if qr.name %}
+                                {{ qr.name }}
                             {% else %}
                                 <span class="unassigned">Ej tilldelad</span>
                             {% endif %}
                         </td>
-                        <!-- NYTT: Medlem sedan (från users) -->
-                        <td class="date-cell">
-                            {% if qr.user_created_at %}
-                                {% if qr.user_created_at is string %}
-                                    {{ qr.user_created_at[:10] }}
-                                {% else %}
-                                    {{ qr.user_created_at.strftime('%Y-%m-%d') }}
-                                {% endif %}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        <!-- NYTT: Komprimerade stats (från users) -->
                         <td>
-                            {% if qr.user_id %}
-                            <div class="stats-compressed">
-                                <span class="stat-item">
-                                    <span class="label">S:</span>
-                                    <span class="value missing">{{ qr.missing_count or 0 }}</span>
-                                </span>
-                                <span class="stat-item">
-                                    <span class="label">H:</span>
-                                    <span class="value found">{{ qr.found_count or 0 }}</span>
-                                </span>
-                                <span class="stat-item">
-                                    <span class="label">Å:</span>
-                                    <span class="value handovers">{{ qr.handovers_count or 0 }}</span>
-                                </span>
-                            </div>
+                            {% if qr.email %}
+                                {{ qr.email }}
                             {% else %}
                                 <span class="unassigned">-</span>
                             {% endif %}
@@ -574,31 +443,32 @@
                                 <span class="badge inactive">Inaktiv</span>
                             {% endif %}
                         </td>
+                        <td><strong>{{ qr.total_scans }}</strong></td>
                         <td>
                             {% if qr.is_premium %}
-                                <span class="badge premium">💎</span>
+                                <span class="badge premium">💎 Ja</span>
                             {% else %}
-                                <span class="badge not-premium">-</span>
+                                <span class="badge not-premium">Nej</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="action-buttons">
                                 <a href="{{ url_for('admin.edit_qr', qr_id=qr.qr_id) }}" class="btn-action btn-edit" title="Redigera">
-                                    ✏️
+                                    ✏️ Redigera
                                 </a>
                                 <a href="{{ url_for('admin.download_qr', qr_id=qr.qr_id) }}" class="btn-action btn-download" title="Ladda ner bild">
-                                    ⬇️
+                                    ⬇️ Bild
                                 </a>
                                 {% if qr.user_id %}
-                                <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Ta bort QR-koden {{ qr.qr_id }} från användaren?');">
+                                <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Ta bort QR-koden {{ qr.qr_id }} från användaren {{ qr.name }}? QR-koden blir ledig och kan tilldelas någon annan.');">
                                     <button type="submit" class="btn-action btn-remove" title="Ta bort från användare">
-                                        👤
+                                        👤 Ta bort konto från QR
                                     </button>
                                 </form>
                                 {% endif %}
-                                <form method="POST" action="{{ url_for('admin.destroy_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('⚠️ Radera {{ qr.qr_id }} PERMANENT?');">
-                                    <button type="submit" class="btn-action btn-delete" title="Radera permanent">
-                                        🗑️
+                                <form method="POST" action="{{ url_for('admin.destroy_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('⚠️ ÄR DU SÄKER? Detta raderar QR-koden {{ qr.qr_id }} PERMANENT från hela systemet! Detta kan inte ångras.');">
+                                    <button type="submit" class="btn-action btn-delete" title="Radera permanent från systemet">
+                                        🗑️ Radera QR
                                     </button>
                                 </form>
                             </div>
@@ -615,6 +485,7 @@
     </div>
 </div>
 
+<!-- Förenklad JavaScript - ingen PDF-hantering -->
 <script>
 function handleGenerate(event) {
     event.preventDefault();
@@ -624,18 +495,22 @@ function handleGenerate(event) {
     const btnText = document.getElementById('btnText');
     const spinner = document.getElementById('loadingSpinner');
     
+    // Visa laddningsläge
     btn.disabled = true;
     btnText.textContent = 'Genererar...';
     spinner.style.display = 'block';
     
+    // Skicka formuläret via fetch
     fetch(form.action, {
         method: 'POST',
         body: new FormData(form)
     })
     .then(() => {
+        // Refresha sidan oavsett svar (flash-meddelanden visas efter reload)
         window.location.reload();
     })
     .catch(() => {
+        // Vid fel, refresha ändå så flash-meddelanden visas
         window.location.reload();
     });
 }

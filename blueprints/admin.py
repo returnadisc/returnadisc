@@ -609,76 +609,97 @@ def api_job_status(job_id: str):
 @admin_required
 @handle_template_errors
 def list_qr_codes():
-    """Lista alla QR-koder med användarinfo (sammanslagen med users)."""
+    """Lista alla QR-koder och ägare."""
     try:
-        # Hämta QR-koder med utökad användarinfo
-        query = """
-            SELECT 
-                qc.qr_id,
-                qc.user_id,
-                qc.is_active,
-                qc.total_scans,
-                qc.created_at as qr_created_at,
-                u.name,
-                u.email,
-                u.is_premium,
-                u.created_at as user_created_at,
-                COALESCE(m.missing_count, 0) as missing_count,
-                COALESCE(m.found_count, 0) as found_count,
-                COALESCE(h.handovers_count, 0) as handovers_count
-            FROM qr_codes qc
-            LEFT JOIN users u ON qc.user_id = u.id
-            LEFT JOIN (
-                SELECT user_id, 
-                       COUNT(*) FILTER (WHERE status = 'missing') as missing_count,
-                       COUNT(*) FILTER (WHERE status = 'found') as found_count
-                FROM missing_discs
-                GROUP BY user_id
-            ) m ON u.id = m.user_id
-            LEFT JOIN (
-                SELECT finder_id as user_id, COUNT(*) as handovers_count
-                FROM handovers
-                GROUP BY finder_id
-            ) h ON u.id = h.user_id
-            ORDER BY qc.created_at DESC
-        """
-        qr_codes = db._db.fetch_all(query)
+        qr_codes = db.get_all_qr_codes_with_users()
         
-        # Formatera datan
+        # Debug: Kontrollera om resultatet är None
+        if qr_codes is None:
+            logger.error("db.get_all_qr_codes_with_users() returnerade None")
+            qr_codes = []
+        
+        # Debug: Logga antal och typ
+        logger.info(f"Hämtade {len(qr_codes)} QR-koder, typ: {type(qr_codes)}")
+        
+        # Konvertera alla objekt till dict för säkerhet och fixa datatyper
         formatted_codes = []
         for qr in qr_codes:
             try:
+                if isinstance(qr, dict):
+                    qr_dict = qr
+                elif hasattr(qr, '_asdict'):
+                    qr_dict = qr._asdict()
+                elif hasattr(qr, '__dict__'):
+                    qr_dict = vars(qr)
+                else:
+                    qr_dict = {
+                        'qr_id': getattr(qr, 'qr_id', 'N/A'),
+                        'name': getattr(qr, 'name', None),
+                        'email': getattr(qr, 'email', None),
+                        'is_active': getattr(qr, 'is_active', False),
+                        'total_scans': getattr(qr, 'total_scans', 0),
+                        'is_premium': getattr(qr, 'is_premium', False),
+                    }
+                
+                # VIKTIGT: Konvertera is_premium till boolean (hantera 0/1)
+                is_premium = qr_dict.get('is_premium', False)
+                if isinstance(is_premium, int):
+                    is_premium = bool(is_premium)
+                elif isinstance(is_premium, str):
+                    is_premium = is_premium.lower() in ('true', '1', 'yes', 'ja')
+                
+                # VIKTIGT: Konvertera is_active till boolean
+                is_active = qr_dict.get('is_active', False)
+                if isinstance(is_active, int):
+                    is_active = bool(is_active)
+                
+                # VIKTIGT: Fixa name och email - hämta separat om user_id finns men name är tomt
+                name = qr_dict.get('name')
+                email = qr_dict.get('email')
+                user_id = qr_dict.get('user_id')
+                
+                if user_id and (not name or name == 'None'):
+                    logger.warning(f"QR {qr_dict.get('qr_id')} har user_id {user_id} men ingen name! Hämtar separat...")
+                    user_row = db._db.fetch_one(
+                        "SELECT name, email, is_premium FROM users WHERE id = ?", 
+                        (user_id,)
+                    )
+                    if user_row:
+                        name = user_row.get('name', 'Okänd')
+                        email = user_row.get('email', '')
+                        # Uppdatera is_premium från användaren om den är satt
+                        user_premium = user_row.get('is_premium', 0)
+                        if user_premium:
+                            is_premium = bool(int(user_premium)) if isinstance(user_premium, (int, str)) else bool(user_premium)
+                        
+                        # Dekryptera email om nödvändigt
+                        if email and email.startswith('gAAAA'):
+                            email = encryption.decrypt(email)
+                    else:
+                        name = 'Okänd (saknas)'
+                
+                # Sätt standardvärden om tomma
+                if not name or name == 'None':
+                    name = None  # Kommer visa "Ej tilldelad"
+                if not email or email == 'None':
+                    email = None
+                
                 formatted_codes.append({
-                    'qr_id': qr.get('qr_id', 'N/A'),
-                    'user_id': qr.get('user_id'),
-                    'name': qr.get('name'),
-                    'email': qr.get('email'),
-                    'is_active': bool(qr.get('is_active', False)),
-                    'total_scans': qr.get('total_scans', 0) or 0,
-                    'is_premium': bool(qr.get('is_premium', False)) if qr.get('is_premium') else False,
-                    'user_created_at': qr.get('user_created_at'),
-                    'missing_count': qr.get('missing_count', 0),
-                    'found_count': qr.get('found_count', 0),
-                    'handovers_count': qr.get('handovers_count', 0)
+                    'qr_id': qr_dict.get('qr_id') or 'N/A',
+                    'name': name,
+                    'email': email,
+                    'is_active': is_active,
+                    'total_scans': qr_dict.get('total_scans', 0) or 0,
+                    'is_premium': is_premium,
+                    'created_at': qr_dict.get('created_at'),
+                    'user_id': user_id
                 })
+                
             except Exception as e:
                 logger.error(f"Fel vid konvertering av QR-kod: {e}")
                 continue
         
-        # Beräkna totalsummor för stats
-        total_users = len(set(qr['user_id'] for qr in formatted_codes if qr['user_id']))
-        total_missing = sum(qr['missing_count'] for qr in formatted_codes)
-        total_found = sum(qr['found_count'] for qr in formatted_codes)
-        total_handovers = sum(qr['handovers_count'] for qr in formatted_codes)
-        
-        return TemplateService.render(
-            'admin/qr_codes.html', 
-            qr_codes=formatted_codes,
-            total_users=total_users,
-            total_missing=total_missing,
-            total_found=total_found,
-            total_handovers=total_handovers
-        )
+        return TemplateService.render('admin/qr_codes.html', qr_codes=formatted_codes)
         
     except Exception as e:
         logger.error(f"Fel i list_qr_codes: {str(e)}", exc_info=True)
