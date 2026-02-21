@@ -26,6 +26,80 @@
         margin-bottom: 10px;
     }
 
+    /* NYTT: Generera QR-sektion */
+    .generate-section {
+        background: white;
+        border-radius: 20px;
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .generate-section h2 {
+        color: #166534;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .generate-form {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .generate-form label {
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .generate-form input[type="number"] {
+        width: 80px;
+        padding: 12px 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: center;
+        color: #166534;
+    }
+
+    .generate-form input[type="number"]:focus {
+        outline: none;
+        border-color: #22c55e;
+    }
+
+    .btn-generate {
+        padding: 12px 24px;
+        background: linear-gradient(145deg, #166534 0%, #15803d 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-generate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(22, 101, 52, 0.3);
+    }
+
+    .generate-note {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
     .stats-summary {
         display: flex;
         gap: 30px;
@@ -250,6 +324,20 @@
         .action-buttons {
             flex-direction: column;
         }
+
+        .generate-form {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .generate-form input[type="number"] {
+            width: 100%;
+        }
+
+        .btn-generate {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 {% endblock %}
@@ -259,6 +347,20 @@
     <div class="admin-container">
         <div class="admin-header">
             <h1>📋 Alla QR-koder</h1>
+        </div>
+        
+        <!-- NYTT: Generera QR-koder sektion -->
+        <div class="generate-section">
+            <h2>⚡ Generera nya QR-koder</h2>
+            <form method="post" action="{{ url_for('admin.qr_pdf') }}" class="generate-form">
+                <label for="count">Antal:</label>
+                <input type="number" id="count" name="count" min="1" max="10" value="1" required>
+                <button type="submit" class="btn-generate">
+                    <span>➕</span>
+                    Generera QR-koder
+                </button>
+            </form>
+            <p class="generate-note">Genererar 1-10 QR-koder som PDF. Max 10 per gång.</p>
         </div>
         
         <div class="stats-summary">
@@ -339,13 +441,13 @@
                                 {% if qr.user_id %}
                                 <form method="POST" action="{{ url_for('admin.delete_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('Ta bort QR-koden {{ qr.qr_id }} från användaren {{ qr.name }}? QR-koden blir ledig och kan tilldelas någon annan.');">
                                     <button type="submit" class="btn-action btn-remove" title="Ta bort från användare">
-                                        👤 Ta bort från konto
+                                        👤 Ta bort konto från QR
                                     </button>
                                 </form>
                                 {% endif %}
                                 <form method="POST" action="{{ url_for('admin.destroy_qr', qr_id=qr.qr_id) }}" style="display: inline;" onsubmit="return confirm('⚠️ ÄR DU SÄKER? Detta raderar QR-koden {{ qr.qr_id }} PERMANENT från hela systemet! Detta kan inte ångras.');">
                                     <button type="submit" class="btn-action btn-delete" title="Radera permanent från systemet">
-                                        🗑️ Radera helt
+                                        🗑️ Radera QR
                                     </button>
                                 </form>
                             </div>

@@ -529,11 +529,12 @@ def create_qr():
 def qr_pdf():
     """Generera QR-PDF."""
     try:
-        count = int(request.form.get('count', 10))
+        count = int(request.form.get('count', 1))
         
-        if count < 1 or count > Config.MAX_QR_PER_REQUEST:
-            flash(f'Antal måste vara mellan 1 och {Config.MAX_QR_PER_REQUEST}.', 'error')
-            return redirect(url_for('admin.create_qr'))
+        # ÄNDRAT: Max 10 istället för MAX_QR_PER_REQUEST
+        if count < 1 or count > 10:
+            flash('Antal måste vara mellan 1 och 10.', 'error')
+            return redirect(url_for('admin.list_qr_codes'))
         
         # Generera QR-koder
         qr_service = QRGenerationService(db)
@@ -557,7 +558,7 @@ def qr_pdf():
     except Exception as e:
         logger.error(f"PDF generation failed: {e}")
         flash(f'Fel vid generering: {str(e)}', 'error')
-        return redirect(url_for('admin.create_qr'))
+        return redirect(url_for('admin.list_qr_codes'))
 
 
 @bp.route('/job-status/<job_id>')

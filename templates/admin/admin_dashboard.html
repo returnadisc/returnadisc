@@ -47,7 +47,7 @@
     }
 
     .secondary-stats {
-        grid-template-columns: repeat(3, 1fr); /* Ändrat från 4 till 3 */
+        grid-template-columns: repeat(3, 1fr);
     }
 
     .stat-card {
@@ -145,7 +145,7 @@
         color: rgba(255,255,255,0.85);
     }
 
-    /* Admin-verktyg - Flyttat upp */
+    /* Admin-verktyg */
     .admin-section {
         margin: 40px 0;
     }
@@ -326,7 +326,7 @@
             </div>
         </div>
         
-        <!-- Sekundär statistik - UTAN "Aktiva idag" -->
+        <!-- Sekundär statistik -->
         <div class="stats-grid secondary-stats">
             <div class="stat-card">
                 <span class="stat-icon">📧</span>
@@ -354,21 +354,15 @@
             </div>
         </div>
 
-        <!-- Admin-verktyg - Flyttat upp -->
+        <!-- Admin-verktyg - UTAN Generera QR-koder -->
         <div class="admin-section">
             <h2>Admin-verktyg</h2>
             
             <div class="tool-grid">
-                <a href="{{ url_for('admin.create_qr') }}" class="tool-card">
-                    <span class="tool-icon">🏷️</span>
-                    <h3>Generera QR-koder</h3>
-                    <p>Skapa nya QR-koder för test</p>
-                </a>
-                
                 <a href="{{ url_for('admin.list_qr_codes') }}" class="tool-card">
                     <span class="tool-icon">📋</span>
-                    <h3>ADMIN</h3>
-                    <p>Se alla QR-koder och ägare</p>
+                    <h3>QR-koder</h3>
+                    <p>Se alla QR-koder, ägare och generera nya</p>
                 </a>
                 
                 <a href="{{ url_for('admin.list_orders') }}" class="tool-card">
@@ -385,7 +379,7 @@
             </div>
         </div>
         
-        <!-- Footer UTAN Farozon -->
+        <!-- Footer -->
         <div class="admin-footer">
             <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary">← Till användarvy</a>
             <a href="{{ url_for('admin.logout') }}" class="btn-text">Logga ut</a>
