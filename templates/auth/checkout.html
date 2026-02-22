@@ -244,6 +244,16 @@
         color: #166534;
     }
 
+    .error-message {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
     @media (max-width: 640px) {
         .checkout-header h1 {
             font-size: 1.8rem;
@@ -272,6 +282,12 @@
         </div>
         
         <div class="checkout-card">
+            {% if error %}
+            <div class="error-message">
+                {{ error }}
+            </div>
+            {% endif %}
+            
             <div class="order-summary">
                 <h3>🛒 Din beställning</h3>
                 <div class="order-item">
@@ -294,38 +310,43 @@
                 <div class="form-group">
                     <label for="name">Fullständigt namn *</label>
                     <input type="text" id="name" name="name" required 
-                           placeholder="Förnamn Efternamn" autocomplete="name">
+                           placeholder="Förnamn Efternamn" autocomplete="name"
+                           value="{{ request.form.name or '' }}">
                 </div>
                 
                 <div class="form-group">
                     <label for="email">Email *</label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="username email">
+                           placeholder="din@email.se" autocomplete="username email"
+                           value="{{ request.form.email or '' }}">
                     <span class="form-hint">Vi skickar aktiveringslänken hit</span>
                 </div>
                 
                 <div class="form-group">
                     <label for="phone">Telefonnummer</label>
                     <input type="tel" id="phone" name="phone" 
-                           placeholder="07X-XXX XX XX" autocomplete="tel">
+                           placeholder="07X-XXX XX XX" autocomplete="tel"
+                           value="{{ request.form.phone or '' }}">
                 </div>
                 
                 <div class="form-group">
                     <label for="address">Leveransadress *</label>
                     <textarea id="address" name="address" required 
-                              placeholder="Gatuadress, postnummer, ort" autocomplete="street-address"></textarea>
+                              placeholder="Gatuadress, postnummer, ort" autocomplete="street-address">{{ request.form.address or '' }}</textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="postal_code">Postnummer *</label>
                         <input type="text" id="postal_code" name="postal_code" required 
-                               placeholder="123 45" autocomplete="postal-code">
+                               placeholder="123 45" autocomplete="postal-code"
+                               value="{{ request.form.postal_code or '' }}">
                     </div>
                     <div class="form-group">
                         <label for="city">Ort *</label>
                         <input type="text" id="city" name="city" required 
-                               placeholder="Stockholm" autocomplete="address-level2">
+                               placeholder="Stockholm" autocomplete="address-level2"
+                               value="{{ request.form.city or '' }}">
                     </div>
                 </div>
                 
@@ -348,5 +369,4 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Borttagen parallax-kod som konfliktade med CSS animation -->
 {% endblock %}

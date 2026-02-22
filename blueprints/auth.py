@@ -126,9 +126,9 @@ class SessionService:
         
         return OrderData(
             order_id=order_id,
-            package=session.get('order_package', 'standard'),
-            count=session.get('order_count', 24),
-            price=session.get('order_price', 99.0),
+            package=session.get('order_package', 'medium'),
+            count=session.get('order_count', 12),
+            price=session.get('order_price', 69.0),
             qr_codes=session.get('order_qr_codes', []),
             email=session.get('order_email', ''),
             pdf_path=session.get('order_pdf')
@@ -149,10 +149,11 @@ class SessionService:
 class ValidationService:
     """Validering av input."""
     
+    # UPPDATERADE PAKET: small, medium, large
     PACKAGE_CONFIG = {
-        'start': {'count': 12, 'price': 59},
-        'standard': {'count': 24, 'price': 99},
-        'pro': {'count': 48, 'price': 179}
+        'small': {'count': 6, 'price': 49},
+        'medium': {'count': 12, 'price': 69},
+        'large': {'count': 24, 'price': 99}
     }
     
     @classmethod
@@ -546,7 +547,7 @@ def checkout():
             return redirect(url_for('auth.buy_stickers'))
     
     # Steg 1: Visa formulär (GET)
-    package = request.args.get('package', 'standard')
+    package = request.args.get('package', 'medium')
     
     try:
         config = ValidationService.validate_package(package)
@@ -554,10 +555,11 @@ def checkout():
         flash('Ogiltigt paket.', 'error')
         return redirect(url_for('auth.buy_stickers'))
     
+    # UPPDATERADE PAKETNAMN
     package_names = {
-        'start': 'Start (12 stickers)',
-        'standard': 'Standard (24 stickers)',
-        'pro': 'Pro (48 stickers)'
+        'small': 'Small (6 stickers)',
+        'medium': 'Medium (12 stickers)',
+        'large': 'Large (24 stickers)'
     }
     
     return render_template('auth/checkout_form.html',
@@ -585,7 +587,7 @@ def order_confirmation_stripe():
         
         # Hämta paketinfo från Stripe metadata
         package = checkout_session.metadata.get('package')
-        count = int(checkout_session.metadata.get('count', 24))
+        count = int(checkout_session.metadata.get('count', 12))
         
         # ============================================================================
         # HÄMTA LEVERANSADRESS FRÅN SESSION (inte Stripe!)
@@ -620,9 +622,9 @@ def order_confirmation_stripe():
         else:
             user_id = 0  # Temporär, uppdateras vid registrering
         
-        # Beräkna pris
-        package_prices = {'start': 59, 'standard': 99, 'pro': 179}
-        total_amount = package_prices.get(package, 99)
+        # Beräkna pris - UPPDATERADE PRISER
+        package_prices = {'small': 49, 'medium': 69, 'large': 99}
+        total_amount = package_prices.get(package, 69)
         
         # Skapa order
         order_data = {

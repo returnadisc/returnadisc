@@ -68,7 +68,7 @@
     .buy-header {
         text-align: center;
         color: white;
-        margin-bottom: 40px;
+        margin-bottom: 60px;
     }
 
     .buy-icon {
@@ -92,32 +92,6 @@
         font-size: 1.4rem;
         opacity: 0.9;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    }
-
-    /* ==================== PROTECTION MESSAGE ==================== */
-    .protection-message {
-        background: rgba(251, 191, 36, 0.15);
-        border: 2px solid rgba(251, 191, 36, 0.4);
-        border-radius: 16px;
-        padding: 25px 40px;
-        margin-bottom: 50px;
-        text-align: center;
-        backdrop-filter: blur(10px);
-    }
-
-    .protection-message h2 {
-        color: #fbbf24;
-        font-size: 1.8rem;
-        font-weight: 700;
-        margin: 0;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-
-    .protection-message p {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 1.1rem;
-        margin: 10px 0 0 0;
-        line-height: 1.5;
     }
 
     /* ==================== STICKER SHOWCASE ==================== */
@@ -252,7 +226,7 @@
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 30px;
-        align-items: start;
+        align-items: stretch;
     }
 
     .price-card {
@@ -274,12 +248,12 @@
 
     .price-card.popular {
         border: 3px solid #fbbf24;
-        transform: scale(1.08);
         z-index: 10;
     }
 
     .price-card.popular:hover {
-        transform: scale(1.1) translateY(-5px);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(251, 191, 36, 0.2);
     }
 
     .popular-badge {
@@ -440,26 +414,6 @@
         line-height: 1.5;
     }
 
-    /* ==================== SIMPLE INFO ==================== */
-    .simple-info {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 30px;
-        border-radius: 16px;
-        text-align: center;
-        margin-bottom: 50px;
-    }
-
-    .simple-info p {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1.1rem;
-        margin: 0;
-    }
-
-    .simple-info strong {
-        color: #fbbf24;
-    }
-
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 1024px) {
         .pricing-grid {
@@ -469,7 +423,6 @@
         }
 
         .price-card.popular {
-            transform: scale(1);
             order: -1;
         }
 
@@ -479,10 +432,6 @@
 
         .steps {
             grid-template-columns: repeat(2, 1fr);
-        }
-
-        .protection-message h2 {
-            font-size: 1.4rem;
         }
     }
 
@@ -504,18 +453,6 @@
         .qr-example {
             width: 185px;
             height: 185px;
-        }
-
-        .protection-message {
-            padding: 20px 25px;
-        }
-
-        .protection-message h2 {
-            font-size: 1.3rem;
-        }
-
-        .protection-message p {
-            font-size: 1rem;
         }
 
         .price {
@@ -551,12 +488,6 @@
             <!-- HEADER -->
             <div class="buy-header">
                 <h1>Köp <span>Stickers</span></h1>
-            </div>
-            
-            <!-- PROTECTION MESSAGE -->
-            <div class="protection-message">
-                <h2>🛡️ Skydda dina discar med QR-kod</h2>
-                <p>Öka chansen att få tillbaka förlorade discar med upp till 70%. Enkel registrering – om någon hittar din disc skickar vi ett SMS direkt till dig.</p>
             </div>
             
             <!-- STICKER SHOWCASE -->
@@ -640,7 +571,7 @@
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">12 stickers</div>
-                            <p>För casual-spelaren, skydda dina favoritdiscar</p>
+                            <p>För den regelbundna spelaren</p>
                         </div>
                         <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
                     </div>
@@ -657,7 +588,7 @@
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">24 stickers</div>
-                            <p>Skydda hela din bag</p>
+                            <p>För den aktiva spelaren</p>
                         </div>
                         <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
                     </div>
