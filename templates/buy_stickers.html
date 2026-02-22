@@ -68,7 +68,7 @@
     .buy-header {
         text-align: center;
         color: white;
-        margin-bottom: 60px;
+        margin-bottom: 40px;
     }
 
     .buy-icon {
@@ -92,6 +92,32 @@
         font-size: 1.4rem;
         opacity: 0.9;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* ==================== PROTECTION MESSAGE ==================== */
+    .protection-message {
+        background: rgba(251, 191, 36, 0.15);
+        border: 2px solid rgba(251, 191, 36, 0.4);
+        border-radius: 16px;
+        padding: 25px 40px;
+        margin-bottom: 50px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .protection-message h2 {
+        color: #fbbf24;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .protection-message p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin: 10px 0 0 0;
+        line-height: 1.5;
     }
 
     /* ==================== STICKER SHOWCASE ==================== */
@@ -454,6 +480,10 @@
         .steps {
             grid-template-columns: repeat(2, 1fr);
         }
+
+        .protection-message h2 {
+            font-size: 1.4rem;
+        }
     }
 
     @media (max-width: 640px) {
@@ -476,6 +506,17 @@
             height: 185px;
         }
 
+        .protection-message {
+            padding: 20px 25px;
+        }
+
+        .protection-message h2 {
+            font-size: 1.3rem;
+        }
+
+        .protection-message p {
+            font-size: 1rem;
+        }
 
         .price {
             font-size: 3.5rem;
@@ -510,6 +551,12 @@
             <!-- HEADER -->
             <div class="buy-header">
                 <h1>Köp <span>Stickers</span></h1>
+            </div>
+            
+            <!-- PROTECTION MESSAGE -->
+            <div class="protection-message">
+                <h2>🛡️ Skydda dina discar med QR-kod</h2>
+                <p>Öka chansen att få tillbaka förlorade discar med upp till 70%. Enkel registrering – om någon hittar din disc skickar vi ett SMS direkt till dig.</p>
             </div>
             
             <!-- STICKER SHOWCASE -->
@@ -566,10 +613,10 @@
             <div class="pricing-section">
                 <h2>Välj paket</h2>
                 <div class="pricing-grid">
-                    <!-- Startpaket -->
+                    <!-- Small -->
                     <div class="price-card">
                         <div class="price-header">
-                            <h3>Mini</h3>
+                            <h3>Small</h3>
                             <div class="price">
                                 49<span class="price-currency">kr</span>
                             </div>
@@ -577,16 +624,15 @@
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">6 stickers</div>
-                            <p>För nybörjaren</p>
+                            <p>Perfekt för nybörjaren</p>
                         </div>
-                        <a href="{{ url_for('auth.checkout', package='mini') }}" class="btn-select">Välj</a>
+                        <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">Köp nu</a>
                     </div>
                     
-                    <!-- Standard - POPULÄR -->
-                    <div class="price-card popular">
-                        <div class="popular-badge">Mest populär</div>
+                    <!-- Medium -->
+                    <div class="price-card">
                         <div class="price-header">
-                            <h3>Standard</h3>
+                            <h3>Medium</h3>
                             <div class="price">
                                 69<span class="price-currency">kr</span>
                             </div>
@@ -594,15 +640,16 @@
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">12 stickers</div>
-                            <p>För den regelbundna spelaren</p>
+                            <p>För casual-spelaren, skydda dina favoritdiscar</p>
                         </div>
-                        <a href="{{ url_for('auth.checkout', package='standard') }}" class="btn-select">Välj</a>
+                        <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
                     </div>
                     
-                    <!-- Pro -->
-                    <div class="price-card">
+                    <!-- Large - POPULÄR -->
+                    <div class="price-card popular">
+                        <div class="popular-badge">Mest populär</div>
                         <div class="price-header">
-                            <h3>Pro</h3>
+                            <h3>Large</h3>
                             <div class="price">
                                 99<span class="price-currency">kr</span>
                             </div>
@@ -610,9 +657,9 @@
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">24 stickers</div>
-                            <p>För den aktiva spelaren</p>
+                            <p>Skydda hela din bag</p>
                         </div>
-                        <a href="{{ url_for('auth.checkout', package='pro') }}" class="btn-select">Välj</a>
+                        <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
                     </div>
                 </div>
             </div>
