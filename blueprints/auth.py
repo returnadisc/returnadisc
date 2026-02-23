@@ -740,11 +740,11 @@ def signup_with_purchased_qr():
         # Validera input
         if not all([qr_id, name, email, password]):
             flash('Fyll i alla fält.', 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
         
         if len(password) < 6:
             flash('Lösenordet måste vara minst 6 tecken.', 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
         
         # Normalisera email
         normalized_email = email.lower().strip()
@@ -753,11 +753,13 @@ def signup_with_purchased_qr():
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_pattern, normalized_email):
             flash('Ogiltigt email-format.', 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
         
         # Kontrollera att email inte redan finns
         if db.get_user_by_email(normalized_email):
-            flash('Det finns redan ett konto med denna emailadress. Logga in istället.', 'error')
+            flash('Det finns redan ett konto med denna emailadress. Logga in för att aktivera QR-koden.', 'error')
+            # Spara QR-koden i session så de kan aktivera den efter inloggning
+            session['pending_qr_activation'] = qr_id
             return redirect(url_for('auth.login'))
         
         # Kontrollera att QR-koden finns och är inaktiv (ej tilldelad)
@@ -766,17 +768,17 @@ def signup_with_purchased_qr():
         
         if not qr:
             flash(f'QR-koden "{qr_id}" hittades inte. Kontrollera att du skrivit rätt.', 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
         
         if qr.get('user_id') or qr.get('is_active'):
             flash(f'QR-koden "{qr_id}" är redan aktiverad. Kontakta support om du behöver hjälp.', 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
         
         try:
-            # Skapa användare och aktivera QR i samma transaktion
+            # Skapa användare och aktivera DENNA specifika QR-kod
             user_id = db.register_user_on_qr(qr_id, name, normalized_email, password)
             
-            logger.info(f"Användare {user_id} skapad och QR {qr_id} aktiverad")
+            logger.info(f"Användare {user_id} skapad via QR-scan/köp, QR {qr_id} aktiverad")
             
             # Verifiera att QR-koden verkligen aktiverades
             qr_check = db.get_qr(qr_id)
@@ -791,7 +793,7 @@ def signup_with_purchased_qr():
         except ValueError as e:
             logger.error(f"Valideringsfel vid skapande av konto med QR: {e}")
             flash(str(e), 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
         except Exception as e:
             logger.error(f"Fel vid skapande av konto med QR: {e}")
             error_str = str(e).lower()
@@ -799,8 +801,9 @@ def signup_with_purchased_qr():
                 flash('Det finns redan ett konto med denna emailadress.', 'error')
                 return redirect(url_for('auth.login'))
             flash('Ett fel uppstod. Försök igen eller kontakta support.', 'error')
-            return redirect(url_for('auth.signup_with_purchased_qr'))
+            return redirect(request.url)
     
+    # GET - visa formuläret (qr_id kan komma från query string vid scanning)
     return render_template('auth/signup_with_purchased_qr.html')
     
     

@@ -8,7 +8,7 @@ from functools import wraps
 
 from flask import (
     Blueprint, render_template, request, flash, 
-    session, redirect, url_for, current_app
+    session, redirect, url_for, g, jsonify
 )
 
 from database import db
@@ -587,7 +587,8 @@ def require_valid_qr(f: Callable) -> Callable:
             return render_template('found/not_found.html'), 404
         
         if result['status'] == 'not_active':
-            return render_template('found/not_active.html', qr_id=qr_id)
+            flash(f'QR-koden {qr_id} är inte aktiverad. Skapa ett konto för att aktivera den.', 'info')
+            return redirect(url_for('auth.signup_with_purchased_qr', qr_id=qr_id))
         
         # Lägg till qr och owner i kwargs
         kwargs['qr_data'] = result
@@ -627,7 +628,8 @@ def found_qr(qr_id):
         return render_template('found/not_found.html'), 404
     
     if result['status'] == 'not_active':
-        return render_template('found/not_active.html', qr_id=qr_id)
+        flash(f'QR-koden {qr_id} är inte aktiverad. Skapa ett konto för att aktivera den.', 'info')
+        return redirect(url_for('auth.signup_with_purchased_qr', qr_id=qr_id))
     
     return render_template(
         'found/found.html',

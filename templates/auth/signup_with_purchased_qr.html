@@ -132,6 +132,32 @@
         line-height: 1.5;
     }
 
+    .qr-code-display {
+        background: white;
+        border: 2px solid #166534;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .qr-code-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #6b7280;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+
+    .qr-code-value {
+        font-family: 'Courier New', monospace;
+        font-size: 1.8rem;
+        color: #166534;
+        font-weight: 700;
+        letter-spacing: 4px;
+    }
+
     .qr-code-input {
         display: flex;
         align-items: center;
@@ -345,7 +371,7 @@
         <div class="qr-signup-header">
             <div class="qr-signup-icon">🎯</div>
             <h1>Aktivera din <span>QR-kod</span></h1>
-            <p>Skapa konto och koppla din köpta QR-kod</p>
+            <p>Skapa konto och koppla din QR-kod</p>
         </div>
         
         <div class="main-card">
@@ -357,14 +383,33 @@
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
-                    Har du köpt QR-klistermärken?
+                    {% if request.args.get('qr_id') %}
+                        Du skannade QR-koden {{ request.args.get('qr_id') }}
+                    {% else %}
+                        Har du köpt QR-klistermärken?
+                    {% endif %}
                 </h3>
-                <p>Skriv in koden från ditt klistermärke nedan. När du skapat kontot är koden aktiverad och redo att användas på dina discar!</p>
+                <p>
+                    {% if request.args.get('qr_id') %}
+                        Skapa ett konto nedan för att aktivera denna kod. Sedan är den redo att användas på dina discar!
+                    {% else %}
+                        Skriv in koden från ditt klistermärke nedan. När du skapat kontot är koden aktiverad och redo att användas på dina discar!
+                    {% endif %}
+                </p>
             </div>
+            
+            <!-- QR Code Display (if from scan) -->
+            {% if request.args.get('qr_id') %}
+            <div class="qr-code-display">
+                <div class="qr-code-label">QR-kod som aktiveras</div>
+                <div class="qr-code-value">{{ request.args.get('qr_id') }}</div>
+            </div>
+            {% endif %}
             
             <!-- Signup Form -->
             <form method="post" class="signup-form" autocomplete="on">
-                <!-- QR Code Input -->
+                <!-- QR Code Input - hidden if from scan, visible if manual -->
+                {% if not request.args.get('qr_id') %}
                 <div class="qr-code-input">
                     <label for="qr_id">Din QR-kod:</label>
                     <input type="text" id="qr_id" name="qr_id" required 
@@ -374,6 +419,9 @@
                            maxlength="10"
                            autocomplete="off">
                 </div>
+                {% else %}
+                <input type="hidden" name="qr_id" value="{{ request.args.get('qr_id') }}">
+                {% endif %}
                 
                 <div class="form-group">
                     <label for="name">Ditt namn</label>
@@ -396,7 +444,11 @@
                 </div>
                 
                 <button type="submit" class="btn-submit">
-                    Skapa konto & aktivera QR-kod
+                    {% if request.args.get('qr_id') %}
+                        Skapa konto & aktivera {{ request.args.get('qr_id') }}
+                    {% else %}
+                        Skapa konto & aktivera QR-kod
+                    {% endif %}
                 </button>
             </form>
             
