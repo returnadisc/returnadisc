@@ -364,27 +364,37 @@ def qr_image(qr_id):
 @require_ownership
 def download_qr(qr_id):
     """Ladda ner QR-kod som bild från databasen."""
+    logger.error(f"DEBUG: qr_id={qr_id}, g.user_id={g.user_id}")
+    
     validation = QRValidationService.validate(qr_id)
+    logger.error(f"DEBUG: validation.is_valid={validation.is_valid}")
+    
     if not validation.is_valid:
+        logger.error(f"DEBUG: Ogiltigt QR-ID, redirect till dashboard")
         flash('Ogiltigt QR-ID.', 'error')
         return redirect(url_for('disc.dashboard'))
     
     # VIKTIGT: Hämta alltid från databasen först!
     img_buffer = serve_qr_image(qr_id)
+    logger.error(f"DEBUG: img_buffer från serve_qr_image={img_buffer is not None}")
     
     if not img_buffer:
         # Om inte i databasen, försök generera ny
         try:
+            logger.error(f"DEBUG: Försöker generera ny QR med create_qr_code")
             create_qr_code(qr_id, g.user_id)
             # Försök igen
             img_buffer = serve_qr_image(qr_id)
+            logger.error(f"DEBUG: img_buffer efter generering={img_buffer is not None}")
         except Exception as e:
-            logger.error(f"Kunde inte generera QR: {e}")
+            logger.error(f"DEBUG: Exception vid generering: {e}")
     
     if not img_buffer:
+        logger.error(f"DEBUG: img_buffer fortfarande None, redirect")
         flash('QR-kod hittades inte.', 'error')
         return redirect(url_for('disc.dashboard'))
     
+    logger.error(f"DEBUG: Skickar fil, allt OK!")
     return send_file(
         img_buffer,
         mimetype='image/png',
