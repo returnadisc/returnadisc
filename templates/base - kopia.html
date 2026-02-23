@@ -381,8 +381,8 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <div class="navbar-container">
-            <!-- LOGO - Går till dashboard om inloggad, annars index -->
-            <a href="{% if session.get('user_id') %}{{ url_for('disc.dashboard') }}{% else %}{{ url_for('auth.index') }}{% endif %}" class="logo" id="logoLink">
+            <!-- LOGO -->
+            <a href="{{ url_for('auth.index') }}" class="logo" id="logoLink">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="ReturnaDisc logotyp" id="logoImg">
                 <span class="logo-fallback">
                     <svg width="40" height="40" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#166534"/><circle cx="50" cy="50" r="20" fill="none" stroke="white" stroke-width="4"/><path d="M50 15 L50 25 M50 75 L50 85 M15 50 L25 50 M75 50 L85 50" stroke="white" stroke-width="4" stroke-linecap="round"/></svg>
@@ -519,35 +519,6 @@
         });
     </script>
     
-    <!-- Session Checker - redirects to login if session expired -->
-    <script>
-        // Check session status on page load and before navigation
-        async function checkSession() {
-            try {
-                const response = await fetch('/api/check-session', { 
-                    method: 'GET',
-                    credentials: 'same-origin'
-                });
-                if (!response.ok) {
-                    // Session expired, reload to trigger redirect to login
-                    window.location.reload();
-                }
-            } catch (e) {
-                // If request fails, session might be expired
-                console.log('Session check failed');
-            }
-        }
-        
-        // Check session when page becomes visible again
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible') {
-                checkSession();
-            }
-        });
-        
-        // Check session every 5 minutes when page is active
-        setInterval(checkSession, 300000);
-    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

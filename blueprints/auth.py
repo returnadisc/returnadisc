@@ -807,6 +807,20 @@ def signup_with_purchased_qr():
     return render_template('auth/signup_with_purchased_qr.html')
     
     
+    
+from flask import Blueprint, jsonify
+
+# ... befintlig kod ...
+
+@auth_bp.route('/api/check-session')
+def check_session():
+    """API endpoint to check if session is still valid"""
+    if 'user_id' in session:
+        return '', 200  # Session valid
+    return '', 401  # Session expired
+    
+    
+    
 @bp.route('/faq')
 def faq():
     """Vanliga frågor om ReturnaDisc."""

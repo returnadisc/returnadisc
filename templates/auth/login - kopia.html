@@ -260,7 +260,11 @@
                            placeholder="Ditt lösenord" autocomplete="current-password">
                 </div>
 
-                <div class="form-options" style="justify-content: flex-end;">
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember" id="remember">
+                        <span>Kom ihåg mig</span>
+                    </label>
                     <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Glömt lösenord?</a>
                 </div>
                 
