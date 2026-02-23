@@ -778,11 +778,12 @@
                     </div>
                     
                     <div class="qr-image-container">
-                        <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                        <!-- FIXAD: Använd disc.qr_image route istället för static -->
+                        <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="Din QR-kod {{ qr.qr_id }}" 
                              class="qr-image"
                              id="qrImage"
-                             onerror="document.getElementById('qrImage').style.display='none'; document.getElementById('qrFallback').style.display='block';">
+                             onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
                         
                         <div id="qrFallback" class="qr-fallback">
                             <div class="qr-fallback-code">{{ qr.qr_id }}</div>
@@ -794,8 +795,8 @@
                     
                     <!-- Knappar bredvid varandra -->
                     <div class="qr-buttons">
-                        <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
-                           download="returnadisc-{{ qr.qr_id }}.png"
+                        <!-- FIXAD: Använd disc.download_qr route -->
+                        <a href="{{ url_for('disc.download_qr', qr_id=qr.qr_id) }}" 
                            class="btn-download">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
