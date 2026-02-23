@@ -812,7 +812,7 @@ from flask import Blueprint, jsonify
 
 # ... befintlig kod ...
 
-@auth_bp.route('/api/check-session')
+@bp.route('/api/check-session')
 def check_session():
     """API endpoint to check if session is still valid"""
     if 'user_id' in session:
