@@ -559,7 +559,6 @@
                 <div class="qr-card">
                     <div class="qr-status-bar">Aktiv</div>
                     <h2>Din QR-kod</h2>
-                    <p class="qr-subtitle">Skanna för att se disc-info</p>
                     
                     <div class="qr-box">
                         <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
@@ -598,7 +597,7 @@
                                 <div class="option-icon">🖨️</div>
                                 <h3>Skriv ut själv</h3>
                             </div>
-                            <p>Högerklicka på QR-koden och välj "Spara bild som" för att skriva ut på egen etikett</p>
+                            <p>Högerklicka på QR-koden och välj "Spara bild som" för att sedan skriva ut på egen etikett</p>
                         </div>
                         
                         <div class="option">
@@ -606,7 +605,7 @@
                                 <div class="option-icon">✍️</div>
                                 <h3>Märk med QR-ID</h3>
                             </div>
-                            <p>Skriv <span class="option-id">{{ qr.qr_id }}</span> på discen med permanent tusch</p>
+                            <p>Skriv <span class="option-id">{{ qr.qr_id }}</span> + returnadisc.se på discen</p>
                         </div>
                         
                         <a href="{{ url_for('auth.buy_stickers') }}" class="option premium-option" style="text-decoration: none; color: inherit;">
@@ -614,7 +613,7 @@
                                 <div class="option-icon">⭐</div>
                                 <h3>Beställ klistermärken</h3>
                             </div>
-                            <p>Vattentåliga, UV-beständiga, perfekta för discar</p>
+                            <p>Vattentåliga, UV-beständiga, perfekt storlek Ø30mm</p>
                         </a>
                     </div>
                 </div>
