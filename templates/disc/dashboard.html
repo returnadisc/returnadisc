@@ -28,10 +28,7 @@
 
     @keyframes panImage {
         0% { transform: scale(1.1) translate(0, 0); }
-        25% { transform: scale(1.15) translate(-2%, -1%); }
-        50% { transform: scale(1.1) translate(2%, 1%); }
-        75% { transform: scale(1.15) translate(-1%, 2%); }
-        100% { transform: scale(1.1) translate(1%, -2%); }
+        100% { transform: scale(1.15) translate(-1%, -1%); }
     }
 
     .dashboard-overlay {
@@ -40,7 +37,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
         z-index: 1;
     }
 
@@ -48,7 +45,7 @@
         position: relative;
         z-index: 2;
         width: 100%;
-        max-width: 1200px;
+        max-width: 1100px;
         animation: fadeInUp 0.8s ease-out;
     }
 
@@ -61,67 +58,59 @@
     .dashboard-header {
         text-align: center;
         color: white;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
     }
 
     .dashboard-header h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 8px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 6px;
     }
 
     .dashboard-header p {
-        font-size: 1.1rem;
-        opacity: 0.9;
+        font-size: 1rem;
+        opacity: 0.8;
     }
 
-    /* Premium Section */
+    /* Premium */
     .premium-section {
-        display: flex;
-        justify-content: center;
+        text-align: center;
         margin-bottom: 25px;
     }
 
     .premium-badge {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        gap: 8px;
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
         color: #78350f;
-        padding: 10px 24px;
+        padding: 10px 20px;
         border-radius: 50px;
         font-weight: 700;
-        font-size: 0.95rem;
-        box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+        font-size: 0.9rem;
     }
 
     .premium-cta-box {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(145deg, #166534 0%, #14532d 100%);
         border-radius: 16px;
-        padding: 16px 24px;
-        display: flex;
+        padding: 20px 30px;
+        display: inline-flex;
+        flex-direction: column;
         align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-        justify-content: center;
+        gap: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
     .premium-cta-text {
         color: white;
         font-size: 1rem;
-        font-weight: 500;
+        font-weight: 600;
     }
 
     .btn-premium-cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
         color: #78350f;
-        padding: 10px 20px;
+        padding: 12px 24px;
         border-radius: 25px;
         text-decoration: none;
         font-weight: 700;
@@ -131,23 +120,23 @@
 
     .btn-premium-cta:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5);
+        box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
     }
 
-    /* Stats Bar */
+    /* Stats */
     .stats-bar {
         display: flex;
         justify-content: center;
-        gap: 50px;
+        gap: 60px;
         margin-bottom: 35px;
-        padding: 20px 40px;
-        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(10px);
         border-radius: 50px;
-        max-width: 350px;
+        max-width: 320px;
         margin-left: auto;
         margin-right: auto;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .stat-item {
@@ -156,7 +145,7 @@
 
     .stat-number {
         font-size: 2.2rem;
-        font-weight: 800;
+        font-weight: 700;
         color: white;
         line-height: 1;
     }
@@ -165,52 +154,47 @@
     .stat-number.found { color: #86efac; }
 
     .stat-label {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: rgba(255, 255, 255, 0.7);
-        margin-top: 5px;
+        margin-top: 4px;
         text-transform: uppercase;
-        letter-spacing: 1.5px;
-        font-weight: 600;
+        letter-spacing: 1px;
     }
 
-    /* Main Grid */
+    /* Grid */
     .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        align-items: stretch;
+        gap: 25px;
+        align-items: start;
     }
 
-    /* QR Card - Modern Glassmorphism */
+    /* QR Card */
     .qr-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 28px;
-        padding: 35px;
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         text-align: center;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        display: flex;
-        flex-direction: column;
     }
 
-    .qr-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+    .qr-status-bar {
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
         color: white;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 0.7rem;
+        padding: 10px 20px;
+        border-radius: 50px;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1.5px;
-        margin-bottom: 15px;
+        display: inline-block;
+        margin-bottom: 20px;
     }
 
-    .qr-header h2 {
-        font-size: 1.6rem;
+    .qr-card h2 {
+        font-size: 1.5rem;
         color: #1a1a1a;
-        margin: 0 0 5px 0;
+        margin: 0 0 8px 0;
         font-weight: 700;
     }
 
@@ -220,346 +204,300 @@
         margin-bottom: 25px;
     }
 
-    .qr-image-wrapper {
-        background: linear-gradient(145deg, #f3f4f6 0%, #e5e7eb 100%);
-        border-radius: 20px;
+    .qr-box {
+        background: #e8e8e0;
+        border-radius: 16px;
         padding: 30px;
         margin-bottom: 20px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .qr-image-wrapper::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(22, 101, 52, 0.03) 0%, transparent 70%);
     }
 
     .qr-image {
-        max-width: 200px;
+        max-width: 180px;
         width: 100%;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        position: relative;
-        z-index: 1;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+    }
+
+    .qr-id-box {
+        background: #d4d4c8;
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: inline-block;
+        margin-top: 15px;
     }
 
     .qr-id {
         font-family: 'Courier New', monospace;
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         color: #166534;
         font-weight: 700;
-        letter-spacing: 3px;
-        margin-top: 15px;
-        background: rgba(22, 101, 52, 0.1);
-        display: inline-block;
-        padding: 8px 20px;
-        border-radius: 10px;
+        letter-spacing: 2px;
     }
 
     .qr-actions {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
         gap: 12px;
-        margin-top: auto;
     }
 
-    .btn-primary {
-        flex: 1;
-        display: inline-flex;
+    .btn-manage {
+        background: #e5e5d8;
+        color: #374151;
+        padding: 14px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        background: #1a1a1a;
-        color: white;
-        padding: 14px 24px;
-        border-radius: 14px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.95rem;
         transition: all 0.2s ease;
         border: none;
         cursor: pointer;
     }
 
-    .btn-primary:hover {
-        background: #000;
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    .btn-manage:hover {
+        background: #d4d4c8;
     }
 
-    .btn-secondary {
-        flex: 1;
-        display: inline-flex;
+    .btn-order {
+        background: #1a1a1a;
+        color: white;
+        padding: 14px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
-        background: #f3f4f6;
-        color: #374151;
-        padding: 14px 24px;
-        border-radius: 14px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.95rem;
         transition: all 0.2s ease;
     }
 
-    .btn-secondary:hover {
-        background: #e5e7eb;
-        transform: translateY(-2px);
+    .btn-order:hover {
+        background: #000;
+        transform: translateY(-1px);
     }
 
-    /* Options Card */
-    .options-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 28px;
-        padding: 35px;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        display: flex;
-        flex-direction: column;
+    /* Info Card */
+    .info-card {
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     }
 
-    .options-header {
-        margin-bottom: 25px;
-    }
-
-    .options-header h2 {
-        font-size: 1.5rem;
+    .info-card h2 {
+        font-size: 1.3rem;
         color: #1a1a1a;
         margin: 0 0 8px 0;
         font-weight: 700;
     }
 
-    .options-header p {
+    .info-subtitle {
         color: #6b7280;
-        font-size: 0.95rem;
-        margin: 0;
+        font-size: 0.9rem;
+        margin-bottom: 25px;
     }
 
-    /* Option Items */
-    .options-list {
+    .option-list {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-        flex: 1;
+        gap: 12px;
     }
 
-    .option-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 16px;
+    .option {
+        background: white;
+        border-radius: 12px;
         padding: 20px;
-        background: #f9fafb;
-        border-radius: 16px;
         border: 2px solid transparent;
         transition: all 0.2s ease;
+    }
+
+    .option:hover {
+        border-color: #d1d5db;
+    }
+
+    .option.recommended {
+        background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%);
+        border-color: #166534;
         position: relative;
         overflow: hidden;
     }
 
-    .option-item:hover {
-        border-color: #e5e7eb;
-        transform: translateX(5px);
-    }
-
-    .option-item.recommended {
-        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-        border-color: #166534;
-    }
-
-    .option-item.recommended::before {
-        content: 'REKOMMENDERAS';
+    .recommended-badge {
         position: absolute;
-        top: 8px;
-        right: -30px;
+        top: 0;
+        right: 0;
         background: #166534;
         color: white;
         font-size: 0.6rem;
         font-weight: 800;
-        padding: 4px 30px;
-        transform: rotate(45deg);
+        padding: 4px 20px;
+        transform: translate(15%, -50%) rotate(45deg) translateY(20px);
+        text-transform: uppercase;
         letter-spacing: 1px;
     }
 
+    .option-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+
     .option-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        background: #f3f4f6;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
-    .option-item:not(.recommended) .option-icon {
-        background: #e5e7eb;
-    }
-
-    .option-item.recommended .option-icon {
+    .option.recommended .option-icon {
         background: #166534;
-        color: white;
     }
 
-    .option-content {
-        flex: 1;
-    }
-
-    .option-content h3 {
-        font-size: 1.05rem;
+    .option h3 {
+        font-size: 1rem;
         color: #1a1a1a;
-        margin: 0 0 4px 0;
+        margin: 0;
         font-weight: 700;
     }
 
-    .option-content p {
+    .option p {
         font-size: 0.85rem;
         color: #6b7280;
-        margin: 0;
+        margin: 0 0 0 52px;
         line-height: 1.4;
     }
 
-    .option-arrow {
-        color: #9ca3af;
-        transition: all 0.2s ease;
-    }
-
-    .option-item:hover .option-arrow {
+    .option.recommended p {
         color: #166534;
-        transform: translateX(5px);
     }
 
-    /* QR Activation Card */
-    .qr-activation-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border-radius: 28px;
-        padding: 50px 40px;
+    .option-id {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        color: #166534;
+        background: rgba(22, 101, 52, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    /* Activation Card */
+    .activation-card {
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 24px;
+        padding: 40px;
         text-align: center;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        max-width: 500px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        max-width: 450px;
         margin: 0 auto;
     }
 
     .activation-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
-        border-radius: 24px;
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
+        border-radius: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 25px;
-        font-size: 2.5rem;
-        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.3);
+        margin: 0 auto 20px;
+        font-size: 2rem;
     }
 
-    .qr-activation-card h2 {
-        font-size: 1.8rem;
+    .activation-card h2 {
+        font-size: 1.5rem;
         color: #1a1a1a;
-        margin-bottom: 10px;
-        font-weight: 700;
+        margin-bottom: 8px;
     }
 
-    .qr-activation-card > p {
+    .activation-card > p {
         color: #6b7280;
-        margin-bottom: 30px;
-        font-size: 1rem;
+        margin-bottom: 25px;
     }
 
     .activation-form {
-        background: #f9fafb;
-        border-radius: 20px;
-        padding: 30px;
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
     }
 
     .activation-form h3 {
+        font-size: 1rem;
         color: #1a1a1a;
-        margin-bottom: 20px;
-        font-size: 1.1rem;
-        font-weight: 600;
+        margin-bottom: 15px;
     }
 
-    .input-group {
+    .input-row {
         display: flex;
-        gap: 12px;
+        gap: 10px;
     }
 
-    .input-group input {
+    .input-row input {
         flex: 1;
-        padding: 16px 20px;
+        padding: 14px 18px;
         border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        font-size: 1.1rem;
+        border-radius: 10px;
+        font-size: 1rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
         text-align: center;
         font-weight: 700;
-        color: #1a1a1a;
-        background: white;
-        transition: all 0.2s ease;
+        letter-spacing: 2px;
     }
 
-    .input-group input:focus {
+    .input-row input:focus {
         outline: none;
         border-color: #166534;
-        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
     }
 
     .btn-activate {
-        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        background: #166534;
         color: white;
-        padding: 16px 28px;
+        padding: 14px 24px;
         border: none;
-        border-radius: 12px;
+        border-radius: 10px;
         font-weight: 700;
-        font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s ease;
-        white-space: nowrap;
     }
 
     .btn-activate:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+        background: #14532d;
     }
 
-    .help-text {
-        margin-top: 25px;
-        color: #6b7280;
+    .activation-help {
+        margin-top: 20px;
         font-size: 0.9rem;
+        color: #6b7280;
     }
 
-    .help-text a {
+    .activation-help a {
         color: #166534;
         font-weight: 700;
         text-decoration: none;
-    }
-
-    .help-text a:hover {
-        text-decoration: underline;
     }
 
     /* QR Fallback */
     .qr-fallback {
         display: none;
         padding: 20px;
-        text-align: center;
     }
 
     .qr-fallback-code {
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: #166534;
         font-weight: bold;
         font-family: monospace;
-        letter-spacing: 3px;
-        margin-bottom: 10px;
+        letter-spacing: 2px;
     }
 
     /* Responsive */
@@ -570,55 +508,29 @@
 
         .stats-bar {
             gap: 40px;
-            padding: 18px 35px;
         }
 
         .qr-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .input-row {
             flex-direction: column;
-        }
-
-        .input-group {
-            flex-direction: column;
-        }
-
-        .btn-activate {
-            width: 100%;
-        }
-
-        .option-item.recommended::before {
-            font-size: 0.5rem;
-            padding: 3px 25px;
-            top: 6px;
-            right: -28px;
         }
     }
 
     @media (max-width: 480px) {
         .dashboard-header h1 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
         }
 
-        .stats-bar {
-            gap: 30px;
-            padding: 15px 30px;
+        .qr-card, .info-card, .activation-card {
+            padding: 20px;
         }
 
-        .stat-number {
-            font-size: 1.8rem;
-        }
-
-        .qr-card, .options-card, .qr-activation-card {
-            padding: 25px 20px;
-        }
-
-        .option-item {
-            padding: 16px;
-        }
-
-        .option-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
+        .recommended-badge {
+            font-size: 0.55rem;
+            padding: 3px 15px;
         }
     }
 </style>
@@ -632,35 +544,28 @@
     <div class="dashboard-container">
         <!-- Header -->
         <div class="dashboard-header">
-            <h1>Välkommen, {{ user.name }}! 👋</h1>
+            <h1>Välkommen, {{ user.name }}!</h1>
             {% if qr and qr.qr_id %}
-                <p>Din QR-kod är aktiv och redo att användas</p>
+                <p>Din QR-kod är redo att användas</p>
             {% else %}
                 <p>Aktivera din QR-kod för att komma igång</p>
             {% endif %}
         </div>
         
-        <!-- Premium Section -->
+        <!-- Premium -->
         <div class="premium-section">
             {% if has_premium %}
                 <div class="premium-badge">
-                    <span>💎</span>
-                    <span>Premium</span>
-                    {% if is_launch and premium_status and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
-                        <small style="opacity: 0.8; font-weight: 500;">Gratis till mars 2027</small>
-                    {% elif premium_status and premium_status.premium_until %}
-                        <small style="opacity: 0.8; font-weight: 500;">till {{ premium_status.premium_until.strftime('%Y-%m-%d') }}</small>
+                    💎 Premium 
+                    {% if premium_status and premium_status.premium_until %}
+                        <small>till {{ premium_status.premium_until.strftime('%Y-%m-%d') }}</small>
                     {% endif %}
                 </div>
             {% else %}
                 <div class="premium-cta-box">
-                    <span class="premium-cta-text">Uppgradera till Premium</span>
+                    <div class="premium-cta-text">Uppgradera till Premium</div>
                     <a href="{{ url_for('premium.index') }}" class="btn-premium-cta">
-                        {% if is_launch %}
-                            🚀 Gratis till mars 2027
-                        {% else %}
-                            Köp Premium
-                        {% endif %}
+                        {% if is_launch %}Erbjudande - Gratis till 1 mars 2027{% else %}Köp Premium{% endif %}
                     </a>
                 </div>
             {% endif %}
@@ -679,39 +584,37 @@
         </div>
         
         {% if not qr or not qr.qr_id %}
-            <!-- QR Activation -->
-            <div class="qr-activation-card">
+            <!-- Activation -->
+            <div class="activation-card">
                 <div class="activation-icon">🏷️</div>
                 <h2>Aktivera din QR-kod</h2>
-                <p>Skriv in koden från ditt klistermärke eller välkort för att komma igång.</p>
+                <p>Skriv in koden från ditt klistermärke för att komma igång.</p>
                 
                 <div class="activation-form">
                     <h3>Ange din kod</h3>
                     <form action="{{ url_for('qr.activate') }}" method="post">
-                        <div class="input-group">
-                            <input type="text" name="qr_id" placeholder="T.ex. ABC123" required 
+                        <div class="input-row">
+                            <input type="text" name="qr_id" placeholder="ABC123" required 
                                    pattern="[A-Za-z0-9]{5,10}" maxlength="10" autocomplete="off">
                             <button type="submit" class="btn-activate">Aktivera</button>
                         </div>
                     </form>
                 </div>
                 
-                <p class="help-text">
-                    Har du ingen kod? <a href="{{ url_for('auth.buy_stickers') }}">Beställ här</a>
+                <p class="activation-help">
+                    Har du ingen kod? <a href="{{ url_for('auth.buy_stickers') }}">Beställ klistermärken</a>
                 </p>
             </div>
         {% else %}
-            <!-- Main Content -->
+            <!-- Grid -->
             <div class="dashboard-grid">
                 <!-- QR Card -->
                 <div class="qr-card">
-                    <div class="qr-badge">Aktiv</div>
-                    <div class="qr-header">
-                        <h2>Din QR-kod</h2>
-                        <p class="qr-subtitle">Skanna för att se disc-info</p>
-                    </div>
+                    <div class="qr-status-bar">Aktiv</div>
+                    <h2>Din QR-kod</h2>
+                    <p class="qr-subtitle">Skanna för att se disc-info</p>
                     
-                    <div class="qr-image-wrapper">
+                    <div class="qr-box">
                         <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="Din QR-kod {{ qr.qr_id }}" 
                              class="qr-image"
@@ -722,11 +625,13 @@
                             <div class="qr-fallback-code">{{ qr.qr_id }}</div>
                         </div>
                         
-                        <div class="qr-id">{{ qr.qr_id }}</div>
+                        <div class="qr-id-box">
+                            <span class="qr-id">{{ qr.qr_id }}</span>
+                        </div>
                     </div>
                     
                     <div class="qr-actions">
-                        <a href="{{ url_for('qr.manage') }}" class="btn-secondary">
+                        <a href="{{ url_for('qr.manage') }}" class="btn-manage">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
@@ -734,56 +639,38 @@
                             </svg>
                             Hantera
                         </a>
-                        <button class="btn-primary" onclick="window.print()">
+                        <a href="{{ url_for('auth.buy_stickers') }}" class="btn-order">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                <rect x="6" y="14" width="12" height="8"></rect>
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
-                            Skriv ut
-                        </button>
+                            Beställ klistermärken
+                        </a>
                     </div>
                 </div>
                 
-                <!-- Options Card -->
-                <div class="options-card">
-                    <div class="options-header">
-                        <h2>Så här märker du din disc</h2>
-                        <p>Välj det alternativ som passar dig bäst</p>
-                    </div>
+                <!-- Info Card -->
+                <div class="info-card">
+                    <h2>Så här märker du din disc</h2>
+                    <p class="info-subtitle">Välj det alternativ som passar dig bäst</p>
                     
-                    <div class="options-list">
-                        <!-- Option 1: Print -->
-                        <a href="#" onclick="window.print(); return false;" class="option-item" style="text-decoration: none; color: inherit;">
-                            <div class="option-icon">🖨️</div>
-                            <div class="option-content">
-                                <h3>Skriv ut själv</h3>
-                                <p>Skriv ut QR-koden på vanligt papper eller etikett</p>
-                            </div>
-                            <svg class="option-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                        </a>
-                        
-                        <!-- Option 2: Write ID -->
-                        <div class="option-item">
-                            <div class="option-icon">✍️</div>
-                            <div class="option-content">
+                    <div class="option-list">
+                        <div class="option">
+                            <div class="option-header">
+                                <div class="option-icon">✍️</div>
                                 <h3>Märk med QR-ID</h3>
-                                <p>Skriv <strong>{{ qr.qr_id }}</strong> på discen med permanent tusch</p>
                             </div>
+                            <p>Skriv <span class="option-id">{{ qr.qr_id }}</span> på discen med permanent tusch</p>
                         </div>
                         
-                        <!-- Option 3: Stickers (Recommended) -->
-                        <a href="{{ url_for('auth.buy_stickers') }}" class="option-item recommended" style="text-decoration: none; color: inherit;">
-                            <div class="option-icon">⭐</div>
-                            <div class="option-content">
+                        <a href="{{ url_for('auth.buy_stickers') }}" class="option recommended" style="text-decoration: none; color: inherit;">
+                            <span class="recommended-badge">Rekommenderas</span>
+                            <div class="option-header">
+                                <div class="option-icon">⭐</div>
                                 <h3>Beställ klistermärken</h3>
-                                <p>Vattentåliga, UV-beständiga, perfekta för discar</p>
                             </div>
-                            <svg class="option-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
+                            <p>Vattentåliga, UV-beständiga, perfekta för discar</p>
                         </a>
                     </div>
                 </div>
