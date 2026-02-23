@@ -268,51 +268,6 @@
         margin-top: 15px;
     }
 
-    /* QR Buttons Container */
-    .qr-buttons {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-    }
-
-    .btn-download {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: #166534;
-        color: white;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-
-    .btn-download:hover {
-        background: #14532d;
-        transform: translateY(-2px);
-    }
-
-    .btn-manage-qr {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: #f3f4f6;
-        color: #374151;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-
-    .btn-manage-qr:hover {
-        background: #e5e7eb;
-        transform: translateY(-2px);
-    }
-
     /* Stickers Promo - NY DESIGN */
     .stickers-promo {
         background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
@@ -447,28 +402,126 @@
         font-size: 0.85rem;
     }
 
-    /* QR Error State */
-    .qr-error {
-        background: #fee2e2;
-        border: 2px solid #ef4444;
+    /* QR Activation Card - RÄTTAD VERSION */
+    .qr-activation-card {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 50px 40px;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .qr-activation-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 2.5rem;
+    }
+
+    .qr-activation-card h2 {
+        font-size: 1.8rem;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .qr-activation-card > p {
+        color: #4b5563;
+        margin-bottom: 30px;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .qr-activation-form {
+        background: white;
         border-radius: 16px;
         padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .qr-activation-form h3 {
+        color: #166534;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .qr-input-group {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .qr-input-group input {
+        flex: 1;
+        padding: 16px 20px;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
         text-align: center;
+        font-weight: 600;
+        color: #1a1a1a;
+        background: #f9fafb;
+        min-width: 0;
     }
 
-    .qr-error h2 {
-        color: #991b1b;
-        margin-bottom: 10px;
+    .qr-input-group input:focus {
+        outline: none;
+        border-color: #166534;
+        background: white;
     }
 
-    .qr-error p {
-        color: #7f1d1d;
-        margin-bottom: 15px;
+    .qr-input-group input::placeholder {
+        color: #9ca3af;
+        font-weight: 500;
     }
 
-    .qr-error a {
+    .btn-submit-qr {
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 16px 28px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .btn-submit-qr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
+    }
+
+    .qr-help-text {
+        margin-top: 25px;
+        color: #4b5563;
+        font-size: 0.95rem;
+    }
+
+    .qr-help-text a {
         color: #166534;
         font-weight: 600;
+        text-decoration: underline;
+    }
+
+    .qr-help-text a:hover {
+        color: #14532d;
     }
 
     /* QR Fallback */
@@ -520,13 +573,12 @@
             padding: 20px 25px;
         }
 
-        .qr-buttons {
+        .qr-input-group {
             flex-direction: column;
         }
 
-        .btn-download, .btn-manage-qr {
+        .btn-submit-qr {
             width: 100%;
-            justify-content: center;
         }
     }
 
@@ -545,8 +597,8 @@
             font-size: 1.8rem;
         }
 
-        .qr-card {
-            padding: 25px;
+        .qr-card, .qr-activation-card {
+            padding: 30px 20px;
         }
 
         .info-card {
@@ -559,6 +611,14 @@
 
         .stickers-promo {
             padding: 16px;
+        }
+
+        .qr-activation-form {
+            padding: 25px 20px;
+        }
+
+        .qr-activation-card h2 {
+            font-size: 1.5rem;
         }
     }
 </style>
@@ -576,7 +636,7 @@
             {% if qr and qr.qr_id %}
                 <p>Din QR-kod är redo att användas</p>
             {% else %}
-                <p>QR-kodstatus: Kontrolleras...</p>
+                <p>Aktivera din QR-kod för att komma igång</p>
             {% endif %}
         </div>
         
@@ -589,7 +649,7 @@
                     {% if is_launch and premium_status and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
                         <small>(Gratis till 1 mars 2027)</small>
                     {% elif premium_status and premium_status.premium_until %}
-                        <<small>(till {{ premium_status.premium_until.strftime('%Y-%m-%d') }})</small>
+                        <small>(till {{ premium_status.premium_until.strftime('%Y-%m-%d') }})</small>
                     {% endif %}
                 </div>
             {% else %}
@@ -632,11 +692,26 @@
         
         <!-- QR-KOD SEKTION -->
         {% if not qr or not qr.qr_id %}
-            <!-- QR-KOD SAKNAS -->
-            <div class="qr-card qr-error">
-                <h2>⚠️ QR-kod saknas</h2>
-                <p>Det verkar som att din QR-kod inte är kopplad korrekt till ditt konto.</p>
-                <p>Kontakta support på <a href="mailto:info@returnadisc.se">info@returnadisc.se</a> så hjälper vi dig.</p>
+            <!-- QR-KOD SAKNAS - ENDAST KOD INMATNING -->
+            <div class="qr-activation-card">
+                <div class="qr-activation-icon">🏷️</div>
+                <h2>Aktivera din QR-kod</h2>
+                <p>Skriv in koden från ditt klistermärke för att komma igång.</p>
+                
+                <div class="qr-activation-form">
+                    <h3>🎯 Ange din kod</h3>
+                    <form action="{{ url_for('qr.activate') }}" method="post">
+                        <div class="qr-input-group">
+                            <input type="text" name="qr_id" placeholder="T.ex. ABC123" required 
+                                   pattern="[A-Za-z0-9]{5,10}" maxlength="10" autocomplete="off">
+                            <button type="submit" class="btn-submit-qr">Aktivera</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <p class="qr-help-text">
+                    Har du ingen kod? <a href="{{ url_for('auth.buy_stickers') }}">Beställ QR-klistermärken här</a>
+                </p>
             </div>
         {% else %}
             <!-- QR-KOD FINNS - Visa allt -->
@@ -649,11 +724,12 @@
                     </div>
                     
                     <div class="qr-image-container">
-                        <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
+                        <!-- FIXAD: Använd disc.qr_image route istället för static -->
+                        <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="Din QR-kod {{ qr.qr_id }}" 
                              class="qr-image"
                              id="qrImage"
-                             onerror="document.getElementById('qrImage').style.display='none'; document.getElementById('qrFallback').style.display='block';">
+                             onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
                         
                         <div id="qrFallback" class="qr-fallback">
                             <div class="qr-fallback-code">{{ qr.qr_id }}</div>
@@ -661,30 +737,6 @@
                         </div>
                         
                         <div class="qr-id">{{ qr.qr_id }}</div>
-                    </div>
-                    
-                    <!-- Knappar bredvid varandra -->
-                    <div class="qr-buttons">
-                        <a href="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
-                           download="returnadisc-{{ qr.qr_id }}.png"
-                           class="btn-download">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="7 10 12 15 17 10"></polyline>
-                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                            Ladda ner QR-kod
-                        </a>
-                        
-                        <a href="{{ url_for('qr.manage') }}" class="btn-manage-qr">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                                <line x1="8" y1="16" x2="16" y2="16"></line>
-                                <line x1="8" y1="8" x2="10" y2="8"></line>
-                            </svg>
-                            Hantera QR-koder
-                        </a>
                     </div>
                     
                     <!-- Stickers Promo - NU INNE I QR-CARD -->
