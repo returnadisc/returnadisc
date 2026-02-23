@@ -10,9 +10,9 @@
         box-sizing: border-box;
     }
 
-    /* Hero Section - NU KORTARE för att visa nästa sektion */
+    /* Hero Section - NU ÄNNU KORTARE för att visa båda sektionerna */
     .hero {
-        min-height: 85vh; /* Ändrat från 100vh */
+        min-height: 75vh; /* Ändrat från 85vh för att visa mer */
         position: relative;
         overflow: hidden;
         display: flex;
@@ -82,7 +82,7 @@
     .hero-tagline {
         font-size: 1.5rem;
         font-weight: 300;
-        margin-bottom: 40px;
+        margin-bottom: 30px;
         opacity: 0.95;
         line-height: 1.6;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
@@ -93,7 +93,7 @@
         gap: 20px;
         justify-content: center;
         flex-wrap: wrap;
-        margin-bottom: 80px; /* Mer utrymme för scroll-indikatorn */
+        margin-bottom: 20px;
     }
 
     .btn-primary {
@@ -134,57 +134,107 @@
         transform: translateY(-2px);
     }
 
-    /* NY - Scroll prompt som visar vad som kommer */
-    .scroll-prompt {
+    /* NY - Quick Links direkt i hero */
+    .hero-quick-links {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 60px;
+    }
+
+    .quick-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 30px;
+        color: white;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .quick-link:hover {
+        background: rgba(251, 191, 36, 0.9);
+        color: #1a1a1a;
+        border-color: #fbbf24;
+        transform: translateY(-2px);
+    }
+
+    .quick-link .icon {
+        font-size: 1.1rem;
+    }
+
+    /* NY - Dubbel scroll-prompt */
+    .scroll-prompts {
         position: absolute;
         bottom: 0;
         left: 0;
         right: 0;
         z-index: 3;
-        text-align: center;
-        padding-bottom: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        padding-bottom: 25px;
+        flex-wrap: wrap;
     }
 
-    .scroll-prompt-content {
-        display: inline-flex;
+    .scroll-prompt {
+        display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
-        animation: bouncePrompt 2s infinite;
+        gap: 8px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .scroll-prompt:hover {
+        transform: translateY(-5px);
     }
 
     .scroll-prompt-text {
         color: rgba(255, 255, 255, 0.9);
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .scroll-prompt-arrow {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         background: rgba(251, 191, 36, 0.9);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         color: #1a1a1a;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        animation: bouncePrompt 2s infinite;
+    }
+
+    .scroll-prompt:nth-child(2) .scroll-prompt-arrow {
+        background: rgba(34, 197, 94, 0.9); /* Grön för community */
+        animation-delay: 0.5s;
     }
 
     @keyframes bouncePrompt {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+        50% { transform: translateY(-8px); }
     }
 
-    /* How It Works Section - NU MED "PEEK" EFFEKT */
+    /* How It Works Section */
     .how-it-works {
         background: linear-gradient(135deg, #f5f5dc 0%, #e8e4d9 100%);
         color: #1a1a1a;
-        padding: 60px 0 80px;
+        padding: 40px 0 80px;
         position: relative;
     }
 
@@ -198,24 +248,6 @@
         height: 50px;
         background: linear-gradient(to bottom, transparent, #f5f5dc);
         pointer-events: none;
-    }
-
-    /* Sektions-indikator */
-    .section-peek {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .section-peek-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: rgba(22, 101, 52, 0.1);
-        padding: 10px 20px;
-        border-radius: 30px;
-        color: #166534;
-        font-weight: 600;
-        font-size: 0.9rem;
     }
 
     .container {
@@ -285,7 +317,7 @@
         object-fit: cover;
         border-radius: 16px;
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        transition: all 0.3s ease;
+        transition: all 0.3e ease;
     }
 
     .step-image:hover {
@@ -427,11 +459,11 @@
         pointer-events: none;
     }
 
-    /* NYHET - Community Map Section */
+    /* Community Map Section - NU MED PEEK TILL NÄSTA */
     .news-section {
         background: linear-gradient(135deg, #166534 0%, #15803d 100%);
         color: white;
-        padding: 80px 0;
+        padding: 60px 0 80px;
         position: relative;
         overflow: hidden;
     }
@@ -673,7 +705,7 @@
 
     @media (max-width: 768px) {
         .hero {
-            min-height: 80vh; /* Ännu kortare på mobil */
+            min-height: 70vh;
         }
 
         .hero-logo {
@@ -687,7 +719,18 @@
         .hero-buttons {
             flex-direction: column;
             align-items: center;
-            margin-bottom: 100px;
+        }
+
+        .hero-quick-links {
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-link {
+            width: 100%;
+            max-width: 280px;
+            justify-content: center;
         }
         
         .btn-primary, .btn-secondary {
@@ -695,8 +738,14 @@
             max-width: 300px;
         }
 
+        .scroll-prompts {
+            flex-direction: row;
+            gap: 20px;
+            padding-bottom: 20px;
+        }
+
         .scroll-prompt-text {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
         }
 
         .steps-horizontal {
@@ -745,32 +794,41 @@
     <div class="hero-content">
         <h1 class="hero-logo">Return <span>a</span> Disc</h1>
         <p class="hero-tagline">En QR-kod på alla dina discar. Anonym återlämning utan krångel. Få bild och position direkt till din mail.</p>
+        
         <div class="hero-buttons">
             <a href="{{ url_for('auth.signup') }}" class="btn-primary">Skapa konto gratis</a>
             <a href="{{ url_for('auth.login') }}" class="btn-secondary">Logga in</a>
         </div>
+
+        <!-- NYA Quick Links - direkt till de viktiga delarna -->
+        <div class="hero-quick-links">
+            <a href="#how-it-works" class="quick-link">
+                <span class="icon">🎯</span>
+                <span>Så fungerar det</span>
+            </a>
+            <a href="{{ url_for('missing.community_map') }}" class="quick-link">
+                <span class="icon">🗺️</span>
+                <span>Community-kartan</span>
+                <span style="background: #fbbf24; color: #1a1a1a; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 5px;">NY!</span>
+            </a>
+        </div>
     </div>
     
-    <!-- NY Scroll-prompt som visar att det finns mer -->
-    <div class="scroll-prompt">
-        <div class="scroll-prompt-content">
-            <span class="scroll-prompt-text">Se hur det fungerar</span>
+    <!-- Dubbel scroll-prompt för båda sektionerna -->
+    <div class="scroll-prompts">
+        <div class="scroll-prompt" onclick="document.getElementById('how-it-works').scrollIntoView({behavior: 'smooth'})">
+            <span class="scroll-prompt-text">Så fungerar det</span>
+            <div class="scroll-prompt-arrow">↓</div>
+        </div>
+        <div class="scroll-prompt" onclick="document.getElementById('community-map').scrollIntoView({behavior: 'smooth'})">
+            <span class="scroll-prompt-text">Community-kartan</span>
             <div class="scroll-prompt-arrow">↓</div>
         </div>
     </div>
 </section>
 
 <!-- How It Works Section -->
-<section class="how-it-works">
-    <!-- Visuell indikator att man kommit till nästa sektion -->
-    <div class="section-peek">
-        <div class="section-peek-indicator">
-            <span>👇</span>
-            <span>Så här fungerar det</span>
-            <span>👇</span>
-        </div>
-    </div>
-    
+<section class="how-it-works" id="how-it-works">
     <div class="container">
         <div class="section-header">
             <h2>Så här fungerar det</h2>
@@ -847,9 +905,8 @@
             </div>
         </div>
         
-        <!-- 4 KORT MED NYA IKONER -->
+        <!-- 4 KORT -->
         <div class="features-grid">
-            <!-- Kort 1: QR-kod -->
             <div class="feature-card">
                 <div class="feature-icon">
                     <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -884,7 +941,6 @@
                 </div>
             </div>
             
-            <!-- Kort 2: Anonymt -->
             <div class="feature-card">
                 <div class="feature-icon">
                     <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -902,7 +958,6 @@
                 </div>
             </div>
             
-            <!-- Kort 3: Position -->
             <div class="feature-card">
                 <div class="feature-icon">
                     <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -919,7 +974,6 @@
                 </div>
             </div>
             
-            <!-- Kort 4: 30 sekunder -->
             <div class="feature-card">
                 <div class="feature-icon">
                     <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -945,8 +999,8 @@
     </div>
 </section>
 
-<!-- NYHET - Community Map Section -->
-<section class="news-section">
+<!-- Community Map Section -->
+<section class="news-section" id="community-map">
     <div class="news-container">
         <div class="news-content">
             <span class="news-badge">NYHET!</span>
@@ -980,16 +1034,4 @@
         </div>
     </div>
 </section>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Smooth scroll när man klickar på scroll-prompten
-    document.querySelector('.scroll-prompt').addEventListener('click', function() {
-        document.querySelector('.how-it-works').scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-        });
-    });
-</script>
 {% endblock %}
