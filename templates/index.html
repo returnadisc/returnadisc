@@ -10,9 +10,9 @@
         box-sizing: border-box;
     }
 
-    /* Hero Section - NU ÄNNU KORTARE för att visa båda sektionerna */
+    /* Hero Section */
     .hero {
-        min-height: 75vh; /* Ändrat från 85vh för att visa mer */
+        min-height: 75vh;
         position: relative;
         overflow: hidden;
         display: flex;
@@ -59,6 +59,9 @@
         max-width: 800px;
         padding: 0 20px;
         animation: fadeInUp 1s ease-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     @keyframes fadeInUp {
@@ -82,7 +85,7 @@
     .hero-tagline {
         font-size: 1.5rem;
         font-weight: 300;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
         opacity: 0.95;
         line-height: 1.6;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
@@ -93,7 +96,7 @@
         gap: 20px;
         justify-content: center;
         flex-wrap: wrap;
-        margin-bottom: 20px;
+        margin-bottom: 50px;
     }
 
     .btn-primary {
@@ -134,53 +137,11 @@
         transform: translateY(-2px);
     }
 
-    /* NY - Quick Links direkt i hero */
-    .hero-quick-links {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-bottom: 60px;
-    }
-
-    .quick-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 30px;
-        color: white;
-        text-decoration: none;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .quick-link:hover {
-        background: rgba(251, 191, 36, 0.9);
-        color: #1a1a1a;
-        border-color: #fbbf24;
-        transform: translateY(-2px);
-    }
-
-    .quick-link .icon {
-        font-size: 1.1rem;
-    }
-
-    /* NY - Dubbel scroll-prompt */
+    /* Scroll-prompts - ENDAST PILAR MED TEXT */
     .scroll-prompts {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 3;
         display: flex;
         justify-content: center;
-        gap: 40px;
-        padding-bottom: 25px;
+        gap: 60px;
         flex-wrap: wrap;
     }
 
@@ -188,9 +149,10 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         cursor: pointer;
         transition: transform 0.3s ease;
+        text-decoration: none;
     }
 
     .scroll-prompt:hover {
@@ -199,35 +161,35 @@
 
     .scroll-prompt-text {
         color: rgba(255, 255, 255, 0.9);
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .scroll-prompt-arrow {
-        width: 36px;
-        height: 36px;
-        background: rgba(251, 191, 36, 0.9);
+        width: 44px;
+        height: 44px;
+        background: rgba(251, 191, 36, 0.95);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.2rem;
+        font-size: 1.4rem;
         color: #1a1a1a;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         animation: bouncePrompt 2s infinite;
     }
 
     .scroll-prompt:nth-child(2) .scroll-prompt-arrow {
-        background: rgba(34, 197, 94, 0.9); /* Grön för community */
+        background: rgba(34, 197, 94, 0.95);
         animation-delay: 0.5s;
     }
 
     @keyframes bouncePrompt {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+        50% { transform: translateY(-10px); }
     }
 
     /* How It Works Section */
@@ -238,7 +200,6 @@
         position: relative;
     }
 
-    /* Visuell "titt" uppåt för att koppla till hero */
     .how-it-works::before {
         content: '';
         position: absolute;
@@ -317,7 +278,7 @@
         object-fit: cover;
         border-radius: 16px;
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        transition: all 0.3e ease;
+        transition: all 0.3s ease;
     }
 
     .step-image:hover {
@@ -459,7 +420,7 @@
         pointer-events: none;
     }
 
-    /* Community Map Section - NU MED PEEK TILL NÄSTA */
+    /* Community Map Section */
     .news-section {
         background: linear-gradient(135deg, #166534 0%, #15803d 100%);
         color: white;
@@ -719,18 +680,7 @@
         .hero-buttons {
             flex-direction: column;
             align-items: center;
-        }
-
-        .hero-quick-links {
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .quick-link {
-            width: 100%;
-            max-width: 280px;
-            justify-content: center;
+            margin-bottom: 40px;
         }
         
         .btn-primary, .btn-secondary {
@@ -739,13 +689,17 @@
         }
 
         .scroll-prompts {
-            flex-direction: row;
-            gap: 20px;
-            padding-bottom: 20px;
+            gap: 30px;
         }
 
         .scroll-prompt-text {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .scroll-prompt-arrow {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
         }
 
         .steps-horizontal {
@@ -791,6 +745,7 @@
 <section class="hero">
     <div class="hero-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');" id="heroBg"></div>
     <div class="hero-overlay"></div>
+    
     <div class="hero-content">
         <h1 class="hero-logo">Return <span>a</span> Disc</h1>
         <p class="hero-tagline">En QR-kod på alla dina discar. Anonym återlämning utan krångel. Få bild och position direkt till din mail.</p>
@@ -799,30 +754,17 @@
             <a href="{{ url_for('auth.signup') }}" class="btn-primary">Skapa konto gratis</a>
             <a href="{{ url_for('auth.login') }}" class="btn-secondary">Logga in</a>
         </div>
-
-        <!-- NYA Quick Links - direkt till de viktiga delarna -->
-        <div class="hero-quick-links">
-            <a href="#how-it-works" class="quick-link">
-                <span class="icon">🎯</span>
-                <span>Så fungerar det</span>
-            </a>
-            <a href="{{ url_for('missing.community_map') }}" class="quick-link">
-                <span class="icon">🗺️</span>
-                <span>Community-kartan</span>
-                <span style="background: #fbbf24; color: #1a1a1a; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 5px;">NY!</span>
-            </a>
-        </div>
-    </div>
     
-    <!-- Dubbel scroll-prompt för båda sektionerna -->
-    <div class="scroll-prompts">
-        <div class="scroll-prompt" onclick="document.getElementById('how-it-works').scrollIntoView({behavior: 'smooth'})">
-            <span class="scroll-prompt-text">Så fungerar det</span>
-            <div class="scroll-prompt-arrow">↓</div>
-        </div>
-        <div class="scroll-prompt" onclick="document.getElementById('community-map').scrollIntoView({behavior: 'smooth'})">
-            <span class="scroll-prompt-text">Community-kartan</span>
-            <div class="scroll-prompt-arrow">↓</div>
+        <!-- ENDAST PILAR MED TEXT - inga separata knappar -->
+        <div class="scroll-prompts">
+            <a href="#how-it-works" class="scroll-prompt">
+                <span class="scroll-prompt-text">Så fungerar det</span>
+                <div class="scroll-prompt-arrow">↓</div>
+            </a>
+            <a href="#community-map" class="scroll-prompt">
+                <span class="scroll-prompt-text">Community-kartan</span>
+                <div class="scroll-prompt-arrow">↓</div>
+            </a>
         </div>
     </div>
 </section>
@@ -1005,7 +947,7 @@
         <div class="news-content">
             <span class="news-badge">NYHET!</span>
             <h2>Community-kartan</h2>
-            <p>Hjälp varandra hitta discar – även utan QR-koder! Se var discar har tappats och hjälp till att leta.</p>
+            <p>Discgolfens Lost & Found: Markera din saknade disc på kartan, se var andra tappat, och hjälp till att leta – tillsammans hittar vi fler</p>
             
             <div class="news-features">
                 <div class="news-feature">
