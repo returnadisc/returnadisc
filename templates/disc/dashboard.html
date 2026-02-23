@@ -447,158 +447,112 @@
         font-size: 0.85rem;
     }
 
-    /* QR Error State - UPPDATERAD */
-    .qr-error {
-        background: #fee2e2;
-        border: 2px solid #ef4444;
-        border-radius: 16px;
-        padding: 30px;
+    /* QR Activation Card - ENKEL VERSION */
+    .qr-activation-card {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px;
         text-align: center;
-        max-width: 600px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        max-width: 500px;
         margin: 0 auto;
     }
 
-    .qr-error h2 {
-        color: #991b1b;
+    .qr-activation-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 2.5rem;
+    }
+
+    .qr-activation-card h2 {
+        font-size: 1.6rem;
+        color: #1a1a1a;
         margin-bottom: 10px;
     }
 
-    .qr-error p {
-        color: #7f1d1d;
-        margin-bottom: 20px;
-    }
-
-    .qr-error-actions {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 20px;
-    }
-
-    .btn-activate-qr {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #166534;
-        color: white;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        border: none;
-        cursor: pointer;
+    .qr-activation-card > p {
+        color: #4b5563;
+        margin-bottom: 30px;
         font-size: 1rem;
     }
 
-    .btn-activate-qr:hover {
-        background: #14532d;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(22, 101, 52, 0.3);
-    }
-
-    .btn-contact-support {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: white;
-        color: #991b1b;
-        padding: 14px 28px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        border: 2px solid #991b1b;
-    }
-
-    .btn-contact-support:hover {
-        background: #991b1b;
-        color: white;
-    }
-
-    /* QR Activation Form */
     .qr-activation-form {
-        background: rgba(245, 245, 220, 0.95);
+        background: white;
         border-radius: 16px;
         padding: 30px;
-        max-width: 500px;
-        margin: 20px auto 0;
-        text-align: left;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     .qr-activation-form h3 {
         color: #166534;
         margin-bottom: 20px;
-        text-align: center;
+        font-size: 1.1rem;
     }
 
     .qr-input-group {
         display: flex;
         gap: 10px;
-        margin-bottom: 15px;
+        margin-bottom: 0;
     }
 
     .qr-input-group input {
         flex: 1;
-        padding: 14px;
+        padding: 16px;
         border: 2px solid rgba(22, 101, 52, 0.2);
-        border-radius: 10px;
-        font-size: 1.1rem;
+        border-radius: 12px;
+        font-size: 1.2rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 3px;
         text-align: center;
-        font-weight: 600;
+        font-weight: 700;
+        color: #166534;
     }
 
     .qr-input-group input:focus {
         outline: none;
         border-color: #166534;
+        box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+    }
+
+    .qr-input-group input::placeholder {
+        color: #9ca3af;
+        font-weight: 500;
     }
 
     .btn-submit-qr {
-        background: #166534;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
         color: white;
-        padding: 14px 24px;
+        padding: 16px 28px;
         border: none;
-        border-radius: 10px;
-        font-weight: 600;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s ease;
+        white-space: nowrap;
     }
 
     .btn-submit-qr:hover {
-        background: #14532d;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
     }
 
-    .qr-scan-option {
-        text-align: center;
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid rgba(22, 101, 52, 0.1);
-    }
-
-    .qr-scan-option p {
+    .qr-help-text {
+        margin-top: 20px;
         color: #6b7280;
         font-size: 0.9rem;
-        margin-bottom: 10px;
     }
 
-    .btn-scan-qr {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #f3f4f6;
-        color: #374151;
-        padding: 12px 24px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s ease;
-    }
-
-    .btn-scan-qr:hover {
-        background: #e5e7eb;
+    .qr-help-text strong {
+        color: #166534;
     }
 
     /* QR Fallback */
@@ -659,17 +613,12 @@
             justify-content: center;
         }
 
-        .qr-error-actions {
-            flex-direction: column;
-        }
-
-        .btn-activate-qr, .btn-contact-support {
-            width: 100%;
-            justify-content: center;
-        }
-
         .qr-input-group {
             flex-direction: column;
+        }
+
+        .btn-submit-qr {
+            width: 100%;
         }
     }
 
@@ -688,7 +637,7 @@
             font-size: 1.8rem;
         }
 
-        .qr-card {
+        .qr-card, .qr-activation-card {
             padding: 25px;
         }
 
@@ -702,6 +651,10 @@
 
         .stickers-promo {
             padding: 16px;
+        }
+
+        .qr-activation-form {
+            padding: 20px;
         }
     }
 </style>
@@ -719,7 +672,7 @@
             {% if qr and qr.qr_id %}
                 <p>Din QR-kod är redo att användas</p>
             {% else %}
-                <p>Du har ingen aktiv QR-kod</p>
+                <p>Aktivera din QR-kod för att komma igång</p>
             {% endif %}
         </div>
         
@@ -775,55 +728,26 @@
         
         <!-- QR-KOD SEKTION -->
         {% if not qr or not qr.qr_id %}
-            <!-- QR-KOD SAKNAS - UPPDATERAD MED AKTIVERINGSVAL -->
-            <div class="qr-error">
-                <h2>⚠️ QR-kod saknas</h2>
-                <p>Du har ingen aktiv QR-kod kopplad till ditt konto. Aktivera en kod för att börja använda ReturnaDisc.</p>
+            <!-- QR-KOD SAKNAS - ENDAST KOD INMATNING -->
+            <div class="qr-activation-card">
+                <div class="qr-activation-icon">🏷️</div>
+                <h2>Aktivera din QR-kod</h2>
+                <p>Skriv in koden från ditt klistermärke för att komma igång.</p>
                 
-                <div class="qr-error-actions">
-                    <a href="{{ url_for('qr.manage') }}" class="btn-activate-qr">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="12" y1="8" x2="12" y2="16"></line>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
-                        </svg>
-                        Aktivera QR-kod
-                    </a>
-                    
-                    <a href="mailto:info@returnadisc.se" class="btn-contact-support">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                        </svg>
-                        Kontakta support
-                    </a>
-                </div>
-                
-                <!-- Direkt aktiveringsformulär -->
                 <div class="qr-activation-form">
-                    <h3>🎯 Aktivera med kod</h3>
+                    <h3>🎯 Ange din kod</h3>
                     <form action="{{ url_for('qr.activate') }}" method="post">
                         <div class="qr-input-group">
                             <input type="text" name="qr_id" placeholder="T.ex. ABC123" required 
-                                   pattern="[A-Za-z0-9]{5,10}" maxlength="10">
+                                   pattern="[A-Za-z0-9]{5,10}" maxlength="10" autocomplete="off">
                             <button type="submit" class="btn-submit-qr">Aktivera</button>
                         </div>
                     </form>
-                    
-                    <div class="qr-scan-option">
-                        <p>Eller skanna en QR-kod med din telefon</p>
-                        <a href="{{ url_for('auth.signup_with_purchased_qr') }}" class="btn-scan-qr">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <rect x="7" y="7" width="3" height="3"></rect>
-                                <rect x="14" y="7" width="3" height="3"></rect>
-                                <rect x="7" y="14" width="3" height="3"></rect>
-                                <rect x="14" y="14" width="3" height="3"></rect>
-                            </svg>
-                            Jag har skannat en kod
-                        </a>
-                    </div>
                 </div>
+                
+                <p class="qr-help-text">
+                    Har du ingen kod? <strong><a href="{{ url_for('auth.buy_stickers') }}" style="color: #166534;">Beställ QR-klistermärken här</a></strong>
+                </p>
             </div>
         {% else %}
             <!-- QR-KOD FINNS - Visa allt -->
