@@ -271,6 +271,35 @@
         color: #065f46;
     }
 
+    /* FIXED BUTTONS - Horizontal layout */
+    .qr-actions {
+        display: flex;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+
+    .btn-download-small {
+        padding: 10px 18px;
+        background: #f3f4f6;
+        color: #374151;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.85rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-download-small:hover {
+        background: #e5e7eb;
+    }
+
     /* Tomt tillstånd */
     .empty-state {
         text-align: center;
@@ -341,6 +370,11 @@
             margin: 0 auto;
         }
 
+        .qr-actions {
+            width: 100%;
+            justify-content: center;
+        }
+
         .activate-form {
             flex-direction: column;
         }
@@ -351,9 +385,14 @@
     }
 
     @media (max-width: 480px) {
-        .qr-card {
+        .qr-actions {
             flex-direction: column;
-            text-align: center;
+            width: 100%;
+        }
+
+        .btn-download-small {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -414,7 +453,7 @@
                 <div class="qr-grid">
                     {% for qr in all_qrs %}
                     <div class="qr-card">
-                        <!-- FIXAD: Använd disc.qr_image route -->
+                        <!-- VIKTIGT: Använd admin.qr_image route istället för static -->
                         <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="QR {{ qr.qr_id }}" 
                              class="qr-image-small"
@@ -428,6 +467,19 @@
                                 <span>📅 {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
                                 {% endif %}
                             </div>
+                        </div>
+                        <div class="qr-actions">
+                            <!-- VIKTIGT: Använd admin.download_qr route -->
+                            <a href="{{ url_for('disc.download_qr', qr_id=qr.qr_id) }}" 
+                               download="returnadisc-{{ qr.qr_id }}.png"
+                               class="btn-download-small">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Ladda ner
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
