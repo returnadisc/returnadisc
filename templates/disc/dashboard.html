@@ -54,7 +54,6 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Header */
     .dashboard-header {
         text-align: center;
         color: white;
@@ -72,7 +71,6 @@
         opacity: 0.8;
     }
 
-    /* Premium */
     .premium-section {
         text-align: center;
         margin-bottom: 25px;
@@ -123,7 +121,6 @@
         box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
     }
 
-    /* Stats */
     .stats-bar {
         display: flex;
         justify-content: center;
@@ -161,7 +158,6 @@
         letter-spacing: 1px;
     }
 
-    /* Grid */
     .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -169,7 +165,6 @@
         align-items: start;
     }
 
-    /* QR Card */
     .qr-card {
         background: rgba(245, 245, 220, 0.98);
         border-radius: 24px;
@@ -254,7 +249,6 @@
         background: #d4d4c8;
     }
 
-    /* Info Card */
     .info-card {
         background: rgba(245, 245, 220, 0.98);
         border-radius: 24px;
@@ -293,19 +287,19 @@
         border-color: #d1d5db;
     }
 
-    /* UPPDATERAD: Beställ klistermärken - grön stil */
+    /* BLÅ STIL FÖR BESTÄLL KLISTERMÄRKEN */
     .option.stickers-option {
-        background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%);
-        border-color: #059669;
+        background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
+        border-color: #2563eb;
         text-decoration: none;
         color: inherit;
         display: block;
     }
 
     .option.stickers-option:hover {
-        border-color: #047857;
+        border-color: #1d4ed8;
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(5, 150, 105, 0.15);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
     }
 
     .option-header {
@@ -323,12 +317,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.3rem;
+        color: #6b7280;
     }
 
-    /* UPPDATERAD: Ikon för beställ */
+    /* BLÅ IKON */
     .option.stickers-option .option-icon {
-        background: #059669;
+        background: #2563eb;
         color: white;
     }
 
@@ -340,7 +334,7 @@
     }
 
     .option.stickers-option h3 {
-        color: #065f46;
+        color: #1e40af;
     }
 
     .option p {
@@ -351,27 +345,21 @@
     }
 
     .option.stickers-option p {
-        color: #047857;
+        color: #1e40af;
     }
 
-    /* NYTT: Bild för klistermärken */
+    /* BILD STIL */
     .stickers-preview {
         margin: 15px 0 0 52px;
         border-radius: 8px;
         overflow: hidden;
-        opacity: 0.9;
-        transition: opacity 0.2s ease;
+        border: 1px solid #bfdbfe;
     }
 
     .stickers-preview img {
         width: 100%;
         height: auto;
         display: block;
-        border-radius: 8px;
-    }
-
-    .option.stickers-option:hover .stickers-preview {
-        opacity: 1;
     }
 
     .option-id {
@@ -383,7 +371,6 @@
         border-radius: 4px;
     }
 
-    /* Activation Card */
     .activation-card {
         background: rgba(245, 245, 220, 0.98);
         border-radius: 24px;
@@ -403,7 +390,7 @@
         align-items: center;
         justify-content: center;
         margin: 0 auto 20px;
-        font-size: 2rem;
+        color: white;
     }
 
     .activation-card h2 {
@@ -478,7 +465,6 @@
         text-decoration: none;
     }
 
-    /* QR Fallback */
     .qr-fallback {
         display: none;
         padding: 20px;
@@ -492,7 +478,6 @@
         letter-spacing: 2px;
     }
 
-    /* Responsive */
     @media (max-width: 900px) {
         .dashboard-grid {
             grid-template-columns: 1fr;
@@ -530,7 +515,6 @@
     <div class="dashboard-overlay"></div>
     
     <div class="dashboard-container">
-        <!-- Header -->
         <div class="dashboard-header">
             <h1>Välkommen, {{ user.name }}!</h1>
             {% if qr and qr.qr_id %}
@@ -540,7 +524,6 @@
             {% endif %}
         </div>
         
-        <!-- Premium -->
         <div class="premium-section">
             {% if has_premium %}
                 <div class="premium-badge">
@@ -559,7 +542,6 @@
             {% endif %}
         </div>
         
-        <!-- Stats -->
         <div class="stats-bar">
             <div class="stat-item">
                 <div class="stat-number missing">{{ missing_stats.missing }}</div>
@@ -572,10 +554,9 @@
         </div>
         
         {% if not qr or not qr.qr_id %}
-            <!-- Activation -->
             <div class="activation-card">
                 <div class="activation-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                         <path d="M8 12h8M12 8v8"></path>
                     </svg>
@@ -599,9 +580,7 @@
                 </p>
             </div>
         {% else %}
-            <!-- Grid -->
             <div class="dashboard-grid">
-                <!-- QR Card -->
                 <div class="qr-card">
                     <div class="qr-status-bar">Aktiv</div>
                     <h2>Din QR-kod</h2>
@@ -632,7 +611,6 @@
                     </a>
                 </div>
                 
-                <!-- Info Card -->
                 <div class="info-card">
                     <h2>Så här märker du din disc</h2>
                     <p class="info-subtitle">Välj det alternativ som passar dig bäst</p>
@@ -656,15 +634,13 @@
                             <div class="option-header">
                                 <div class="option-icon">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <path d="M12 6v6l4 2"></path>
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                                     </svg>
                                 </div>
                                 <h3>Beställ klistermärken</h3>
                             </div>
                             <p>Vattentåliga, UV-beständiga, perfekt storlek Ø30mm</p>
                             
-                            <!-- Diskret bild -->
                             <div class="stickers-preview">
                                 <img src="{{ url_for('static', filename='images/qrondisc.png') }}" 
                                      alt="QR-kod på disc"
