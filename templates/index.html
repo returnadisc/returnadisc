@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Min sida - ReturnaDisc{% endblock %}
+{% block title %}ReturnaDisc - Hitta din förlorade disc{% endblock %}
 
 {% block extra_css %}
 <style>
-    .dashboard-hero {
+    .landing-hero {
         min-height: 100vh;
         position: relative;
         overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 40px 20px;
+        padding: 100px 20px 60px;
     }
 
-    .dashboard-bg {
+    .landing-bg {
         position: absolute;
         top: 0;
         left: 0;
@@ -31,7 +31,7 @@
         100% { transform: scale(1.15) translate(-1%, -1%); }
     }
 
-    .dashboard-overlay {
+    .landing-overlay {
         position: absolute;
         top: 0;
         left: 0;
@@ -41,11 +41,12 @@
         z-index: 1;
     }
 
-    .dashboard-container {
+    .landing-container {
         position: relative;
         z-index: 2;
         width: 100%;
-        max-width: 1100px;
+        max-width: 900px;
+        text-align: center;
         animation: fadeInUp 0.8s ease-out;
     }
 
@@ -54,616 +55,318 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    .dashboard-header {
-        text-align: center;
+    .landing-logo {
+        font-size: 5rem;
+        margin-bottom: 20px;
+    }
+
+    .landing-container h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
         color: white;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
 
-    .dashboard-header h1 {
-        font-size: 2rem;
-        font-weight: 600;
-        margin-bottom: 6px;
+    .landing-container h1 span {
+        color: #fbbf24;
     }
 
-    .dashboard-header p {
-        font-size: 1rem;
-        opacity: 0.8;
+    .landing-subtitle {
+        font-size: 1.4rem;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 40px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
-    .premium-section {
-        text-align: center;
-        margin-bottom: 25px;
+    .landing-cta {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 50px;
     }
 
-    .premium-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
-        color: #78350f;
-        padding: 10px 20px;
+    .btn-primary {
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
+        color: white;
+        padding: 18px 40px;
         border-radius: 50px;
-        font-weight: 700;
-        font-size: 0.9rem;
-    }
-
-    .premium-cta-box {
-        background: linear-gradient(145deg, #166534 0%, #14532d 100%);
-        border-radius: 16px;
-        padding: 20px 30px;
-        display: inline-flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    .premium-cta-text {
-        color: white;
-        font-size: 1rem;
-        font-weight: 600;
-    }
-
-    .btn-premium-cta {
-        background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
-        color: #78350f;
-        padding: 12px 24px;
-        border-radius: 25px;
         text-decoration: none;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 1.2rem;
         transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.4);
     }
 
-    .btn-premium-cta:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(22, 101, 52, 0.5);
     }
 
-    .stats-bar {
-        display: flex;
-        justify-content: center;
-        gap: 60px;
-        margin-bottom: 35px;
-        padding: 20px;
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        padding: 18px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .landing-features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        margin-top: 60px;
+    }
+
+    .feature {
         background: rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(10px);
-        border-radius: 50px;
-        max-width: 320px;
-        margin-left: auto;
-        margin-right: auto;
+        padding: 30px;
+        border-radius: 20px;
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .stat-item {
-        text-align: center;
-    }
-
-    .stat-number {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: white;
-        line-height: 1;
-    }
-
-    .stat-number.missing { color: #fca5a5; }
-    .stat-number.found { color: #86efac; }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.7);
-        margin-top: 4px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 25px;
-        align-items: start;
-    }
-
-    .qr-card {
-        background: rgba(245, 245, 220, 0.98);
-        border-radius: 24px;
-        padding: 30px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        text-align: center;
-    }
-
-    .qr-status-bar {
-        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 50px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        display: inline-block;
-        margin-bottom: 20px;
-    }
-
-    .qr-card h2 {
-        font-size: 1.5rem;
-        color: #1a1a1a;
-        margin: 0 0 8px 0;
-        font-weight: 700;
-    }
-
-    .qr-subtitle {
-        color: #6b7280;
-        font-size: 0.9rem;
-        margin-bottom: 25px;
-    }
-
-    .qr-box {
-        background: white;
-        border-radius: 16px;
-        padding: 30px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-    }
-
-    .qr-image {
-        max-width: 180px;
-        width: 100%;
-        border-radius: 8px;
-        display: block;
-        margin: 0 auto;
-    }
-
-    .qr-id-box {
-        background: #f3f4f6;
-        padding: 10px 20px;
-        border-radius: 8px;
-        display: inline-block;
-        margin-top: 15px;
-    }
-
-    .qr-id {
-        font-family: 'Courier New', monospace;
-        font-size: 1.1rem;
-        color: #166534;
-        font-weight: 700;
-        letter-spacing: 2px;
-    }
-
-    .qr-manage-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #e5e5d8;
-        color: #374151;
-        padding: 12px 24px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-    }
-
-    .qr-manage-btn:hover {
-        background: #d4d4c8;
-    }
-
-    .info-card {
-        background: rgba(245, 245, 220, 0.98);
-        border-radius: 24px;
-        padding: 30px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .info-card h2 {
-        font-size: 1.3rem;
-        color: #1a1a1a;
-        margin: 0 0 8px 0;
-        font-weight: 700;
-    }
-
-    .info-subtitle {
-        color: #6b7280;
-        font-size: 0.9rem;
-        margin-bottom: 25px;
-    }
-
-    .option-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .option {
-        background: white;
-        border-radius: 12px;
-        padding: 20px;
-        border: 2px solid transparent;
-        transition: all 0.2s ease;
-    }
-
-    .option:hover {
-        border-color: #d1d5db;
-    }
-
-    /* SNYGGARE BESTÄLL STICKERS - Mörkgrön stil */
-    .option.stickers-option {
-        background: linear-gradient(145deg, #166534 0%, #14532d 100%);
-        border-color: #166534;
-        text-decoration: none;
-        color: white;
-        display: block;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .option.stickers-option::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 100px;
-        height: 100%;
-        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 100%);
-        pointer-events: none;
-    }
-
-    .option.stickers-option:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 35px rgba(22, 101, 52, 0.4);
-        border-color: #22c55e;
-    }
-
-    .option-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 6px;
-    }
-
-    .option-icon {
-        width: 44px;
-        height: 44px;
-        background: #f3f4f6;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6b7280;
-        flex-shrink: 0;
-    }
-
-    .option.stickers-option .option-icon {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .option h3 {
-        font-size: 1.05rem;
-        color: #1a1a1a;
-        margin: 0;
-        font-weight: 700;
-    }
-
-    .option.stickers-option h3 {
-        color: white;
-        font-size: 1.1rem;
-    }
-
-    .option p {
-        font-size: 0.85rem;
-        color: #6b7280;
-        margin: 0 0 0 56px;
-        line-height: 1.4;
-    }
-
-    .option.stickers-option p {
-        color: rgba(255, 255, 255, 0.85);
-    }
-
-    .option-badge {
-        display: inline-block;
-        background: rgba(251, 191, 36, 0.9);
-        color: #1a1a1a;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        margin-left: 56px;
-        margin-top: 10px;
-    }
-
-    .option-id {
-        font-family: 'Courier New', monospace;
-        font-weight: 700;
-        color: #166534;
-        background: rgba(22, 101, 52, 0.1);
-        padding: 2px 6px;
-        border-radius: 4px;
-    }
-
-    .activation-card {
-        background: rgba(245, 245, 220, 0.98);
-        border-radius: 24px;
-        padding: 40px;
-        text-align: center;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        max-width: 450px;
-        margin: 0 auto;
-    }
-
-    .activation-icon {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        color: white;
-    }
-
-    .activation-card h2 {
-        font-size: 1.5rem;
-        color: #1a1a1a;
-        margin-bottom: 8px;
-    }
-
-    .activation-card > p {
-        color: #6b7280;
-        margin-bottom: 25px;
-    }
-
-    .activation-form {
-        background: white;
-        border-radius: 16px;
-        padding: 25px;
-    }
-
-    .activation-form h3 {
-        font-size: 1rem;
-        color: #1a1a1a;
+    .feature-icon {
+        font-size: 2.5rem;
         margin-bottom: 15px;
     }
 
-    .input-row {
-        display: flex;
-        gap: 10px;
-    }
-
-    .input-row input {
-        flex: 1;
-        padding: 14px 18px;
-        border: 2px solid #e5e7eb;
-        border-radius: 10px;
-        font-size: 1rem;
-        text-transform: uppercase;
-        text-align: center;
-        font-weight: 700;
-        letter-spacing: 2px;
-    }
-
-    .input-row input:focus {
-        outline: none;
-        border-color: #166534;
-    }
-
-    .btn-activate {
-        background: #166534;
+    .feature h3 {
         color: white;
-        padding: 14px 24px;
-        border: none;
-        border-radius: 10px;
-        font-weight: 700;
-        cursor: pointer;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .feature p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    /* Inloggad vy */
+    .logged-in-hero {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 60px;
+    }
+
+    .logged-in-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    .logged-in-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        z-index: 1;
+    }
+
+    .logged-in-container {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .welcome-card {
+        background: rgba(245, 245, 220, 0.98);
+        border-radius: 24px;
+        padding: 50px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .welcome-card h1 {
+        font-size: 2rem;
+        color: #1a1a1a;
+        margin-bottom: 10px;
+    }
+
+    .welcome-card p {
+        color: #6b7280;
+        margin-bottom: 30px;
+    }
+
+    .welcome-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .btn-welcome {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 16px 30px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
         transition: all 0.2s ease;
     }
 
-    .btn-activate:hover {
-        background: #14532d;
+    .btn-welcome-primary {
+        background: linear-gradient(145deg, #166534 0%, #22c55e 100%);
+        color: white;
     }
 
-    .activation-help {
-        margin-top: 20px;
-        font-size: 0.9rem;
-        color: #6b7280;
+    .btn-welcome-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(22, 101, 52, 0.3);
     }
 
-    .activation-help a {
-        color: #166534;
-        font-weight: 700;
-        text-decoration: none;
+    .btn-welcome-secondary {
+        background: #e5e5d8;
+        color: #374151;
     }
 
-    .qr-fallback {
-        display: none;
-        padding: 20px;
+    .btn-welcome-secondary:hover {
+        background: #d4d4c8;
     }
 
-    .qr-fallback-code {
-        font-size: 1.8rem;
-        color: #166534;
-        font-weight: bold;
-        font-family: monospace;
-        letter-spacing: 2px;
-    }
+    @media (max-width: 768px) {
+        .landing-container h1 {
+            font-size: 2.5rem;
+        }
 
-    @media (max-width: 900px) {
-        .dashboard-grid {
+        .landing-features {
             grid-template-columns: 1fr;
         }
 
-        .stats-bar {
-            gap: 40px;
-        }
-
-        .input-row {
+        .landing-cta {
             flex-direction: column;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .dashboard-header h1 {
-            font-size: 1.5rem;
+            align-items: center;
         }
 
-        .qr-card, .info-card, .activation-card {
-            padding: 20px;
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            max-width: 300px;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-hero">
-    <div class="dashboard-bg" style="background-image: url('{{ url_for('static', filename='images/dashboard-bg.png') }}');" id="dashboardBg"></div>
-    <div class="dashboard-overlay"></div>
-    
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h1>Välkommen, {{ user.name }}!</h1>
-            {% if qr and qr.qr_id %}
-                <p>Din QR-kod är redo att användas</p>
-            {% else %}
-                <p>Aktivera din QR-kod för att komma igång</p>
-            {% endif %}
-        </div>
+{% if user and user.name %}
+    <!-- INLOGGAD VY -->
+    <div class="logged-in-hero">
+        <div class="logged-in-bg" style="background-image: url('{{ url_for('static', filename='images/dashboard-bg.png') }}');" id="loggedInBg"></div>
+        <div class="logged-in-overlay"></div>
         
-        <div class="premium-section">
-            {% if has_premium %}
-                <div class="premium-badge">
-                    Premium 
-                    {% if premium_status and premium_status.premium_until %}
-                        <small>till {{ premium_status.premium_until.strftime('%Y-%m-%d') }}</small>
-                    {% endif %}
-                </div>
-            {% else %}
-                <div class="premium-cta-box">
-                    <div class="premium-cta-text">Uppgradera till Premium</div>
-                    <a href="{{ url_for('premium.index') }}" class="btn-premium-cta">
-                        {% if is_launch %}Erbjudande - Gratis till 1 mars 2027{% else %}Köp Premium{% endif %}
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-        
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-number missing">{{ missing_stats.missing }}</div>
-                <div class="stat-label">Saknade</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number found">{{ missing_stats.found }}</div>
-                <div class="stat-label">Återfunna</div>
-            </div>
-        </div>
-        
-        {% if not qr or not qr.qr_id %}
-            <div class="activation-card">
-                <div class="activation-icon">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                        <path d="M8 12h8M12 8v8"></path>
-                    </svg>
-                </div>
-                <h2>Aktivera din QR-kod</h2>
-                <p>Skriv in koden från ditt klistermärke för att komma igång.</p>
+        <div class="logged-in-container">
+            <div class="welcome-card">
+                <h1>Välkommen tillbaka, {{ user.name }}!</h1>
+                <p>Vad vill du göra idag?</p>
                 
-                <div class="activation-form">
-                    <h3>Ange din kod</h3>
-                    <form action="{{ url_for('qr.activate') }}" method="post">
-                        <div class="input-row">
-                            <input type="text" name="qr_id" placeholder="ABC123" required 
-                                   pattern="[A-Za-z0-9]{5,10}" maxlength="10" autocomplete="off">
-                            <button type="submit" class="btn-activate">Aktivera</button>
-                        </div>
-                    </form>
-                </div>
-                
-                <p class="activation-help">
-                    Har du ingen kod? <a href="{{ url_for('auth.buy_stickers') }}">Beställ klistermärken</a>
-                </p>
-            </div>
-        {% else %}
-            <div class="dashboard-grid">
-                <div class="qr-card">
-                    <div class="qr-status-bar">Aktiv</div>
-                    <h2>Din QR-kod</h2>
-                    
-                    <div class="qr-box">
-                        <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
-                             alt="Din QR-kod {{ qr.qr_id }}" 
-                             class="qr-image"
-                             id="qrImage"
-                             onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
-                        
-                        <div id="qrFallback" class="qr-fallback">
-                            <div class="qr-fallback-code">{{ qr.qr_id }}</div>
-                        </div>
-                        
-                        <div class="qr-id-box">
-                            <span class="qr-id">{{ qr.qr_id }}</span>
-                        </div>
-                    </div>
-                    
-                    <a href="{{ url_for('qr.manage') }}" class="qr-manage-btn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="welcome-actions">
+                    <a href="{{ url_for('disc.dashboard') }}" class="btn-welcome btn-welcome-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <line x1="8" y1="12" x2="16" y2="12"></line>
-                            <line x1="8" y1="16" x2="16" y2="16"></line>
+                            <line x1="9" y1="9" x2="15" y2="9"></line>
+                            <line x1="9" y1="15" x2="15" y2="15"></line>
                         </svg>
-                        Hantera QR-koder
+                        Gå till min sida
+                    </a>
+                    <a href="{{ url_for('missing.report') }}" class="btn-welcome btn-welcome-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="16"></line>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                        </svg>
+                        Anmäl saknad disc
+                    </a>
+                    <a href="{{ url_for('found.found_qr') }}" class="btn-welcome btn-welcome-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11l3 3L22 4"></path>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        </svg>
+                        Hittat en disc?
                     </a>
                 </div>
-                
-                <div class="info-card">
-                    <h2>Så här märker du din disc</h2>
-                    <p class="info-subtitle">Välj det alternativ som passar dig bäst</p>
-                    
-                    <div class="option-list">
-                        <div class="option">
-                            <div class="option-header">
-                                <div class="option-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
-                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-                                        <rect x="6" y="14" width="12" height="8"></rect>
-                                    </svg>
-                                </div>
-                                <h3>Skriv ut själv</h3>
-                            </div>
-                            <p>Högerklicka på QR-koden och välj "Spara bild som" för att sedan skriva ut på egen etikett</p>
-                        </div>
-                                               
-                        <a href="{{ url_for('auth.buy_stickers') }}" class="option stickers-option">
-                            <div class="option-header">
-                                <div class="option-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                                    </svg>
-                                </div>
-                                <h3>Beställ klistermärken</h3>
-                            </div>
-                            <p>Vattentåliga, UV-beständiga, perfekt storlek Ø30mm</p>
-                            <span class="option-badge">Rekommenderat</span>
-                        </a>
-                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const bg = document.getElementById('loggedInBg');
+            if (bg) {
+                bg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
+            }
+        });
+    </script>
+{% else %}
+    <!-- UTLOGGAD VY (LANDING PAGE) -->
+    <div class="landing-hero">
+        <div class="landing-bg" style="background-image: url('{{ url_for('static', filename='images/landing-bg.png') }}');" id="landingBg"></div>
+        <div class="landing-overlay"></div>
+        
+        <div class="landing-container">
+            <div class="landing-logo">🥏</div>
+            <h1>Returna<span>Disc</span></h1>
+            <p class="landing-subtitle">Förlorat din disc? Låt oss hjälpas åt att få tillbaka den. Enkelt, snabbt och gratis.</p>
+            
+            <div class="landing-cta">
+                <a href="{{ url_for('auth.signup') }}" class="btn-primary">Skapa konto</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-secondary">Logga in</a>
+            </div>
+            
+            <div class="landing-features">
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <h3>QR-kod</h3>
+                    <p>Märk din disc med en unik QR-kod så hittaren enkelt kan kontakta dig.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🗺️</div>
+                    <h3>Karta</h3>
+                    <p>Se var discar har hittats och anmäl saknade discar på kartan.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🤝</div>
+                    <h3>Community</h3>
+                    <p>Hjälp varandra att återförena discar med deras ägare.</p>
                 </div>
             </div>
-        {% endif %}
+        </div>
     </div>
-</div>
 
-<script>
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const dashboardBg = document.getElementById('dashboardBg');
-        if (dashboardBg) {
-            dashboardBg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
-        }
-    });
-</script>
+    <script>
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const bg = document.getElementById('landingBg');
+            if (bg) {
+                bg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
+            }
+        });
+    </script>
+{% endif %}
 {% endblock %}
