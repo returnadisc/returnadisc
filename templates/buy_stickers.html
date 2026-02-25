@@ -68,7 +68,7 @@
     .buy-header {
         text-align: center;
         color: white;
-        margin-bottom: 50px;
+        margin-bottom: 60px;
     }
 
     .buy-icon {
@@ -94,82 +94,19 @@
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
-    /* ==================== INFO SECTION (SIDEBAR STYLE) ==================== */
-    .info-section {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 40px;
-        margin-bottom: 60px;
-        align-items: start;
-    }
-
-    .main-content {
-        order: 1;
-    }
-
-    .side-info {
-        order: 2;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .side-image {
-        width: 100%;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        opacity: 0.9;
-    }
-
-    .side-text h3 {
-        color: #fbbf24;
-        font-size: 1.1rem;
-        margin-bottom: 12px;
-        font-weight: 600;
-    }
-
-    .side-text p {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin-bottom: 12px;
-    }
-
-    .side-benefits {
-        list-style: none;
-        padding: 0;
-        margin: 15px 0 0 0;
-    }
-
-    .side-benefits li {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.9rem;
-        padding: 6px 0;
-        padding-left: 20px;
-        position: relative;
-    }
-
-    .side-benefits li::before {
-        content: '•';
-        color: #fbbf24;
-        position: absolute;
-        left: 0;
-    }
-
     /* ==================== STICKER SHOWCASE ==================== */
     .sticker-showcase {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-bottom: 60px;
+        margin-bottom: 80px;
         text-align: center;
     }
 
     .sticker-visual {
         position: relative;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
+		padding-bottom: 45px;
     }
 
     .sticker-glow {
@@ -249,23 +186,22 @@
     /* SIZE BADGE */
     .size-badge {
         position: absolute;
-        bottom: -15px;
+        bottom: 5px;
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
         color: #1a1a1a;
-        padding: 10px 28px;
+        padding: 14px 35px;
         border-radius: 30px;
-        font-size: 1rem;
+        font-size: 1.2rem;
         font-weight: 700;
         box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
     }
 
     .sticker-info {
         color: rgba(255, 255, 255, 0.8);
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         max-width: 500px;
-        margin-top: 10px;
     }
 
     .sticker-info p {
@@ -419,7 +355,7 @@
 
     .price-card.popular .btn-select {
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        color: #1a1a2e;
+        color: #1a1a1a;
     }
 
     .price-card.popular .btn-select:hover {
@@ -480,17 +416,6 @@
 
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 1024px) {
-        .info-section {
-            grid-template-columns: 1fr;
-        }
-
-        .side-info {
-            order: 2;
-            max-width: 500px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
         .pricing-grid {
             grid-template-columns: 1fr;
             max-width: 400px;
@@ -549,10 +474,6 @@
         .steps {
             grid-template-columns: 1fr;
         }
-
-        .side-info {
-            padding: 20px;
-        }
     }
 </style>
 {% endblock %}
@@ -567,134 +488,109 @@
             <!-- HEADER -->
             <div class="buy-header">
                 <h1>Köp <span>Stickers</span></h1>
-                <p class="subtitle">Skydda dina discar och behåll deras värde</p>
             </div>
             
-            <!-- MAIN CONTENT WITH SIDE INFO -->
-            <div class="info-section">
-                <div class="main-content">
-                    <!-- STICKER SHOWCASE -->
-                    <div class="sticker-showcase">
-                        <div class="sticker-visual">
-                            <div class="sticker-glow"></div>
-                            <div class="sticker-circle">
-                                <img src="{{ url_for('static', filename='qr/qr_EXEMP.png') }}"    
-                                     alt="QR-kod exempel" 
-                                     class="qr-example"
-                                     onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex'">
-                                <div id="qrFallback" class="qr-fallback" style="display: none;">
-                                    <div class="qr-pattern">
-                                        <span class="qr-id">ZFLBC</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="size-badge">Ø30mm</div>
-                        </div>
-                        
-                        <div class="sticker-info">
-                            <p>Vattentåliga • UV-beständiga • Klarar -20°C</p>
-                        </div>
-                    </div>
-                    
-                    <!-- HOW IT WORKS -->
-                    <div class="how-it-works">
-                        <h2>Så fungerar det</h2>
-                        <div class="steps">
-                            <div class="step">
-                                <div class="step-number">1</div>
-                                <h4>Välj paket</h4>
-                                <p>Välj hur många stickers du vill ha</p>
-                            </div>
-                            <div class="step">
-                                <div class="step-number">2</div>
-                                <h4>Fyll i adress</h4>
-                                <p>Ange leveransadress i nästa steg</p>
-                            </div>
-                            <div class="step">
-                                <div class="step-number">3</div>
-                                <h4>Betala med Stripe</h4>
-                                <p>Säker betalning med kort</p>
-                            </div>
-                            <div class="step">
-                                <div class="step-number">4</div>
-                                <h4>Vi skickar!</h4>
-                                <p>Stickers skickas inom 1-2 dagar</p>
+            <!-- STICKER SHOWCASE -->
+            <div class="sticker-showcase">
+                <div class="sticker-visual">
+                    <div class="sticker-glow"></div>
+                    <div class="sticker-circle">
+                        <img src="{{ url_for('static', filename='qr/qr_EXEMP.png') }}"    
+                             alt="QR-kod exempel" 
+                             class="qr-example"
+                             onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex'">
+                        <div id="qrFallback" class="qr-fallback" style="display: none;">
+                            <div class="qr-pattern">
+                                <span class="qr-id">ZFLBC</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- PRICING -->
-                    <div class="pricing-section">
-                        <h2>Välj paket</h2>
-                        <div class="pricing-grid">
-                            <!-- Small -->
-                            <div class="price-card">
-                                <div class="price-header">
-                                    <h3>Small</h3>
-                                    <div class="price">
-                                        49<span class="price-currency">kr</span>
-                                    </div>
-                                    <div class="price-note">Fri frakt</div>
-                                </div>
-                                <div class="price-features">
-                                    <div class="feature-highlight">6 stickers</div>
-                                    <p>Perfekt för nybörjaren</p>
-                                </div>
-                                <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">Köp nu</a>
-                            </div>
-                            
-                            <!-- Medium -->
-                            <div class="price-card">
-                                <div class="price-header">
-                                    <h3>Medium</h3>
-                                    <div class="price">
-                                        69<span class="price-currency">kr</span>
-                                    </div>
-                                    <div class="price-note">Fri frakt</div>
-                                </div>
-                                <div class="price-features">
-                                    <div class="feature-highlight">12 stickers</div>
-                                    <p>För den regelbundna spelaren</p>
-                                </div>
-                                <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
-                            </div>
-                            
-                            <!-- Large - POPULÄR -->
-                            <div class="price-card popular">
-                                <div class="popular-badge">Mest populär</div>
-                                <div class="price-header">
-                                    <h3>Large</h3>
-                                    <div class="price">
-                                        99<span class="price-currency">kr</span>
-                                    </div>
-                                    <div class="price-note">Fri frakt</div>
-                                </div>
-                                <div class="price-features">
-                                    <div class="feature-highlight">24 stickers</div>
-                                    <p>För den aktiva spelaren</p>
-                                </div>
-                                <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="size-badge">Ø30mm</div>
                 </div>
                 
-                <!-- SIDE INFO (nedtonad) -->
-                <div class="side-info">
-                    <img src="{{ url_for('static', filename='images/qrondisc.png') }}" 
-                         alt="QR-kod på disc" 
-                         class="side-image"
-                         onerror="this.style.display='none'">
-                    <div class="side-text">
-                        <h3>Behåll discens värde</h3>
-                        <p>
-                            Att skriva med permanent tusch på discen minskar dess värde när du vill byta eller sälja. Våra stickers kan tas bort utan att lämna märken.
-                        </p>
-                        <ul class="side-benefits">
-                            <li>Inga permanenta märken</li>
-                            <li>Bättre vid återförsäljning</li>
-                            <li>Enkel att byta vid behov</li>
-                        </ul>
+                <div class="sticker-info">
+                    <p>Vattentåliga • UV-beständiga • Klarar -20°C</p>
+                </div>
+            </div>
+            
+            <!-- HOW IT WORKS -->
+            <div class="how-it-works">
+                <h2>Så fungerar det</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h4>Välj paket</h4>
+                        <p>Välj hur många stickers du vill ha</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h4>Fyll i adress</h4>
+                        <p>Ange leveransadress i nästa steg</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h4>Betala med Stripe</h4>
+                        <p>Säker betalning med kort</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <h4>Vi skickar!</h4>
+                        <p>Stickers skickas inom 1-2 dagar</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PRICING -->
+            <div class="pricing-section">
+                <h2>Välj paket</h2>
+                <div class="pricing-grid">
+                    <!-- Small -->
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Small</h3>
+                            <div class="price">
+                                49<span class="price-currency">kr</span>
+                            </div>
+                            <div class="price-note">Fri frakt</div>
+                        </div>
+                        <div class="price-features">
+                            <div class="feature-highlight">6 stickers</div>
+                            <p>Perfekt för nybörjaren</p>
+                        </div>
+                        <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">Köp nu</a>
+                    </div>
+                    
+                    <!-- Medium -->
+                    <div class="price-card">
+                        <div class="price-header">
+                            <h3>Medium</h3>
+                            <div class="price">
+                                69<span class="price-currency">kr</span>
+                            </div>
+                            <div class="price-note">Fri frakt</div>
+                        </div>
+                        <div class="price-features">
+                            <div class="feature-highlight">12 stickers</div>
+                            <p>För den regelbundna spelaren</p>
+                        </div>
+                        <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
+                    </div>
+                    
+                    <!-- Large - POPULÄR -->
+                    <div class="price-card popular">
+                        <div class="popular-badge">Mest populär</div>
+                        <div class="price-header">
+                            <h3>Large</h3>
+                            <div class="price">
+                                99<span class="price-currency">kr</span>
+                            </div>
+                            <div class="price-note">Fri frakt</div>
+                        </div>
+                        <div class="price-features">
+                            <div class="feature-highlight">24 stickers</div>
+                            <p>För den aktiva spelaren</p>
+                        </div>
+                        <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
                     </div>
                 </div>
             </div>
