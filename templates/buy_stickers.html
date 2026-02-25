@@ -7,26 +7,48 @@
     /* ==================== BUY STICKERS PAGE ==================== */
     .buy-page {
         min-height: 100vh;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        position: relative;
+        overflow: hidden;
     }
 
     /* HERO SECTION */
     .buy-hero {
-        min-height: auto;
+        min-height: 100vh;
         position: relative;
-        padding: 120px 20px 80px;
-        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 100px 20px 60px;
     }
 
-    .buy-hero::before {
-        content: '';
+    .buy-hero-bg {
         position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 800px;
-        height: 800px;
-        background: radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%);
-        pointer-events: none;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 120%;
+        background-size: cover;
+        background-position: center;
+        will-change: transform;
+        animation: panImage 25s ease-in-out infinite alternate;
+    }
+
+    @keyframes panImage {
+        0% { transform: scale(1.1) translate(0, 0); }
+        25% { transform: scale(1.15) translate(-2%, -1%); }
+        50% { transform: scale(1.1) translate(2%, 1%); }
+        75% { transform: scale(1.15) translate(-1%, 2%); }
+        100% { transform: scale(1.1) translate(1%, -2%); }
+    }
+
+    .buy-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
+        z-index: 1;
     }
 
     .buy-container {
@@ -34,149 +56,120 @@
         z-index: 2;
         width: 100%;
         max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .buy-header {
-        text-align: center;
-        color: white;
-        margin-bottom: 60px;
         animation: fadeInUp 0.8s ease-out;
     }
 
-    .buy-header h1 {
-        font-size: 4rem;
-        font-weight: 800;
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HEADER */
+    .buy-header {
+        text-align: center;
+        color: white;
+        margin-bottom: 50px;
+    }
+
+    .buy-icon {
+        font-size: 5rem;
         margin-bottom: 20px;
-        background: linear-gradient(135deg, #ffffff 0%, #fbbf24 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        display: block;
+    }
+
+    .buy-header h1 {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .buy-header h1 span {
+        color: #fbbf24;
     }
 
     .subtitle {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
         opacity: 0.9;
-        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
-    /* ==================== VALUE PROPOSITION SECTION ==================== */
-    .value-section {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(20px);
-        border-radius: 32px;
-        padding: 60px;
-        margin-bottom: 80px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    .value-content {
+    /* ==================== INFO SECTION (SIDEBAR STYLE) ==================== */
+    .info-section {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 60px;
-        align-items: center;
+        grid-template-columns: 2fr 1fr;
+        gap: 40px;
+        margin-bottom: 60px;
+        align-items: start;
     }
 
-    .value-image-container {
-        position: relative;
+    .main-content {
+        order: 1;
     }
 
-    .value-image {
+    .side-info {
+        order: 2;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .side-image {
         width: 100%;
-        border-radius: 24px;
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-        transform: rotate(-3deg);
-        transition: transform 0.3s ease;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        opacity: 0.9;
     }
 
-    .value-image-container:hover .value-image {
-        transform: rotate(0deg) scale(1.02);
-    }
-
-    .image-badge {
-        position: absolute;
-        bottom: -20px;
-        right: -20px;
-        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        color: white;
-        padding: 16px 28px;
-        border-radius: 50px;
-        font-weight: 700;
-        font-size: 1.1rem;
-        box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4);
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-
-    .value-text h2 {
+    .side-text h3 {
         color: #fbbf24;
-        font-size: 2.2rem;
-        margin-bottom: 24px;
-        font-weight: 700;
-    }
-
-    .value-text p {
-        color: rgba(255, 255, 255, 0.85);
-        font-size: 1.2rem;
-        line-height: 1.8;
-        margin-bottom: 24px;
-    }
-
-    .value-benefits {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        margin-top: 30px;
-    }
-
-    .benefit-item {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 16px 24px;
-        border-radius: 16px;
-        border-left: 4px solid #fbbf24;
-        transition: all 0.3s ease;
-    }
-
-    .benefit-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: translateX(10px);
-    }
-
-    .benefit-icon {
-        font-size: 1.8rem;
-    }
-
-    .benefit-text {
-        color: white;
         font-size: 1.1rem;
-        font-weight: 500;
-    }
-
-    /* ==================== STICKER PREVIEW SECTION ==================== */
-    .preview-section {
-        text-align: center;
-        margin-bottom: 80px;
-        animation: fadeInUp 0.8s ease-out 0.4s both;
-    }
-
-    .preview-title {
-        color: white;
-        font-size: 2rem;
-        margin-bottom: 40px;
+        margin-bottom: 12px;
         font-weight: 600;
     }
 
-    .sticker-showcase {
+    .side-text p {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .side-benefits {
+        list-style: none;
+        padding: 0;
+        margin: 15px 0 0 0;
+    }
+
+    .side-benefits li {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        padding: 6px 0;
+        padding-left: 20px;
         position: relative;
-        display: inline-block;
+    }
+
+    .side-benefits li::before {
+        content: '•';
+        color: #fbbf24;
+        position: absolute;
+        left: 0;
+    }
+
+    /* ==================== STICKER SHOWCASE ==================== */
+    .sticker-showcase {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 60px;
+        text-align: center;
+    }
+
+    .sticker-visual {
+        position: relative;
+        margin-bottom: 25px;
     }
 
     .sticker-glow {
@@ -184,45 +177,36 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 350px;
-        height: 350px;
-        background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.3) 0%, transparent 70%);
         border-radius: 50%;
         pointer-events: none;
     }
 
     .sticker-circle {
-        width: 280px;
-        height: 280px;
-        background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+        width: 270px;
+        height: 270px;
+        background: #ffffff;
         border-radius: 50%;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         box-shadow: 
-            0 40px 80px rgba(0,0,0,0.4),
+            0 30px 80px rgba(0,0,0,0.8),
             inset 0 2px 4px rgba(0,0,0,0.05),
-            0 0 0 4px rgba(251, 191, 36, 0.3);
+            0 0 0 3px rgba(251, 191, 36, 0.3);
         position: relative;
-        padding: 20px;
-        border: 3px solid rgba(251, 191, 36, 0.6);
-        transition: all 0.3s ease;
-    }
-
-    .sticker-circle:hover {
-        transform: translateY(-10px);
-        box-shadow: 
-            0 50px 100px rgba(0,0,0,0.5),
-            inset 0 2px 4px rgba(0,0,0,0.05),
-            0 0 0 6px rgba(251, 191, 36, 0.4);
+        padding: 8px;
+        border: 2px solid rgba(251, 191, 36, 0.5);
     }
 
     .qr-example {
-        width: 200px;
-        height: 200px;
+        width: 210px;
+        height: 210px;
         object-fit: contain;
-        border-radius: 12px;
+        border-radius: 0;
     }
 
     .qr-fallback {
@@ -235,12 +219,11 @@
         width: 180px;
         height: 180px;
         background: white;
-        border-radius: 16px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
-        border: 2px solid #e5e7eb;
     }
 
     .qr-pattern::before {
@@ -248,141 +231,59 @@
         width: 140px;
         height: 140px;
         background: 
-            repeating-linear-gradient(0deg, #1a1a2e 0px, #1a1a2e 10px, transparent 10px, transparent 20px),
-            repeating-linear-gradient(90deg, #1a1a2e 0px, #1a1a2e 10px, transparent 10px, transparent 20px);
+            repeating-linear-gradient(0deg, #000 0px, #000 10px, transparent 10px, transparent 20px),
+            repeating-linear-gradient(90deg, #000 0px, #000 10px, transparent 10px, transparent 20px);
         background-size: 20px 20px;
-        border-radius: 8px;
     }
 
     .qr-id {
         position: absolute;
-        bottom: 15px;
-        font-family: 'Courier New', monospace;
-        font-size: 1.2rem;
+        bottom: 10px;
+        font-family: monospace;
+        font-size: 1.3rem;
         font-weight: bold;
-        color: #0f3460;
-        letter-spacing: 3px;
-        background: rgba(251, 191, 36, 0.2);
-        padding: 4px 12px;
-        border-radius: 20px;
+        color: #2563eb;
+        letter-spacing: 2px;
     }
 
+    /* SIZE BADGE */
     .size-badge {
         position: absolute;
         bottom: -15px;
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        color: #1a1a2e;
-        padding: 12px 32px;
+        color: #1a1a1a;
+        padding: 10px 28px;
         border-radius: 30px;
-        font-size: 1.1rem;
-        font-weight: 800;
+        font-size: 1rem;
+        font-weight: 700;
         box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
     }
 
-    .sticker-specs {
-        display: flex;
-        justify-content: center;
-        gap: 40px;
-        margin-top: 50px;
-        flex-wrap: wrap;
-    }
-
-    .spec-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+    .sticker-info {
         color: rgba(255, 255, 255, 0.8);
         font-size: 1.1rem;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 12px 24px;
-        border-radius: 50px;
+        max-width: 500px;
+        margin-top: 10px;
     }
 
-    .spec-icon {
-        font-size: 1.5rem;
-    }
-
-    /* ==================== HOW IT WORKS ==================== */
-    .how-it-works {
-        background: rgba(245, 245, 220, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 32px;
-        padding: 60px;
-        margin-bottom: 80px;
-        animation: fadeInUp 0.8s ease-out 0.6s both;
-    }
-
-    .how-it-works h2 {
-        text-align: center;
-        color: #0f3460;
-        font-size: 2.2rem;
-        margin-bottom: 50px;
-        font-weight: 700;
-    }
-
-    .steps {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 30px;
-    }
-
-    .step {
-        text-align: center;
-        position: relative;
-    }
-
-    .step:not(:last-child)::after {
-        content: '→';
-        position: absolute;
-        top: 25px;
-        right: -25px;
-        color: #0f3460;
-        font-size: 1.5rem;
-        opacity: 0.3;
-    }
-
-    .step-number {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #0f3460 0%, #1a4a7a 100%);
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        font-weight: bold;
-        margin: 0 auto 20px;
-        box-shadow: 0 10px 30px rgba(15, 52, 96, 0.3);
-    }
-
-    .step h4 {
-        color: #1a1a2e;
-        margin-bottom: 12px;
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-
-    .step p {
-        color: #4b5563;
-        font-size: 1rem;
+    .sticker-info p {
+        margin: 0;
         line-height: 1.6;
     }
 
     /* ==================== PRICING SECTION ==================== */
     .pricing-section {
         margin-bottom: 60px;
-        animation: fadeInUp 0.8s ease-out 0.8s both;
     }
 
     .pricing-section h2 {
         text-align: center;
         color: white;
         font-size: 2.5rem;
-        margin-bottom: 60px;
-        font-weight: 700;
+        margin-bottom: 50px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
 
     .pricing-grid {
@@ -393,32 +294,30 @@
     }
 
     .price-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(20px);
-        border-radius: 28px;
-        padding: 50px 35px;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 40px 30px;
         border: 2px solid rgba(255, 255, 255, 0.1);
         position: relative;
         display: flex;
         flex-direction: column;
-        transition: all 0.4s ease;
+        transition: all 0.3s ease;
     }
 
     .price-card:hover {
-        transform: translateY(-10px);
+        transform: translateY(-5px);
         border-color: rgba(251, 191, 36, 0.3);
-        background: rgba(255, 255, 255, 0.08);
     }
 
     .price-card.popular {
         border: 3px solid #fbbf24;
-        background: rgba(251, 191, 36, 0.05);
-        transform: scale(1.05);
+        z-index: 10;
     }
 
     .price-card.popular:hover {
-        transform: scale(1.05) translateY(-10px);
-        box-shadow: 0 30px 60px rgba(251, 191, 36, 0.2);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(251, 191, 36, 0.2);
     }
 
     .popular-badge {
@@ -427,27 +326,27 @@
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        color: #1a1a2e;
-        padding: 12px 35px;
+        color: #1a1a1a;
+        padding: 10px 30px;
         border-radius: 30px;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
     }
 
     .price-header {
         text-align: center;
-        margin-bottom: 35px;
+        margin-bottom: 30px;
     }
 
     .price-header h3 {
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(255, 255, 255, 0.7);
         margin-bottom: 20px;
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         text-transform: uppercase;
-        letter-spacing: 3px;
+        letter-spacing: 2px;
         font-weight: 600;
     }
 
@@ -456,6 +355,7 @@
         font-weight: 800;
         color: white;
         line-height: 1;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         display: flex;
         align-items: flex-start;
         justify-content: center;
@@ -466,206 +366,193 @@
         font-size: 2rem;
         font-weight: 600;
         margin-top: 10px;
-        color: #fbbf24;
     }
 
     .price-note {
         color: #22c55e;
-        font-size: 1.2rem;
-        margin-top: 15px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        font-size: 1.1rem;
+        margin-top: 10px;
+        font-weight: 600;
     }
 
     .price-features {
         flex: 1;
-        margin-bottom: 35px;
+        margin-bottom: 30px;
         text-align: center;
     }
 
     .feature-highlight {
-        font-size: 2.2rem;
-        font-weight: 800;
+        font-size: 1.8rem;
+        font-weight: 700;
         color: #fbbf24;
         margin-bottom: 15px;
     }
 
     .price-features p {
         color: rgba(255, 255, 255, 0.6);
-        margin: 10px 0;
-        font-size: 1.1rem;
-    }
-
-    .sticker-count {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 60px;
-        height: 60px;
-        background: rgba(251, 191, 36, 0.2);
-        border-radius: 50%;
-        margin-bottom: 15px;
-        font-size: 1.8rem;
+        margin: 8px 0;
+        font-size: 1rem;
     }
 
     .btn-select {
         width: 100%;
-        padding: 22px;
+        padding: 20px;
         background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
         color: white;
         border: none;
-        border-radius: 16px;
+        border-radius: 14px;
         font-weight: 700;
         font-size: 1.2rem;
         cursor: pointer;
         transition: all 0.3s ease;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
         text-decoration: none;
         display: inline-block;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(22, 101, 52, 0.3);
     }
 
     .btn-select:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 15px 40px rgba(22, 101, 52, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(22, 101, 52, 0.4);
     }
 
     .price-card.popular .btn-select {
         background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
         color: #1a1a2e;
-        box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
     }
 
     .price-card.popular .btn-select:hover {
-        box-shadow: 0 15px 40px rgba(251, 191, 36, 0.4);
+        box-shadow: 0 10px 25px rgba(251, 191, 36, 0.4);
     }
 
-    /* ==================== TRUST BADGES ==================== */
-    .trust-section {
+    /* ==================== HOW IT WORKS ==================== */
+    .how-it-works {
+        background: rgba(245, 245, 220, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 50px;
+        margin-bottom: 50px;
+    }
+
+    .how-it-works h2 {
         text-align: center;
-        padding: 40px 0;
-        animation: fadeInUp 0.8s ease-out 1s both;
+        color: #166534;
+        font-size: 2rem;
+        margin-bottom: 40px;
     }
 
-    .trust-badges {
-        display: flex;
-        justify-content: center;
-        gap: 50px;
-        flex-wrap: wrap;
-        margin-top: 30px;
+    .steps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
     }
 
-    .trust-item {
+    .step {
+        text-align: center;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        color: white;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 12px;
-        color: rgba(255, 255, 255, 0.7);
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 20px;
+    }
+
+    .step h4 {
+        color: #374151;
+        margin-bottom: 10px;
         font-size: 1.1rem;
     }
 
-    .trust-icon {
-        font-size: 1.8rem;
+    .step p {
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.5;
     }
 
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 1024px) {
-        .value-content {
+        .info-section {
             grid-template-columns: 1fr;
-            gap: 40px;
         }
 
-        .value-image-container {
-            order: -1;
+        .side-info {
+            order: 2;
             max-width: 500px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .pricing-grid {
             grid-template-columns: 1fr;
-            max-width: 450px;
+            max-width: 400px;
             margin: 0 auto;
         }
 
         .price-card.popular {
             order: -1;
-            transform: scale(1);
-        }
-
-        .price-card.popular:hover {
-            transform: scale(1) translateY(-10px);
-        }
-
-        .steps {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .step:not(:last-child)::after {
-            display: none;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .buy-hero {
-            padding: 100px 15px 60px;
-        }
-
-        .buy-header h1 {
-            font-size: 2.8rem;
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-        }
-
-        .value-section {
-            padding: 30px 20px;
-        }
-
-        .value-text h2 {
-            font-size: 1.8rem;
-        }
-
-        .sticker-circle {
-            width: 240px;
-            height: 240px;
-        }
-
-        .qr-example {
-            width: 170px;
-            height: 170px;
-        }
-
-        .how-it-works {
-            padding: 40px 20px;
-        }
-
-        .steps {
-            grid-template-columns: 1fr;
-            gap: 40px;
         }
 
         .price {
             font-size: 4rem;
         }
 
-        .feature-highlight {
-            font-size: 1.8rem;
-        }
-
-        .trust-badges {
-            flex-direction: column;
-            gap: 20px;
+        .steps {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(40px); }
-        to { opacity: 1; transform: translateY(0); }
+    @media (max-width: 640px) {
+        .buy-hero {
+            padding: 80px 15px 40px;
+        }
+
+        .buy-header h1 {
+            font-size: 2.2rem;
+        }
+
+        .sticker-circle {
+            width: 200px;
+            height: 200px;
+            padding: 6px;
+        }
+
+        .qr-example {
+            width: 185px;
+            height: 185px;
+        }
+
+        .price {
+            font-size: 3.5rem;
+        }
+
+        .price-currency {
+            font-size: 1.5rem;
+        }
+
+        .feature-highlight {
+            font-size: 1.5rem;
+        }
+
+        .how-it-works {
+            padding: 30px 20px;
+        }
+
+        .steps {
+            grid-template-columns: 1fr;
+        }
+
+        .side-info {
+            padding: 20px;
+        }
     }
 </style>
 {% endblock %}
@@ -673,198 +560,141 @@
 {% block content %}
 <div class="buy-page">
     <section class="buy-hero">
+        <div class="buy-hero-bg" style="background-image: url('{{ url_for('static', filename='images/buy-stickers-bg.png') }}');" id="buyHeroBg"></div>
+        <div class="buy-hero-overlay"></div>
+        
         <div class="buy-container">
             <!-- HEADER -->
             <div class="buy-header">
-                <h1>Skydda Din Disc</h1>
-                <p class="subtitle">Smarta QR-klistermärken som håller din disc säker – och dess värde intakt</p>
+                <h1>Köp <span>Stickers</span></h1>
+                <p class="subtitle">Skydda dina discar och behåll deras värde</p>
             </div>
             
-            <!-- VALUE PROPOSITION SECTION WITH IMAGE -->
-            <div class="value-section">
-                <div class="value-content">
-                    <div class="value-image-container">
-                        <img src="{{ url_for('static', filename='images/qrondisc.png') }}" 
-                             alt="QR-kod på disc golf disc" 
-                             class="value-image"
-                             onerror="this.src='{{ url_for('static', filename='images/disc-comparison.jpg') }}'">
-                        <div class="image-badge">✨ Behåll värdet!</div>
+            <!-- MAIN CONTENT WITH SIDE INFO -->
+            <div class="info-section">
+                <div class="main-content">
+                    <!-- STICKER SHOWCASE -->
+                    <div class="sticker-showcase">
+                        <div class="sticker-visual">
+                            <div class="sticker-glow"></div>
+                            <div class="sticker-circle">
+                                <img src="{{ url_for('static', filename='qr/qr_EXEMP.png') }}"    
+                                     alt="QR-kod exempel" 
+                                     class="qr-example"
+                                     onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex'">
+                                <div id="qrFallback" class="qr-fallback" style="display: none;">
+                                    <div class="qr-pattern">
+                                        <span class="qr-id">ZFLBC</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="size-badge">Ø30mm</div>
+                        </div>
+                        
+                        <div class="sticker-info">
+                            <p>Vattentåliga • UV-beständiga • Klarar -20°C</p>
+                        </div>
                     </div>
                     
-                    <div class="value-text">
-                        <h2>Sluta skriva på discarna – behåll deras värde!</h2>
-                        <p>
-                            Att skriva namn och nummer med permanent tusch på discen är ett snabbt sätt att förlora pengar när du vill byta eller sälja vidare. Varje gång du markerar en disc med tusch minskar du dess återförsäljningsvärde avsevärt.
-                        </p>
-                        <p>
-                            Med våra diskreta QR-klistermärken kan du enkelt märka dina discar utan att förstöra dem. Klistermärket kan tas bort när du vill sälja eller byta, och discen förblir i nyskick.
-                        </p>
-                        
-                        <div class="value-benefits">
-                            <div class="benefit-item">
-                                <span class="benefit-icon">💰</span>
-                                <span class="benefit-text">Högre återförsäljningsvärde vid byte/försäljning</span>
+                    <!-- HOW IT WORKS -->
+                    <div class="how-it-works">
+                        <h2>Så fungerar det</h2>
+                        <div class="steps">
+                            <div class="step">
+                                <div class="step-number">1</div>
+                                <h4>Välj paket</h4>
+                                <p>Välj hur många stickers du vill ha</p>
                             </div>
-                            <div class="benefit-item">
-                                <span class="benefit-icon">🔄</span>
-                                <span class="benefit-text">Enkel att ta bort utan märken eller rester</span>
+                            <div class="step">
+                                <div class="step-number">2</div>
+                                <h4>Fyll i adress</h4>
+                                <p>Ange leveransadress i nästa steg</p>
                             </div>
-                            <div class="benefit-item">
-                                <span class="benefit-icon">✨</span>
-                                <span class="benefit-text">Discen förblir i nyskick – ingen permanent skada</span>
+                            <div class="step">
+                                <div class="step-number">3</div>
+                                <h4>Betala med Stripe</h4>
+                                <p>Säker betalning med kort</p>
                             </div>
-                            <div class="benefit-item">
-                                <span class="benefit-icon">📱</                                <span class="benefit-text">Snabb kontakt via QR-kod – ingen gissning</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- STICKER PREVIEW -->
-            <div class="preview-section">
-                <h2 class="preview-title">Så här ser klistermärket ut</h2>
-                <div class="sticker-showcase">
-                    <div class="sticker-glow"></div>
-                    <div class="sticker-circle">
-                        <img src="{{ url_for('static', filename='qr/qr_EXEMP.png') }}"    
-                             alt="QR-kod exempel" 
-                             class="qr-example"
-                             onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex'">
-                        <div id="qrFallback" class="qr-fallback" style="display: none;">
-                            <div class="qr-pattern">
-                                <span class="qr-id">T3GW7</span>
+                            <div class="step">
+                                <div class="step-number">4</div>
+                                <h4>Vi skickar!</h4>
+                                <p>Stickers skickas inom 1-2 dagar</p>
                             </div>
                         </div>
                     </div>
-                    <div class="size-badge">Ø30mm • Minimal & diskret</div>
+                    
+                    <!-- PRICING -->
+                    <div class="pricing-section">
+                        <h2>Välj paket</h2>
+                        <div class="pricing-grid">
+                            <!-- Small -->
+                            <div class="price-card">
+                                <div class="price-header">
+                                    <h3>Small</h3>
+                                    <div class="price">
+                                        49<span class="price-currency">kr</span>
+                                    </div>
+                                    <div class="price-note">Fri frakt</div>
+                                </div>
+                                <div class="price-features">
+                                    <div class="feature-highlight">6 stickers</div>
+                                    <p>Perfekt för nybörjaren</p>
+                                </div>
+                                <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">Köp nu</a>
+                            </div>
+                            
+                            <!-- Medium -->
+                            <div class="price-card">
+                                <div class="price-header">
+                                    <h3>Medium</h3>
+                                    <div class="price">
+                                        69<span class="price-currency">kr</span>
+                                    </div>
+                                    <div class="price-note">Fri frakt</div>
+                                </div>
+                                <div class="price-features">
+                                    <div class="feature-highlight">12 stickers</div>
+                                    <p>För den regelbundna spelaren</p>
+                                </div>
+                                <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
+                            </div>
+                            
+                            <!-- Large - POPULÄR -->
+                            <div class="price-card popular">
+                                <div class="popular-badge">Mest populär</div>
+                                <div class="price-header">
+                                    <h3>Large</h3>
+                                    <div class="price">
+                                        99<span class="price-currency">kr</span>
+                                    </div>
+                                    <div class="price-note">Fri frakt</div>
+                                </div>
+                                <div class="price-features">
+                                    <div class="feature-highlight">24 stickers</div>
+                                    <p>För den aktiva spelaren</p>
+                                </div>
+                                <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="sticker-specs">
-                    <div class="spec-item">
-                        <span class="spec-icon">💧</span>
-                        <span>Vattentåliga</span>
-                    </div>
-                    <div class="spec-item">
-                        <span class="spec-icon">☀️</span>
-                        <span>UV-beständiga</span>
-                    </div>
-                    <div class="spec-item">
-                        <span class="spec-icon">❄️</span>
-                        <span>Klarar -20°C</span>
-                    </div>
-                    <div class="spec-item">
-                        <span class="spec-icon">🏃</span>
-                        <span>Extremt slitstarka</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- HOW IT WORKS -->
-            <div class="how-it-works">
-                <h2>Så fungerar det</h2>
-                <div class="steps">
-                    <div class="step">
-                        <div class="step-number">1</div>
-                        <h4>Välj paket</h4>
-                        <p>Välj hur många stickers du vill ha – från 6 till 24 st</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">2</div>
-                        <h4>Fyll i adress</h4>
-                        <p>Ange din leveransadress i nästa steg</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">3</div>
-                        <h4>Betala säkert</h4>
-                        <p>Säker betalning med Stripe eller kort</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">4</div>
-                        <h4>Vi skickar!</h4>
-                        <p>Stickers skickas inom 1-2 arbetsdagar</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- PRICING -->
-            <div class="pricing-section">
-                <h2>Välj ditt paket</h2>
-                <div class="pricing-grid">
-                    <!-- Small -->
-                    <div class="price-card">
-                        <div class="price-header">
-                            <h3>Small</h3>
-                            <div class="price">
-                                49<span class="price-currency">kr</span>
-                            </div>
-                            <div class="price-note">
-                                <span>🚚</span> Fri frakt
-                            </div>
-                        </div>
-                        <div class="price-features">
-                            <div class="feature-highlight">6 stickers</div>
-                            <p>Perfekt för nybörjaren</p>
-                            <p>~8 kr/st</p>
-                        </div>
-                        <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">Köp nu</a>
-                    </div>
-                    
-                    <!-- Medium -->
-                    <div class="price-card">
-                        <div class="price-header">
-                            <h3>Medium</h3>
-                            <div class="price">
-                                69<span class="price-currency">kr</span>
-                            </div>
-                            <div class="price-note">
-                                <span>🚚</span> Fri frakt
-                            </div>
-                        </div>
-                        <div class="price-features">
-                            <div class="feature-highlight">12 stickers</div>
-                            <p>För den regelbundna spelaren</p>
-                            <p>~6 kr/st</p>
-                        </div>
-                        <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
-                    </div>
-                    
-                    <!-- Large - POPULÄR -->
-                    <div class="price-card popular">
-                        <div class="popular-badge">Mest populär</div>
-                        <div class="price-header">
-                            <h3>Large</h3>
-                            <div class="price">
-                                99<span class="price-currency">kr</span>
-                            </div>
-                            <div class="price-note">
-                                <span>🚚</span> Fri frakt
-                            </div>
-                        </div>
-                        <div class="price-features">
-                            <div class="feature-highlight">24 stickers</div>
-                            <p>För den aktiva spelaren</p>
-                            <p>~4 kr/st</p>
-                        </div>
-                        <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- TRUST SECTION -->
-            <div class="trust-section">
-                <div class="trust-badges">
-                    <div class="trust-item">
-                        <span class="trust-icon">🔒</span>
-                        <span>Säker betalning med Stripe</span>
-                    </div>
-                    <div class="trust-item">
-                        <span class="trust-icon">🇸🇪</span>
-                        <span>Svenskt företag</span>
-                    </div>
-                    <div class="trust-item">
-                        <span class="trust-icon">📦</span>
-                        <span>Leverans 1-2 dagar</span>
+                <!-- SIDE INFO (nedtonad) -->
+                <div class="side-info">
+                    <img src="{{ url_for('static', filename='images/qrondisc.png') }}" 
+                         alt="QR-kod på disc" 
+                         class="side-image"
+                         onerror="this.style.display='none'">
+                    <div class="side-text">
+                        <h3>Behåll discens värde</h3>
+                        <p>
+                            Att skriva med permanent tusch på discen minskar dess värde när du vill byta eller sälja. Våra stickers kan tas bort utan att lämna märken.
+                        </p>
+                        <ul class="side-benefits">
+                            <li>Inga permanenta märken</li>
+                            <li>Bättre vid återförsäljning</li>
+                            <li>Enkel att byta vid behov</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -875,37 +705,12 @@
 
 {% block extra_js %}
 <script>
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    });
-
-    // Intersection Observer for fade-in animations
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('.price-card, .step, .benefit-item').forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(el);
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const heroBg = document.getElementById('buyHeroBg');
+        if (heroBg && scrolled < window.innerHeight) {
+            heroBg.style.transform = `translateY(${scrolled * 0.3}px) scale(1.1)`;
+        }
     });
 </script>
 {% endblock %}
