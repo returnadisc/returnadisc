@@ -287,19 +287,32 @@
         border-color: #d1d5db;
     }
 
-    /* BLÅ STIL FÖR BESTÄLL KLISTERMÄRKEN */
+    /* SNYGGARE BESTÄLL STICKERS - Mörkgrön stil */
     .option.stickers-option {
-        background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
-        border-color: #2563eb;
+        background: linear-gradient(145deg, #166534 0%, #14532d 100%);
+        border-color: #166534;
         text-decoration: none;
-        color: inherit;
+        color: white;
         display: block;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .option.stickers-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 100%);
+        pointer-events: none;
     }
 
     .option.stickers-option:hover {
-        border-color: #1d4ed8;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(22, 101, 52, 0.4);
+        border-color: #22c55e;
     }
 
     .option-header {
@@ -310,56 +323,56 @@
     }
 
     .option-icon {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         background: #f3f4f6;
-        border-radius: 10px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #6b7280;
+        flex-shrink: 0;
     }
 
-    /* BLÅ IKON */
     .option.stickers-option .option-icon {
-        background: #2563eb;
+        background: rgba(255, 255, 255, 0.2);
         color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
     }
 
     .option h3 {
-        font-size: 1rem;
+        font-size: 1.05rem;
         color: #1a1a1a;
         margin: 0;
         font-weight: 700;
     }
 
     .option.stickers-option h3 {
-        color: #1e40af;
+        color: white;
+        font-size: 1.1rem;
     }
 
     .option p {
         font-size: 0.85rem;
         color: #6b7280;
-        margin: 0 0 0 52px;
+        margin: 0 0 0 56px;
         line-height: 1.4;
     }
 
     .option.stickers-option p {
-        color: #1e40af;
+        color: rgba(255, 255, 255, 0.85);
     }
 
-    /* BILD STIL */
-    .stickers-preview {
-        margin: 15px 0 0 52px;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #bfdbfe;
-    }
-
-    .stickers-preview img {
-        width: 100%;
-        height: auto;
-        display: block;
+    .option-badge {
+        display: inline-block;
+        background: rgba(251, 191, 36, 0.9);
+        color: #1a1a1a;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-left: 56px;
+        margin-top: 10px;
     }
 
     .option-id {
@@ -500,11 +513,6 @@
         .qr-card, .info-card, .activation-card {
             padding: 20px;
         }
-
-        .stickers-preview {
-            margin-left: 0;
-            margin-top: 15px;
-        }
     }
 </style>
 {% endblock %}
@@ -634,18 +642,13 @@
                             <div class="option-header">
                                 <div class="option-icon">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                                     </svg>
                                 </div>
                                 <h3>Beställ klistermärken</h3>
                             </div>
                             <p>Vattentåliga, UV-beständiga, perfekt storlek Ø30mm</p>
-                            
-                            <div class="stickers-preview">
-                                <img src="{{ url_for('static', filename='images/qrondisc.png') }}" 
-                                     alt="QR-kod på disc"
-                                     onerror="this.style.display='none'">
-                            </div>
+                            <span class="option-badge">Rekommenderat</span>
                         </a>
                     </div>
                 </div>
