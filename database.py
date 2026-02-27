@@ -2905,5 +2905,6 @@ class Database:
             raise
 
 
+
 # Skapa global databasinstans
 db = Database(DB_PATH)

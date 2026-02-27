@@ -31,6 +31,7 @@ def login_required(f):
     return decorated_function
 
 
+
 @bp.route('/')
 @login_required
 def index():

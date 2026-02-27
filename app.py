@@ -84,6 +84,7 @@ def create_app(config_name=None):
     return app
 
 
+
 # Skapa app-instansen
 app = create_app()
 
