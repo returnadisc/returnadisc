@@ -2171,18 +2171,21 @@ class DatabaseManager:
             logger.info("Skapade premium_subscriptions tabell")
         
         # NYTT: Stripe prenumerations-kolumner
-        try:
-            cursor.execute("SELECT stripe_subscription_id FROM premium_subscriptions LIMIT 1")
-        except (sqlite3.OperationalError, psycopg2.Error):
-            if self.db.database_url:
-                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_subscription_id TEXT")
-                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_customer_id TEXT")
-                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN cancel_at_period_end BOOLEAN DEFAULT FALSE")
-            else:
-                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_subscription_id TEXT")
-                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_customer_id TEXT")
-                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN cancel_at_period_end BOOLEAN DEFAULT 0")
-            logger.info("La till Stripe-kolumner")
+        stripe_columns = [
+            ("stripe_subscription_id", "TEXT"),
+            ("stripe_customer_id", "TEXT"),
+            ("cancel_at_period_end", "BOOLEAN DEFAULT FALSE" if self.db.database_url else "BOOLEAN DEFAULT 0")
+        ]
+        
+        for column, data_type in stripe_columns:
+            try:
+                cursor.execute(f"SELECT {column} FROM premium_subscriptions LIMIT 1")
+            except (sqlite3.OperationalError, psycopg2.Error):
+                try:
+                    cursor.execute(f"ALTER TABLE premium_subscriptions ADD COLUMN {column} {data_type}")
+                    logger.info(f"La till kolumnen {column}")
+                except Exception as e:
+                    logger.warning(f"Kunde inte lägga till {column}: {e}")
     
     def _create_indexes(self, cursor) -> None:
         indexes = [

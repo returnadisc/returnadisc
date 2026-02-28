@@ -13,7 +13,6 @@ from database import db
 from config import Config
 
 logger = logging.getLogger(__name__)
-
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 
 bp = Blueprint('premium', __name__, url_prefix='/premium')
@@ -35,15 +34,14 @@ def index():
     """Premium-sida."""
     user_id = session.get('user_id')
     premium_status = db.get_user_premium_status(user_id)
-    
-    # Kolla om kampanj gäller (före 1 juli 2026)
     is_launch = datetime.now() < datetime(2026, 7, 1)
     can_get_free = is_launch and not premium_status.get('has_premium')
     
     return render_template('premium/premium_index.html',
                          premium_status=premium_status,
                          is_launch=is_launch,
-                         can_get_free=can_get_free)
+                         can_get_free=can_get_free,
+                         launch_end_date="1 juli 2026")
 
 
 @bp.route('/checkout', methods=['POST'])
@@ -71,7 +69,6 @@ def checkout():
             target_date = datetime(2027, 3, 1)
             trial_days = (target_date - datetime.now()).days
         
-        # Skapa Stripe Checkout Session
         checkout_params = {
             'payment_method_types': ['card'],
             'line_items': [{'price': price_id, 'quantity': 1}],
@@ -83,9 +80,7 @@ def checkout():
         }
         
         if trial_days and trial_days > 0:
-            checkout_params['subscription_data'] = {
-                'trial_period_days': trial_days
-            }
+            checkout_params['subscription_data'] = {'trial_period_days': trial_days}
         
         checkout_session = stripe.checkout.Session.create(**checkout_params)
         return redirect(checkout_session.url, code=303)
@@ -111,7 +106,6 @@ def success():
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         subscription = stripe.Subscription.retrieve(checkout_session.subscription)
         
-        # Spara i databasen
         db.activate_premium_subscription(
             user_id=user_id,
             stripe_subscription_id=subscription.id,
@@ -140,8 +134,7 @@ def manage():
         flash('Du har inte premium.', 'info')
         return redirect(url_for('premium.index'))
     
-    return render_template('premium/manage.html',
-                         premium_status=premium_status)
+    return render_template('premium/manage.html', premium_status=premium_status)
 
 
 @bp.route('/cancel', methods=['POST'])
