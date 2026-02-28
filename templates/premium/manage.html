@@ -63,7 +63,7 @@
                 </div>
                 <div class="status-item">
                     <label>Giltig till</label>
-                    <value>{% if premium_status.premium_until %}{{ premium_status.premium_until[:10] }}{% else %}2027-03-01{% endif %}</value>
+                    <value>{% if premium_status.premium_until %}{{ premium_status.premium_until.strftime('%Y-%m-%d') }}{% else %}2027-03-01{% endif %}</value>
                 </div>
             </div>
             
@@ -79,7 +79,7 @@
                 <h3>Avbryt prenumeration</h3>
                 <p>Du kan avbryta när som helst. Du behåller premium till periodens slut.</p>
                 <form action="{{ url_for('premium.cancel') }}" method="POST" 
-                      onsubmit="return confirm('Är du säker? Du behåller premium till {% if premium_status.premium_until %}{{ premium_status.premium_until[:10] }}{% else %}2027-03-01{% endif %}.');">
+                      onsubmit="return confirm('Är du säker? Du behåller premium till {% if premium_status.premium_until %}{{ premium_status.premium_until.strftime('%Y-%m-%d') }}{% else %}2027-03-01{% endif %}.');">
                     <button type="submit" class="btn-cancel">Avbryt prenumeration</button>
                 </form>
             </div>
