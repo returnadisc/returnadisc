@@ -3022,5 +3022,23 @@ class Database:
             logger.error(f"Fel vid förlängning: {e}")
             return False
 
+
+    def update_cancel_at_period_end(self, user_id: int, cancel: bool) -> bool:
+        """Markera att prenumeration ska avbrytas vid periodens slut."""
+        try:
+            if self._db.database_url:
+                val = "TRUE" if cancel else "FALSE"
+                query = f"UPDATE premium_subscriptions SET cancel_at_period_end = {val} WHERE user_id = %s AND status = 'active'"
+            else:
+                val = 1 if cancel else 0
+                query = f"UPDATE premium_subscriptions SET cancel_at_period_end = {val} WHERE user_id = ? AND status = 'active'"
+            
+            self._db.execute(query, (user_id,))
+            return True
+        except Exception as e:
+            logger.error(f"Fel: {e}")
+            return False
+
+
 # Skapa global databasinstans
 db = Database(DB_PATH)

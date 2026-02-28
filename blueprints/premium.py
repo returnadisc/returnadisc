@@ -153,22 +153,25 @@ def manage():
 @bp.route('/cancel', methods=['POST'])
 @login_required
 def cancel():
-    """Avbryt prenumeration."""
+    """Avbryt prenumeration - behåll till periodens slut."""
     user_id = session.get('user_id')
     
     try:
         sub = db.get_stripe_subscription(user_id)
         if sub and sub.get('stripe_subscription_id'):
+            # Avbryt i Stripe (men behåll till periodens slut)
             stripe.Subscription.modify(
                 sub['stripe_subscription_id'],
                 cancel_at_period_end=True
             )
-            db.update_subscription_status(user_id, 'cancelled')
-            flash('Prenumeration avbruten.', 'success')
+            # Markera i databasen att den avbryts vid periodens slut
+            db.update_cancel_at_period_end(user_id, True)
+            logger.info(f"Prenumeration markerad för avbrytning för användare {user_id}")
+            flash('Din prenumeration avbryts vid periodens slut. Du behåller premium till dess.', 'success')
         else:
             flash('Ingen aktiv prenumeration hittades.', 'error')
     except Exception as e:
-        logger.error(f"Fel: {e}")
+        logger.error(f"Fel vid avbrytning: {e}")
         flash('Ett fel uppstod.', 'error')
     
     return redirect(url_for('premium.manage'))
