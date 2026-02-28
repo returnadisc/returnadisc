@@ -61,6 +61,7 @@ class Config:
     # Premium-kampanj (gratis fram till 1 juli)
     PREMIUM_LAUNCH_DATE = datetime(2026, 7, 1)
     PREMIUM_PRICE_SEK = 39
+    STRIPE_PREMIUM_PRICE_ID = os.environ.get('STRIPE_PREMIUM_PRICE_ID')
     
     @classmethod
     def is_launch_period(cls) -> bool:

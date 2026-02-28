@@ -2918,7 +2918,59 @@ class Database:
             logger.error(f"Fel vid uppdatering av användare: {e}")
             raise
 
-
+    def activate_premium_subscription(self, user_id: int, stripe_subscription_id: str,
+                                    stripe_customer_id: str, expires_at: datetime,
+                                    is_launch_offer: bool = False) -> bool:
+        """Aktivera premium via Stripe Subscription."""
+        try:
+            query = """
+                INSERT INTO premium_subscriptions 
+                (user_id, status, expires_at, payment_method, payment_id, 
+                 stripe_subscription_id, stripe_customer_id, is_launch_offer, created_at)
+                VALUES (?, 'active', ?, 'stripe', ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """
+            if self._db.database_url:
+                query = query.replace("?", "%s")
+            
+            self._db.execute(query, (
+                user_id, 
+                expires_at.isoformat() if expires_at else None,
+                stripe_subscription_id,
+                stripe_subscription_id,
+                stripe_customer_id,
+                1 if is_launch_offer else 0
+            ))
+            
+            # Uppdatera users-tabellen
+            self._users.activate_premium(user_id, expires_at)
+            return True
+        except Exception as e:
+            logger.error(f"Fel vid aktivering: {e}")
+            return False
+    
+    def get_stripe_subscription(self, user_id: int) -> Optional[Dict]:
+        """Hämta Stripe prenumerationsinfo."""
+        query = """
+            SELECT stripe_subscription_id, stripe_customer_id, cancel_at_period_end
+            FROM premium_subscriptions 
+            WHERE user_id = ? AND status = 'active'
+            ORDER BY created_at DESC LIMIT 1
+        """
+        if self._db.database_url:
+            query = query.replace("?", "%s")
+        return self._db.fetch_one(query, (user_id,))
+    
+    def update_subscription_status(self, user_id: int, status: str) -> bool:
+        """Uppdatera prenumerationsstatus."""
+        query = """
+            UPDATE premium_subscriptions 
+            SET status = ? 
+            WHERE user_id = ? AND status = 'active'
+        """
+        if self._db.database_url:
+            query = query.replace("?", "%s")
+        self._db.execute(query, (status, user_id))
+        return True
 
 # Skapa global databasinstans
 db = Database(DB_PATH)
