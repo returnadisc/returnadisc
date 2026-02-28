@@ -2135,24 +2135,18 @@ class DatabaseManager:
             logger.info(f"Indexerade {len(rows)} befintliga användare")
     
     def _migrate_premium_columns(self, cursor) -> None:
-        # Lägg till kolumner i users
-        for column, data_type in [("is_premium", "BOOLEAN DEFAULT FALSE"), 
-                                  ("premium_until", "TIMESTAMP"), 
-                                  ("premium_started_at", "TIMESTAMP")]:
-            try:
-                cursor.execute(f"SELECT {column} FROM users LIMIT 1")
-            except:
-                try:
-                    cursor.execute(f"ALTER TABLE users ADD COLUMN {column} {data_type}")
-                except:
-                    pass
-        
-        # Skapa tabell med alla kolumner direkt
+        # Kolla om tabellen finns
         try:
-            cursor.execute("DROP TABLE IF EXISTS premium_subscriptions_temp")
+            cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
+            tabell_finns = True
+        except:
+            tabell_finns = False
+        
+        if not tabell_finns:
+            # Skapa ny tabell med alla kolumner
             serial = self.dialect.auto_increment()
             cursor.execute(f"""
-                CREATE TABLE premium_subscriptions_new (
+                CREATE TABLE premium_subscriptions (
                     id {serial} PRIMARY KEY,
                     user_id INTEGER NOT NULL,
                     status TEXT DEFAULT 'active',
@@ -2170,26 +2164,24 @@ class DatabaseManager:
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 )
             """)
+            logger.info("Skapade premium_subscriptions tabell")
+        else:
+            # Lägg till saknade kolumner
+            nya_kolumner = [
+                ("stripe_subscription_id", "TEXT"),
+                ("stripe_customer_id", "TEXT"),
+                ("cancel_at_period_end", "BOOLEAN DEFAULT FALSE")
+            ]
             
-            # Kopiera data om gammal tabell finns
-            try:
-                cursor.execute("""
-                    INSERT INTO premium_subscriptions_new 
-                    (id, user_id, status, started_at, expires_at, payment_method, 
-                     payment_id, amount_paid, currency, is_launch_offer, created_at)
-                    SELECT id, user_id, status, started_at, expires_at, payment_method,
-                           payment_id, amount_paid, currency, is_launch_offer, created_at
-                    FROM premium_subscriptions
-                """)
-                cursor.execute("DROP TABLE premium_subscriptions")
-            except:
-                pass
-            
-            cursor.execute("ALTER TABLE premium_subscriptions_new RENAME TO premium_subscriptions")
-            logger.info("premium_subscriptions tabell skapad/uppgraderad")
-            
-        except Exception as e:
-            logger.error(f"Kunde inte skapa tabell: {e}")
+            for column, data_type in nya_kolumner:
+                try:
+                    cursor.execute(f"SELECT {column} FROM premium_subscriptions LIMIT 1")
+                except:
+                    try:
+                        cursor.execute(f"ALTER TABLE premium_subscriptions ADD COLUMN {column} {data_type}")
+                        logger.info(f"La till kolumnen {column}")
+                    except Exception as e:
+                        logger.warning(f"Kunde inte lägga till {column}: {e}")
     
     def _create_indexes(self, cursor) -> None:
         indexes = [
