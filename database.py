@@ -2930,23 +2930,39 @@ class Database:
                                     is_launch_offer: bool = False) -> bool:
         """Aktivera premium via Stripe Subscription."""
         try:
-            query = """
-                INSERT INTO premium_subscriptions 
-                (user_id, status, expires_at, payment_method, payment_id, 
-                 stripe_subscription_id, stripe_customer_id, is_launch_offer, created_at)
-                VALUES (?, 'active', ?, 'stripe', ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            """
+            # Använd rätt boolean-syntax för PostgreSQL vs SQLite
             if self._db.database_url:
-                query = query.replace("?", "%s")
-            
-            self._db.execute(query, (
-                user_id, 
-                expires_at.isoformat() if expires_at else None,
-                stripe_subscription_id,
-                stripe_subscription_id,
-                stripe_customer_id,
-                1 if is_launch_offer else 0
-            ))
+                # PostgreSQL använder TRUE/FALSE
+                launch_offer_val = "TRUE" if is_launch_offer else "FALSE"
+                query = f"""
+                    INSERT INTO premium_subscriptions 
+                    (user_id, status, expires_at, payment_method, payment_id, 
+                     stripe_subscription_id, stripe_customer_id, is_launch_offer, created_at)
+                    VALUES (%s, 'active', %s, 'stripe', %s, %s, %s, {launch_offer_val}, CURRENT_TIMESTAMP)
+                """
+                self._db.execute(query, (
+                    user_id, 
+                    expires_at.isoformat() if expires_at else None,
+                    stripe_subscription_id,
+                    stripe_subscription_id,
+                    stripe_customer_id
+                ))
+            else:
+                # SQLite använder 1/0
+                query = """
+                    INSERT INTO premium_subscriptions 
+                    (user_id, status, expires_at, payment_method, payment_id, 
+                     stripe_subscription_id, stripe_customer_id, is_launch_offer, created_at)
+                    VALUES (?, 'active', ?, 'stripe', ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """
+                self._db.execute(query, (
+                    user_id, 
+                    expires_at.isoformat() if expires_at else None,
+                    stripe_subscription_id,
+                    stripe_subscription_id,
+                    stripe_customer_id,
+                    1 if is_launch_offer else 0
+                ))
             
             # Uppdatera users-tabellen
             self._users.activate_premium(user_id, expires_at)
