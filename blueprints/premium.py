@@ -169,16 +169,38 @@ def webhook():
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
     
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, webhook_secret
-        )
+        if webhook_secret:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, webhook_secret
+            )
+        else:
+            # Om ingen webhook secret, parse JSON direkt
+            import json
+            event = json.loads(payload)
         
-        if event['type'] == 'invoice.payment_succeeded':
-            subscription = event['data']['object']
-            # Förnya premium här om nödvändigt
+        # Hantera olika event-typer
+        if event.get('type') == 'checkout.session.completed':
+            session_data = event.get('data', {}).get('object', {})
+            metadata = session_data.get('metadata', {})
             
+            if metadata.get('type') == 'premium':
+                user_id = int(metadata.get('user_id'))
+                subscription_id = session_data.get('subscription')
+                
+                if subscription_id:
+                    subscription = stripe.Subscription.retrieve(subscription_id)
+                    db.activate_premium_subscription(
+                        user_id=user_id,
+                        stripe_subscription_id=subscription.id,
+                        stripe_customer_id=session_data.get('customer'),
+                        expires_at=datetime.fromtimestamp(subscription.current_period_end),
+                        is_launch_offer=bool(subscription.trial_end)
+                    )
+                    logger.info(f"Premium aktiverat via webhook för {user_id}")
+        
         return jsonify({'status': 'success'}), 200
         
     except Exception as e:
         logger.error(f"Webhook error: {e}")
-        return jsonify({'error': 'Server error'}), 500
+        # Returnera ändå 200 så Stripe inte retryar
+        return jsonify({'status': 'received'}), 200
