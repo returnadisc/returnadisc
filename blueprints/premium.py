@@ -104,21 +104,34 @@ def success():
     
     try:
         checkout_session = stripe.checkout.Session.retrieve(session_id)
+        
+        if not checkout_session.subscription:
+            flash('Ingen prenumeration hittades.', 'error')
+            return redirect(url_for('premium.index'))
+        
         subscription = stripe.Subscription.retrieve(checkout_session.subscription)
+        
+        # Hämta current_period_end från subscription
+        period_end = subscription.get('current_period_end')
+        if period_end:
+            expires_at = datetime.fromtimestamp(period_end)
+        else:
+            # Fallback: 1 år från nu
+            expires_at = datetime.now() + timedelta(days=365)
         
         db.activate_premium_subscription(
             user_id=user_id,
             stripe_subscription_id=subscription.id,
             stripe_customer_id=checkout_session.customer,
-            expires_at=datetime.fromtimestamp(subscription.current_period_end),
-            is_launch_offer=bool(subscription.trial_end)
+            expires_at=expires_at,
+            is_launch_offer=bool(subscription.get('trial_end'))
         )
         
         flash('🎉 Premium aktiverat!', 'success')
         return render_template('premium/success.html')
         
     except Exception as e:
-        logger.error(f"Fel: {e}")
+        logger.error(f"Fel i success: {e}")
         flash('Ett fel uppstod.', 'error')
         return redirect(url_for('premium.index'))
 
