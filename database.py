@@ -2145,30 +2145,40 @@ class DatabaseManager:
             try:
                 cursor.execute(f"SELECT {column} FROM users LIMIT 1")
             except (sqlite3.OperationalError, psycopg2.Error):
-                cursor.execute(f"ALTER TABLE users ADD COLUMN {column} {data_type}")
-                logger.info(f"La till kolumnen {column}")
+                try:
+                    cursor.execute(f"ALTER TABLE users ADD COLUMN {column} {data_type}")
+                    logger.info(f"La till kolumnen {column}")
+                except Exception as e:
+                    logger.warning(f"Kunde inte lägga till {column}: {e}")
+                    if self.db.database_url:
+                        cursor.connection.rollback()
         
         try:
             cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
         except (sqlite3.OperationalError, psycopg2.Error):
-            serial = self.dialect.auto_increment()
-            cursor.execute(f"""
-                CREATE TABLE premium_subscriptions (
-                    id {serial} PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    status TEXT DEFAULT 'active',
-                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP,
-                    payment_method TEXT,
-                    payment_id TEXT,
-                    amount_paid REAL,
-                    currency TEXT DEFAULT 'SEK',
-                    is_launch_offer BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                )
-            """)
-            logger.info("Skapade premium_subscriptions tabell")
+            try:
+                serial = self.dialect.auto_increment()
+                cursor.execute(f"""
+                    CREATE TABLE premium_subscriptions (
+                        id {serial} PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        status TEXT DEFAULT 'active',
+                        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP,
+                        payment_method TEXT,
+                        payment_id TEXT,
+                        amount_paid REAL,
+                        currency TEXT DEFAULT 'SEK',
+                        is_launch_offer BOOLEAN DEFAULT FALSE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (user_id) REFERENCES users(id)
+                    )
+                """)
+                logger.info("Skapade premium_subscriptions tabell")
+            except Exception as e:
+                logger.warning(f"Kunde inte skapa tabell: {e}")
+                if self.db.database_url:
+                    cursor.connection.rollback()
         
         # NYTT: Stripe prenumerations-kolumner
         stripe_columns = [
@@ -2186,6 +2196,8 @@ class DatabaseManager:
                     logger.info(f"La till kolumnen {column}")
                 except Exception as e:
                     logger.warning(f"Kunde inte lägga till {column}: {e}")
+                    if self.db.database_url:
+                        cursor.connection.rollback()
     
     def _create_indexes(self, cursor) -> None:
         indexes = [
