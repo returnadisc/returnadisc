@@ -2169,6 +2169,20 @@ class DatabaseManager:
                 )
             """)
             logger.info("Skapade premium_subscriptions tabell")
+        
+        # NYTT: Stripe prenumerations-kolumner
+        try:
+            cursor.execute("SELECT stripe_subscription_id FROM premium_subscriptions LIMIT 1")
+        except (sqlite3.OperationalError, psycopg2.Error):
+            if self.db.database_url:
+                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_subscription_id TEXT")
+                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_customer_id TEXT")
+                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN cancel_at_period_end BOOLEAN DEFAULT FALSE")
+            else:
+                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_subscription_id TEXT")
+                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN stripe_customer_id TEXT")
+                cursor.execute("ALTER TABLE premium_subscriptions ADD COLUMN cancel_at_period_end BOOLEAN DEFAULT 0")
+            logger.info("La till Stripe-kolumner")
     
     def _create_indexes(self, cursor) -> None:
         indexes = [
