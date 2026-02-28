@@ -2986,6 +2986,41 @@ class Database:
             query = query.replace("?", "%s")
         self._db.execute(query, (status, user_id))
         return True
+        
+
+    def get_user_by_stripe_subscription(self, stripe_subscription_id: str) -> Optional[Dict]:
+        """Hitta användare baserat på Stripe subscription ID."""
+        query = """
+            SELECT user_id FROM premium_subscriptions 
+            WHERE stripe_subscription_id = ? AND status = 'active'
+        """
+        if self._db.database_url:
+            query = query.replace("?", "%s")
+        row = self._db.fetch_one(query, (stripe_subscription_id,))
+        if row:
+            return self.get_user_by_id(row['user_id'])
+        return None
+    
+    def extend_premium(self, user_id: int, new_expires_at: datetime) -> bool:
+        """Förläng premium med nytt utgångsdatum."""
+        try:
+            # Uppdatera senaste prenumerationen
+            query = """
+                UPDATE premium_subscriptions 
+                SET expires_at = ? 
+                WHERE user_id = ? AND status = 'active'
+                ORDER BY created_at DESC LIMIT 1
+            """
+            if self._db.database_url:
+                query = query.replace("?", "%s")
+            self._db.execute(query, (new_expires_at.isoformat(), user_id))
+            
+            # Uppdatera users-tabellen
+            self._users.activate_premium(user_id, new_expires_at)
+            return True
+        except Exception as e:
+            logger.error(f"Fel vid förlängning: {e}")
+            return False
 
 # Skapa global databasinstans
 db = Database(DB_PATH)

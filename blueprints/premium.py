@@ -187,33 +187,55 @@ def webhook():
                 payload, sig_header, webhook_secret
             )
         else:
-            # Om ingen webhook secret, parse JSON direkt
             import json
             event = json.loads(payload)
         
-        # Hantera olika event-typer
-        if event.get('type') == 'checkout.session.completed':
-            session_data = event.get('data', {}).get('object', {})
-            metadata = session_data.get('metadata', {})
-            
+        event_type = event.get('type')
+        data = event.get('data', {}).get('object', {})
+        
+        # Hantera första betalningen (checkout)
+        if event_type == 'checkout.session.completed':
+            metadata = data.get('metadata', {})
             if metadata.get('type') == 'premium':
                 user_id = int(metadata.get('user_id'))
-                subscription_id = session_data.get('subscription')
+                subscription_id = data.get('subscription')
                 
                 if subscription_id:
                     subscription = stripe.Subscription.retrieve(subscription_id)
                     db.activate_premium_subscription(
                         user_id=user_id,
                         stripe_subscription_id=subscription.id,
-                        stripe_customer_id=session_data.get('customer'),
+                        stripe_customer_id=data.get('customer'),
                         expires_at=datetime.fromtimestamp(subscription.current_period_end),
-                        is_launch_offer=bool(subscription.trial_end)
+                        is_launch_offer=bool(subscription.get('trial_end'))
                     )
-                    logger.info(f"Premium aktiverat via webhook för {user_id}")
+                    logger.info(f"Premium aktiverat via checkout för {user_id}")
+        
+        # Hantera automatisk förnyelse (varje år)
+        elif event_type == 'invoice.payment_succeeded':
+            subscription_id = data.get('subscription')
+            if subscription_id:
+                subscription = stripe.Subscription.retrieve(subscription_id)
+                
+                # Hitta användare baserat på subscription_id
+                user = db.get_user_by_stripe_subscription(subscription_id)
+                if user:
+                    # Förläng premium med 1 år
+                    new_expires = datetime.fromtimestamp(subscription.current_period_end)
+                    db.extend_premium(user['id'], new_expires)
+                    logger.info(f"Premium förnyat för {user['id']} till {new_expires}")
+        
+        # Hantera misslyckad betalning
+        elif event_type == 'invoice.payment_failed':
+            subscription_id = data.get('subscription')
+            if subscription_id:
+                user = db.get_user_by_stripe_subscription(subscription_id)
+                if user:
+                    db.cancel_subscription(user['id'])
+                    logger.info(f"Premium avbrutet för {user['id']} pga misslyckad betalning")
         
         return jsonify({'status': 'success'}), 200
         
     except Exception as e:
         logger.error(f"Webhook error: {e}")
-        # Returnera ändå 200 så Stripe inte retryar
         return jsonify({'status': 'received'}), 200
