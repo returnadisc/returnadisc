@@ -2964,9 +2964,9 @@ class Database:
             return False
     
     def get_stripe_subscription(self, user_id: int) -> Optional[Dict]:
-        """Hämta Stripe prenumerationsinfo."""
+        """Hämta Stripe prenumerationsinfo inklusive cancel_at_period_end."""
         query = """
-            SELECT stripe_subscription_id, stripe_customer_id, cancel_at_period_end
+            SELECT stripe_subscription_id, stripe_customer_id, cancel_at_period_end, status
             FROM premium_subscriptions 
             WHERE user_id = ? AND status = 'active'
             ORDER BY created_at DESC LIMIT 1

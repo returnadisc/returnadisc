@@ -60,7 +60,7 @@
             
             {% set subscription = premium_status.active_subscription %}
             {% set is_cancelled = subscription and subscription.status == 'cancelled' %}
-            {% set will_cancel = subscription and subscription.get('cancel_at_period_end') %}
+            {% set will_cancel = subscription and subscription.cancel_at_period_end %}
             
             <div class="status-grid">
                 <div class="status-item {% if is_cancelled %}cancelled{% elif will_cancel %}pending{% else %}active{% endif %}">
