@@ -20,9 +20,11 @@
     .status-item { background: white; padding: 25px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 2px solid transparent; }
     .status-item.active { border-color: #22c55e; }
     .status-item.cancelled { border-color: #ef4444; }
+    .status-item.pending { border-color: #fbbf24; }
     .status-item label { display: block; color: #6b7280; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
     .status-item value { display: block; color: #166534; font-size: 1.4rem; font-weight: 700; }
     .status-item.cancelled value { color: #dc2626; }
+    .status-item.pending value { color: #f59e0b; }
     .launch-offer-box { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 25px; margin-bottom: 25px; text-align: center; color: #92400e; border: 2px solid #fbbf24; }
     .launch-offer-box h3 { font-size: 1.2rem; margin-bottom: 12px; color: #78350f; }
     .launch-offer-box p { font-size: 1rem; line-height: 1.6; margin: 0; }
@@ -31,6 +33,9 @@
     .cancel-section p { color: #6b7280; margin-bottom: 20px; }
     .btn-cancel { background: #fee2e2; color: #dc2626; padding: 12px 24px; border: 2px solid #dc2626; border-radius: 8px; font-weight: 600; cursor: pointer; }
     .btn-cancel:hover { background: #fecaca; }
+    .btn-reactivate { background: #d1fae5; color: #065f46; padding: 12px 24px; border: 2px solid #065f46; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-reactivate:hover { background: #a7f3d0; }
+    .pending-info { background: #fef3c7; color: #92400e; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; border: 2px solid #fbbf24; }
     .cancelled-info { background: #d1fae5; color: #065f46; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; }
     .back-section { margin-top: 25px; text-align: center; }
     .btn-back { display: inline-flex; align-items: center; gap: 10px; background: transparent; color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none; font-weight: 500; border: 2px solid rgba(255, 255, 255, 0.5); }
@@ -55,11 +60,16 @@
             
             {% set subscription = premium_status.active_subscription %}
             {% set is_cancelled = subscription and subscription.status == 'cancelled' %}
+            {% set will_cancel = subscription and subscription.get('cancel_at_period_end') %}
             
             <div class="status-grid">
-                <div class="status-item {% if is_cancelled %}cancelled{% else %}active{% endif %}">
+                <div class="status-item {% if is_cancelled %}cancelled{% elif will_cancel %}pending{% else %}active{% endif %}">
                     <label>Status</label>
-                    <value>{% if is_cancelled %}Avbruten{% else %}Aktiv{% endif %}</value>
+                    <value>
+                        {% if is_cancelled %}Avbruten
+                        {% elif will_cancel %}Avbryts snart
+                        {% else %}Aktiv{% endif %}
+                    </value>
                 </div>
                 <div class="status-item">
                     <label>Giltig till</label>
@@ -75,17 +85,26 @@
             {% endif %}
             
             {% if not is_cancelled %}
-            <div class="cancel-section">
-                <h3>Avbryt prenumeration</h3>
-                <p>Du kan avbryta när som helst. Du behåller premium till periodens slut.</p>
-                <form action="{{ url_for('premium.cancel') }}" method="POST" 
-                      onsubmit="return confirm('Är du säker? Du behåller premium till {% if premium_status.premium_until %}{{ premium_status.premium_until.strftime('%Y-%m-%d') }}{% else %}2027-03-01{% endif %}.');">
-                    <button type="submit" class="btn-cancel">Avbryt prenumeration</button>
-                </form>
-            </div>
+                {% if will_cancel %}
+                <div class="pending-info">
+                    <p>⚠️ Din prenumeration avbryts vid periodens slut ({{ premium_status.premium_until.strftime('%Y-%m-%d') }}).</p>
+                    <form action="{{ url_for('premium.reactivate') }}" method="POST" style="margin-top: 15px;">
+                        <button type="submit" class="btn-reactivate">Återaktivera prenumeration</button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="cancel-section">
+                    <h3>Avbryt prenumeration</h3>
+                    <p>Du kan avbryta när som helst. Du behåller premium till periodens slut.</p>
+                    <form action="{{ url_for('premium.cancel') }}" method="POST" 
+                          onsubmit="return confirm('Är du säker? Du behåller premium till {{ premium_status.premium_until.strftime('%Y-%m-%d') }}.');">
+                        <button type="submit" class="btn-cancel">Avbryt prenumeration</button>
+                    </form>
+                </div>
+                {% endif %}
             {% else %}
             <div class="cancelled-info">
-                <p>✓ Din prenumeration är avbruten. Du behåller premium till periodens slut.</p>
+                <p>✓ Din prenumeration är avbruten.</p>
             </div>
             {% endif %}
         </div>

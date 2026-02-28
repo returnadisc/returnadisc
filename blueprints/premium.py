@@ -176,6 +176,32 @@ def cancel():
     
     return redirect(url_for('premium.manage'))
 
+@bp.route('/reactivate', methods=['POST'])
+@login_required
+def reactivate():
+    """Återaktivera prenumeration som ska avbrytas."""
+    user_id = session.get('user_id')
+    
+    try:
+        sub = db.get_stripe_subscription(user_id)
+        if sub and sub.get('stripe_subscription_id'):
+            # Återaktivera i Stripe
+            stripe.Subscription.modify(
+                sub['stripe_subscription_id'],
+                cancel_at_period_end=False
+            )
+            # Uppdatera databasen
+            db.update_cancel_at_period_end(user_id, False)
+            logger.info(f"Prenumeration återaktiverad för {user_id}")
+            flash('Din prenumeration är återaktiverad!', 'success')
+        else:
+            flash('Ingen prenumeration hittades.', 'error')
+    except Exception as e:
+        logger.error(f"Fel vid återaktivering: {e}")
+        flash('Ett fel uppstod.', 'error')
+    
+    return redirect(url_for('premium.manage'))
+
 
 @bp.route('/webhook', methods=['POST'])
 def webhook():
