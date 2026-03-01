@@ -2964,9 +2964,10 @@ class Database:
             return False
     
     def get_stripe_subscription(self, user_id: int) -> Optional[Dict]:
-        """Hämta Stripe prenumerationsinfo inklusive cancel_at_period_end."""
+        """Hämta Stripe prenumerationsinfo."""
         query = """
-            SELECT stripe_subscription_id, stripe_customer_id, cancel_at_period_end, status
+            SELECT stripe_subscription_id, stripe_customer_id, cancel_at_period_end, status,
+                   CASE WHEN cancel_at_period_end = TRUE OR cancel_at_period_end = 1 THEN 1 ELSE 0 END as stripe_cancellation_status
             FROM premium_subscriptions 
             WHERE user_id = ? AND status = 'active'
             ORDER BY created_at DESC LIMIT 1
