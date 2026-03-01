@@ -2412,64 +2412,48 @@ class Database:
         sub = self._premium_service.activate_free_launch_premium(user_id)
         return sub.to_dict() if sub else None
     
-    def get_user_subscription_status(self, user_id: int) -> Dict:
-        """Hämta fullständig prenumerationsstatus för en användare."""
-        # 🔴 VIKTIGT: Kolla utgångna prenumerationer först
-        self.check_and_update_expired_subscriptions()
+    def check_and_update_expired_subscriptions(self) -> int:
+        """Kontrollera och uppdatera utgångna/inaktiva prenumerationer."""
+        count = 0
         
-        # Hämta färsk användardata efter potentiell uppdatering
-        user = self.users.get_by_id(user_id)
-        if not user:
-            return {'has_premium': False, 'error': 'User not found'}
-        
-        # Använd databasspecifik tidsjämförelse
+        # Hitta användare med is_premium=TRUE men ingen aktiv prenumeration
         if self.db.database_url:
-            query = """
-                SELECT * FROM premium_subscriptions 
-                WHERE user_id = %s 
-                AND (status = 'active' OR status = 'cancelled')
-                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-                ORDER BY created_at DESC
-                LIMIT 1
+            orphaned_query = """
+                SELECT u.id as user_id 
+                FROM users u
+                WHERE u.is_premium = TRUE
+                AND NOT EXISTS (
+                    SELECT 1 FROM premium_subscriptions ps 
+                    WHERE ps.user_id = u.id 
+                    AND ps.status = 'active'
+                    AND (ps.expires_at IS NULL OR ps.expires_at > CURRENT_TIMESTAMP)
+                )
             """
         else:
-            query = """
-                SELECT * FROM premium_subscriptions 
-                WHERE user_id = ? 
-                AND (status = 'active' OR status = 'cancelled')
-                AND (expires_at IS NULL OR expires_at > datetime('now'))
-                ORDER BY created_at DESC
-                LIMIT 1
+            orphaned_query = """
+                SELECT u.id as user_id 
+                FROM users u
+                WHERE u.is_premium = 1
+                AND NOT EXISTS (
+                    SELECT 1 FROM premium_subscriptions ps 
+                    WHERE ps.user_id = u.id 
+                    AND ps.status = 'active'
+                    AND (ps.expires_at IS NULL OR ps.expires_at > datetime('now'))
+                )
             """
         
-        row = self.db.fetch_one(query, (user_id,))
+        with self.db.get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(orphaned_query)
+            rows = cur.fetchall()
+            
+            for row in rows:
+                user_id = row['user_id'] if isinstance(row, dict) else row[0]
+                self.users.deactivate_premium(user_id)
+                logger.info(f"Premium deaktiverat för användare {user_id}")
+                count += 1
         
-        active_sub = None
-        if row:
-            active_sub = PremiumSubscription(
-                id=row.get('id'),
-                user_id=row.get('user_id', 0),
-                status=row.get('status', 'active'),
-                started_at=row.get('started_at'),
-                expires_at=row.get('expires_at'),
-                payment_method=row.get('payment_method'),
-                payment_id=row.get('payment_id'),
-                amount_paid=row.get('amount_paid'),
-                currency=row.get('currency', 'SEK'),
-                is_launch_offer=bool(row.get('is_launch_offer', 0)),
-                created_at=row.get('created_at')
-            )
-        
-        return {
-            'has_premium': user.has_active_premium(),
-            'is_premium': user.is_premium,
-            'premium_until': user.premium_until,
-            'premium_started_at': user.premium_started_at,
-            'active_subscription': active_sub.to_dict() if active_sub else None,
-            'is_launch_period': self.is_launch_period(),
-            'can_get_free_premium': self.can_get_free_premium(user_id),
-            'regular_price': self.REGULAR_PRICE
-        }
+        return count
     
     def get_user_premium_status(self, user_id: int) -> Dict:
         """Alias för get_user_subscription_status för bakåtkompatibilitet."""
