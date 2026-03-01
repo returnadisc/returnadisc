@@ -2414,10 +2414,69 @@ class Database:
     
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
-        # 🔴 VIKTIGT: Kolla utgångna prenumerationer först
-        self.check_expired_subscriptions()
         
-        return self._premium_service.get_user_subscription_status(user_id)
+        # Uppdatera utgångna prenumerationer först
+        self.check_and_update_expired_subscriptions()
+        
+        # Hämta färsk användardata
+        user = self.users.get_by_id(user_id)
+        if not user:
+            return {'has_premium': False, 'error': 'User not found'}
+        
+        # Använd databasspecifik tidsjämförelse
+        if self.db.database_url:
+            query = """
+                SELECT *, 
+                       CASE WHEN cancel_at_period_end = TRUE THEN 1 ELSE 0 END as stripe_cancellation_status
+                FROM premium_subscriptions 
+                WHERE user_id = %s 
+                AND (status = 'active' OR status = 'cancelled')
+                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
+                ORDER BY created_at DESC
+                LIMIT 1
+            """
+        else:
+            query = """
+                SELECT *,
+                       CASE WHEN cancel_at_period_end = 1 THEN 1 ELSE 0 END as stripe_cancellation_status
+                FROM premium_subscriptions 
+                WHERE user_id = ? 
+                AND (status = 'active' OR status = 'cancelled')
+                AND (expires_at IS NULL OR expires_at > datetime('now'))
+                ORDER BY created_at DESC
+                LIMIT 1
+            """
+        
+        row = self.db.fetch_one(query, (user_id,))
+        
+        active_sub = None
+        if row:
+            active_sub = PremiumSubscription(
+                id=row.get('id'),
+                user_id=row.get('user_id', 0),
+                status=row.get('status', 'active'),
+                started_at=row.get('started_at'),
+                expires_at=row.get('expires_at'),
+                payment_method=row.get('payment_method'),
+                payment_id=row.get('payment_id'),
+                amount_paid=row.get('amount_paid'),
+                currency=row.get('currency', 'SEK'),
+                is_launch_offer=bool(row.get('is_launch_offer', 0)),
+                created_at=row.get('created_at')
+            )
+            # Lägg till stripe_cancellation_status manuellt
+            row['stripe_cancellation_status'] = row.get('stripe_cancellation_status', 0)
+        
+        return {
+            'has_premium': user.has_active_premium(),
+            'is_premium': user.is_premium,
+            'premium_until': user.premium_until,
+            'premium_started_at': user.premium_started_at,
+            'active_subscription': row if row else None,  # Returnera hela row dicten
+            'is_launch_period': self.is_launch_period(),
+            'can_get_free_premium': self.can_get_free_premium(user_id),
+            'regular_price': self.REGULAR_PRICE
+        }
     
     def get_user_premium_status(self, user_id: int) -> Dict:
         """Alias för get_user_subscription_status för bakåtkompatibilitet."""
