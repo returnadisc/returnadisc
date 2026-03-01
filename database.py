@@ -2399,6 +2399,7 @@ class Database:
         return self._users.soft_delete(user_id)
     
     # Premium methods
+    # Premium methods - STÄDAD VERSION
     def activate_premium(self, user_id: int, payment_method: str = "free", 
                        payment_id: Optional[str] = None, 
                        amount: Optional[float] = None) -> Dict:
@@ -2415,60 +2416,23 @@ class Database:
     def get_user_subscription_status(self, user_id: int) -> Dict:
         """Hämta fullständig prenumerationsstatus för en användare."""
         # 🔴 VIKTIGT: Kolla utgångna prenumerationer först
-        self.check_and_update_expired_subscriptions()
+        self._premium_service.check_and_update_expired_subscriptions()
         
-        # Hämta färsk användardata efter potentiell uppdatering
-        user = self.users.get_by_id(user_id)
+        user = self._users.get_by_id(user_id)
         if not user:
             return {'has_premium': False, 'error': 'User not found'}
         
-        # Använd databasspecifik tidsjämförelse
-        if self.db.database_url:
-            query = """
-                SELECT * FROM premium_subscriptions 
-                WHERE user_id = %s 
-                AND (status = 'active' OR status = 'cancelled')
-                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-                ORDER BY created_at DESC
-                LIMIT 1
-            """
-        else:
-            query = """
-                SELECT * FROM premium_subscriptions 
-                WHERE user_id = ? 
-                AND (status = 'active' OR status = 'cancelled')
-                AND (expires_at IS NULL OR expires_at > datetime('now'))
-                ORDER BY created_at DESC
-                LIMIT 1
-            """
-        
-        row = self.db.fetch_one(query, (user_id,))
-        
-        active_sub = None
-        if row:
-            active_sub = PremiumSubscription(
-                id=row.get('id'),
-                user_id=row.get('user_id', 0),
-                status=row.get('status', 'active'),
-                started_at=row.get('started_at'),
-                expires_at=row.get('expires_at'),
-                payment_method=row.get('payment_method'),
-                payment_id=row.get('payment_id'),
-                amount_paid=row.get('amount_paid'),
-                currency=row.get('currency', 'SEK'),
-                is_launch_offer=bool(row.get('is_launch_offer', 0)),
-                created_at=row.get('created_at')
-            )
+        sub = self._premium_subs.get_active_for_user(user_id)
         
         return {
             'has_premium': user.has_active_premium(),
             'is_premium': user.is_premium,
             'premium_until': user.premium_until,
             'premium_started_at': user.premium_started_at,
-            'active_subscription': active_sub.to_dict() if active_sub else None,
-            'is_launch_period': self.is_launch_period(),
-            'can_get_free_premium': self.can_get_free_premium(user_id),
-            'regular_price': self.REGULAR_PRICE
+            'active_subscription': sub.to_dict() if sub else None,
+            'is_launch_period': self._premium_service.is_launch_period(),
+            'can_get_free_premium': self._premium_service.can_get_free_premium(user_id),
+            'regular_price': self._premium_service.REGULAR_PRICE
         }
     
     def get_user_premium_status(self, user_id: int) -> Dict:
@@ -2476,6 +2440,7 @@ class Database:
         return self.get_user_subscription_status(user_id)
     
     def check_expired_subscriptions(self) -> int:
+        """Alias för check_and_update_expired_subscriptions."""
         return self._premium_service.check_and_update_expired_subscriptions()
     
     def is_launch_period(self) -> bool:
