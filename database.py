@@ -2965,15 +2965,27 @@ class Database:
     
     def get_stripe_subscription(self, user_id: int) -> Optional[Dict]:
         """Hämta Stripe prenumerationsinfo."""
-        query = """
-            SELECT stripe_subscription_id, stripe_customer_id, cancel_at_period_end, status,
-                   CASE WHEN cancel_at_period_end = TRUE OR cancel_at_period_end = 1 THEN 1 ELSE 0 END as stripe_cancellation_status
-            FROM premium_subscriptions 
-            WHERE user_id = ? AND status = 'active'
-            ORDER BY created_at DESC LIMIT 1
-        """
         if self._db.database_url:
-            query = query.replace("?", "%s")
+            # PostgreSQL - använd bara TRUE
+            query = """
+                SELECT stripe_subscription_id, stripe_customer_id, 
+                       cancel_at_period_end,
+                       CASE WHEN cancel_at_period_end = TRUE THEN 1 ELSE 0 END as stripe_cancellation_status
+                FROM premium_subscriptions 
+                WHERE user_id = %s AND status = 'active'
+                ORDER BY created_at DESC LIMIT 1
+            """
+        else:
+            # SQLite
+            query = """
+                SELECT stripe_subscription_id, stripe_customer_id, 
+                       cancel_at_period_end,
+                       CASE WHEN cancel_at_period_end = 1 THEN 1 ELSE 0 END as stripe_cancellation_status
+                FROM premium_subscriptions 
+                WHERE user_id = ? AND status = 'active'
+                ORDER BY created_at DESC LIMIT 1
+            """
+        
         return self._db.fetch_one(query, (user_id,))
     
     def update_subscription_status(self, user_id: int, status: str) -> bool:
