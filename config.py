@@ -31,11 +31,11 @@ class Config:
     # Database
     DATABASE_PATH = os.environ.get('DATABASE_URL', 'database.db')
     
-    # SendGrid
-    SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+    # Email (Resend) - UPPDATERAT FRÅN SENDGRID
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
     MAIL_DEFAULT_SENDER = "info@returnadisc.se"
     
-    # Email (SMTP)
+    # Email (SMTP) - fallback om Resend inte funkar
     EMAIL_ENABLED = os.environ.get('EMAIL_ENABLED', 'false').lower() == 'true'
     EMAIL_FROM = os.environ.get('EMAIL_FROM', 'info@returnadisc.se')
     SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
@@ -49,7 +49,7 @@ class Config:
     
     # Admin
     ADMIN_KEY = os.environ.get('ADMIN_KEY')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')  # Ändrat till info@
     ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
 
     
@@ -85,7 +85,7 @@ class DevelopmentConfig(Config):
         logging.warning("WARNING: Using default ADMIN_KEY in development!")
     
     ADMIN_KEY = _admin_key
-    ADMIN_EMAIL = 'admin@returnadisc.se'
+    ADMIN_EMAIL = 'info@returnadisc.se'  # Ändrat till info@
 
     ADMIN_PASSWORD_HASH = os.environ.get(
         'ADMIN_PASSWORD_HASH',
@@ -103,7 +103,7 @@ class ProductionConfig(Config):
     PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
     
     ADMIN_KEY = os.environ.get('ADMIN_KEY')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')  # Ändrat till info@
     ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
     
     if not ADMIN_PASSWORD_HASH:
