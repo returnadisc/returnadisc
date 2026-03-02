@@ -2122,58 +2122,60 @@ class DatabaseManager:
                     (email_hash, row['id'])
                 )
             logger.info(f"Indexerade {len(rows)} befintliga användare")
+            
+
     
-def _migrate_premium_columns(self, cursor) -> None:
-    """Migrera premium_subscriptions tabellen med alla nödvändiga kolumner."""
-    
-    # Definiera alla kolumner som ska finnas
-    columns = [
-        ("stripe_subscription_id", "TEXT"),
-        ("stripe_customer_id", "TEXT"),
-        ("cancel_at_period_end", "BOOLEAN DEFAULT FALSE")
-    ]
-    
-    # Kolla om tabellen finns
-    try:
-        cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
-        table_exists = True
-    except:
-        table_exists = False
-    
-    if not table_exists:
-        # Skapa ny tabell med alla kolumner
-        serial = self.dialect.auto_increment()
-        cursor.execute(f"""
-            CREATE TABLE premium_subscriptions (
-                id {serial} PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                status TEXT DEFAULT 'active',
-                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP,
-                payment_method TEXT,
-                payment_id TEXT,
-                amount_paid REAL,
-                currency TEXT DEFAULT 'SEK',
-                is_launch_offer BOOLEAN DEFAULT FALSE,
-                stripe_subscription_id TEXT,
-                stripe_customer_id TEXT,
-                cancel_at_period_end BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        """)
-        logger.info("Skapade premium_subscriptions tabell")
-    else:
-        # Lägg till saknade kolumner en och en
-        for column, data_type in columns:
-            try:
-                cursor.execute(f"SELECT {column} FROM premium_subscriptions LIMIT 1")
-            except:
+    def _migrate_premium_columns(self, cursor) -> None:
+        """Migrera premium_subscriptions tabellen med alla nödvändiga kolumner."""
+        
+        # Definiera alla kolumner som ska finnas
+        columns = [
+            ("stripe_subscription_id", "TEXT"),
+            ("stripe_customer_id", "TEXT"),
+            ("cancel_at_period_end", "BOOLEAN DEFAULT FALSE")
+        ]
+        
+        # Kolla om tabellen finns
+        try:
+            cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
+            table_exists = True
+        except:
+            table_exists = False
+        
+        if not table_exists:
+            # Skapa ny tabell med alla kolumner
+            serial = self.dialect.auto_increment()
+            cursor.execute(f"""
+                CREATE TABLE premium_subscriptions (
+                    id {serial} PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    status TEXT DEFAULT 'active',
+                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP,
+                    payment_method TEXT,
+                    payment_id TEXT,
+                    amount_paid REAL,
+                    currency TEXT DEFAULT 'SEK',
+                    is_launch_offer BOOLEAN DEFAULT FALSE,
+                    stripe_subscription_id TEXT,
+                    stripe_customer_id TEXT,
+                    cancel_at_period_end BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """)
+            logger.info("Skapade premium_subscriptions tabell")
+        else:
+            # Lägg till saknade kolumner en och en
+            for column, data_type in columns:
                 try:
-                    cursor.execute(f"ALTER TABLE premium_subscriptions ADD COLUMN {column} {data_type}")
-                    logger.info(f"La till kolumnen {column}")
-                except Exception as e:
-                    logger.warning(f"Kunde inte lägga till {column}: {e}")
+                    cursor.execute(f"SELECT {column} FROM premium_subscriptions LIMIT 1")
+                except:
+                    try:
+                        cursor.execute(f"ALTER TABLE premium_subscriptions ADD COLUMN {column} {data_type}")
+                        logger.info(f"La till kolumnen {column}")
+                    except Exception as e:
+                        logger.warning(f"Kunde inte lägga till {column}: {e}")
     
     def _create_indexes(self, cursor) -> None:
         indexes = [
