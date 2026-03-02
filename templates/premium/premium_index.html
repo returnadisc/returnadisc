@@ -34,8 +34,8 @@
     .already-premium h2 { color: #166534; font-size: 1.8rem; margin-bottom: 10px; }
     .valid-until { background: linear-gradient(145deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; padding: 20px; border-radius: 16px; margin: 20px 0; font-weight: 600; }
     .secure-text { margin-top: 15px; color: #6b7280; font-size: 0.9rem; }
-    .or-divider { margin: 20px 0; color: #6b7280; font-size: 0.9rem; position: relative; }
-    .or-divider::before, .or-divider::after { content: ""; display: inline-block; width: 50px; height: 1px; background: #e5e7eb; vertical-align: middle; margin: 0 10px; }
+    .trial-info { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); color: #92400e; padding: 15px; border-radius: 12px; margin: 20px 0; font-size: 0.95rem; border: 2px solid #fbbf24; }
+    .trial-info strong { display: block; margin-bottom: 5px; font-size: 1.1rem; }
 </style>
 {% endblock %}
 
@@ -67,50 +67,35 @@
             {% endif %}
 
             <div class="pricing-card">
-                {% if is_launch %}
-                <span class="card-badge free">Gratis Nu!</span>
+                <span class="card-badge {% if is_launch %}free{% endif %}">{% if is_launch %}Gratis Nu!{% else %}Populärast{% endif %}</span>
                 <h2>1 År Premium</h2>
                 <div class="price">
+                    {% if is_launch %}
                     <div class="price-original">39 kr/år</div>
                     <span class="free-text">GRATIS</span>
+                    {% else %}
+                    39 kr/år
+                    {% endif %}
                 </div>
                 <ul class="features">
                     <li>Full tillgång till Community kartan</li>
                     <li>Prioriterad support</li>
                     <li>Early access till nya funktioner</li>
                 </ul>
-                <form action="{{ url_for('premium.activate_free') }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn-premium free">
-                        🎉 Aktivera Gratis Premium
-                    </button>
-                </form>
-                <p class="secure-text">Ingen betalning krävs • Giltigt 365 dagar</p>
                 
-                <div class="or-divider">eller</div>
+                {% if is_launch %}
+                <div class="trial-info">
+                    <strong>🎉 365 dagar helt gratis!</strong>
+                    Registrera ditt betalkort nu. Ingen debitering förrän om 1 år (39 kr/år).
+                </div>
+                {% endif %}
                 
                 <form action="{{ url_for('premium.checkout') }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn-premium" style="font-size: 0.95rem; padding: 14px 35px;">
-                        💳 Köp Premium (stöd oss!)
-                    </button>
-                </form>
-                <p class="secure-text" style="font-size: 0.8rem;">39 kr/år • Säker betalning via Stripe</p>
-                
-                {% else %}
-                <span class="card-badge">Populärast</span>
-                <h2>1 År Premium</h2>
-                <div class="price">39 kr/år</div>
-                <ul class="features">
-                    <li>Full tillgång till Community kartan</li>
-                    <li>Prioriterad support</li>
-                    <li>Early access till nya funktioner</li>
-                </ul>
-                <form action="{{ url_for('premium.checkout') }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn-premium">
-                        🔒 Köp Premium
+                    <button type="submit" class="btn-premium {% if is_launch %}free{% endif %}">
+                        {% if is_launch %}🎉 Aktivera Gratis Premium{% else %}🔒 Köp Premium{% endif %}
                     </button>
                 </form>
                 <p class="secure-text">🔒 Säker betalning via Stripe</p>
-                {% endif %}
             </div>
         {% endif %}
 

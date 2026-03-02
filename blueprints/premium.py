@@ -61,15 +61,24 @@ def checkout():
         return redirect(url_for('premium.index'))
     
     try:
+        is_launch = datetime.now() < datetime(2026, 7, 1)
+        
         checkout_params = {
             'payment_method_types': ['card'],
             'line_items': [{'price': price_id, 'quantity': 1}],
             'mode': 'subscription',
             'success_url': request.host_url + 'premium/success?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url': request.host_url + 'premium/',
-            'metadata': {'user_id': str(user_id)},
+            'metadata': {'user_id': str(user_id), 'type': 'premium'},
             'customer_email': user.get('email')
         }
+        
+        # Om lanseringsperiod: 365 dagar gratis trial (1 år)
+        if is_launch:
+            checkout_params['subscription_data'] = {
+                'trial_period_days': 365,
+                'metadata': {'is_launch_offer': 'true'}
+            }
         
         checkout_session = stripe.checkout.Session.create(**checkout_params)
         return redirect(checkout_session.url, code=303)
@@ -100,68 +109,33 @@ def success():
         
         subscription = stripe.Subscription.retrieve(checkout_session.subscription)
         
-        # Hämta current_period_end från subscription (alltid 365 dagar = 1 år)
+        # Hämta current_period_end från subscription
         period_end = subscription.get('current_period_end')
         if period_end:
             expires_at = datetime.fromtimestamp(period_end)
         else:
-            # Fallback: 1 år från nu
             expires_at = datetime.now() + timedelta(days=365)
         
-        # Kolla om det är lanseringserbjudande (gratis aktivering före 1 juli)
-        is_launch = datetime.now() < datetime(2026, 7, 1)
+        # Kolla om det är lanseringserbjudande (har trial)
+        is_launch_offer = bool(subscription.get('trial_end'))
         
         db.activate_premium_subscription(
             user_id=user_id,
             stripe_subscription_id=subscription.id,
             stripe_customer_id=checkout_session.customer,
             expires_at=expires_at,
-            is_launch_offer=False  # Betalda prenumerationer är inte launch-offer
+            is_launch_offer=is_launch_offer
         )
         
-        flash('🎉 Premium aktiverat!', 'success')
+        if is_launch_offer:
+            flash('🎉 Du har aktiverat 1 år gratis Premium! Efter 365 dagar dras 39 kr/år automatiskt.', 'success')
+        else:
+            flash('🎉 Premium aktiverat!', 'success')
+            
         return render_template('premium/success.html')
         
     except Exception as e:
         logger.error(f"Fel i success: {e}")
-        flash('Ett fel uppstod.', 'error')
-        return redirect(url_for('premium.index'))
-
-
-@bp.route('/activate-free', methods=['POST'])
-@login_required
-def activate_free():
-    """Aktivera 1 år gratis (endast före 1 juli 2026)."""
-    user_id = session.get('user_id')
-    
-    is_launch = datetime.now() < datetime(2026, 7, 1)
-    if not is_launch:
-        flash('Lanseringserbjudandet har upphört.', 'error')
-        return redirect(url_for('premium.index'))
-    
-    premium_status = db.get_user_premium_status(user_id)
-    if premium_status.get('has_premium'):
-        flash('Du har redan premium.', 'info')
-        return redirect(url_for('premium.index'))
-    
-    try:
-        # Aktivera 1 år gratis från idag
-        expires_at = datetime.now() + timedelta(days=365)
-        
-        db.activate_premium_subscription(
-            user_id=user_id,
-            stripe_subscription_id=None,
-            stripe_customer_id=None,
-            expires_at=expires_at,
-            is_launch_offer=True
-        )
-        
-        logger.info(f"Gratis premium aktiverat för {user_id}, giltigt till {expires_at}")
-        flash('🎉 Du har aktiverat 1 år gratis premium!', 'success')
-        return redirect(url_for('disc.dashboard'))
-        
-    except Exception as e:
-        logger.error(f"Fel vid gratis-aktivering: {e}")
         flash('Ett fel uppstod.', 'error')
         return redirect(url_for('premium.index'))
 
@@ -194,12 +168,12 @@ def cancel():
                 sub['stripe_subscription_id'],
                 cancel_at_period_end=True
             )
-        
-        # Markera i databasen att den avbryts vid periodens slut
-        db.update_cancel_at_period_end(user_id, True)
-        logger.info(f"Prenumeration markerad för avbrytning för användare {user_id}")
-        flash('Din prenumeration avbryts vid periodens slut. Du behåller premium till dess.', 'success')
-        
+            # Markera i databasen att den avbryts vid periodens slut
+            db.update_cancel_at_period_end(user_id, True)
+            logger.info(f"Prenumeration markerad för avbrytning för användare {user_id}")
+            flash('Din prenumeration avbryts vid periodens slut. Du behåller premium till dess.', 'success')
+        else:
+            flash('Ingen aktiv prenumeration hittades.', 'error')
     except Exception as e:
         logger.error(f"Fel vid avbrytning: {e}")
         flash('Ett fel uppstod.', 'error')
@@ -221,12 +195,12 @@ def reactivate():
                 sub['stripe_subscription_id'],
                 cancel_at_period_end=False
             )
-        
-        # Uppdatera databasen
-        db.update_cancel_at_period_end(user_id, False)
-        logger.info(f"Prenumeration återaktiverad för {user_id}")
-        flash('Din prenumeration är återaktiverad!', 'success')
-        
+            # Uppdatera databasen
+            db.update_cancel_at_period_end(user_id, False)
+            logger.info(f"Prenumeration återaktiverad för {user_id}")
+            flash('Din prenumeration är återaktiverad!', 'success')
+        else:
+            flash('Ingen prenumeration hittades.', 'error')
     except Exception as e:
         logger.error(f"Fel vid återaktivering: {e}")
         flash('Ett fel uppstod.', 'error')
@@ -261,14 +235,16 @@ def webhook():
             
             if subscription_id:
                 subscription = stripe.Subscription.retrieve(subscription_id)
+                is_launch_offer = bool(subscription.get('trial_end'))
+                
                 db.activate_premium_subscription(
                     user_id=user_id,
                     stripe_subscription_id=subscription.id,
                     stripe_customer_id=data.get('customer'),
                     expires_at=datetime.fromtimestamp(subscription.current_period_end),
-                    is_launch_offer=False
+                    is_launch_offer=is_launch_offer
                 )
-                logger.info(f"Premium aktiverat via checkout för {user_id}")
+                logger.info(f"Premium aktiverat via checkout för {user_id}, launch_offer={is_launch_offer}")
         
         # Hantera automatisk förnyelse (varje år)
         elif event_type == 'invoice.payment_succeeded':
