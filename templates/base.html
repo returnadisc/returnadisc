@@ -200,7 +200,11 @@
             background: #4ade80;
         }
 
-        /* Köp stickers */
+        /* Köp stickers - samma stil som premium */
+        .nav-links a.nav-shop {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
         .nav-links a.nav-shop:hover {
             color: #a78bfa;
         }
@@ -444,7 +448,7 @@
                     {% endif %}
                     
                     <a href="{{ url_for('auth.buy_stickers') }}" class="nav-shop">
-                        Köp stickers
+                        🛒 Köp stickers
                     </a>
                     <a href="{{ url_for('auth.logout') }}" class="nav-logout">
                         Logga ut
