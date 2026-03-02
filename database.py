@@ -236,6 +236,7 @@ class PremiumSubscription:
     amount_paid: Optional[float] = None
     currency: str = "SEK"
     is_launch_offer: bool = False
+    cancel_at_period_end: bool = False  # <-- NY: True = avbryts vid periodens slut
     created_at: Optional[datetime] = None
     
     def to_dict(self) -> Dict[str, Any]:
@@ -248,6 +249,10 @@ class PremiumSubscription:
         if self.expires_at is None:
             return True
         return datetime.now() < self.expires_at
+    
+    def will_cancel_at_period_end(self) -> bool:
+        """Kontrollera om prenumerationen är markerad för avbrytning vid periodens slut."""
+        return self.cancel_at_period_end and self.is_active()
 
 
 @dataclass
@@ -745,6 +750,7 @@ class PremiumSubscriptionRepository(BaseRepository):
             amount_paid=row.get('amount_paid'),
             currency=row.get('currency', 'SEK'),
             is_launch_offer=bool(row.get('is_launch_offer', 0)),
+            cancel_at_period_end=bool(row.get('cancel_at_period_end', 0)),  # <-- NY RAD
             created_at=row.get('created_at')
         )
     
@@ -754,8 +760,8 @@ class PremiumSubscriptionRepository(BaseRepository):
             query = """
                 INSERT INTO premium_subscriptions 
                 (user_id, status, started_at, expires_at, payment_method, 
-                 payment_id, amount_paid, currency, is_launch_offer, created_at)
-                VALUES (%s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                 payment_id, amount_paid, currency, is_launch_offer, cancel_at_period_end, created_at)
+                VALUES (%s, %s, CURRENT_TIMESTAMP, %s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 RETURNING id
             """
             with self.db.get_connection() as conn:
@@ -768,7 +774,8 @@ class PremiumSubscriptionRepository(BaseRepository):
                     subscription.payment_id,
                     subscription.amount_paid,
                     subscription.currency,
-                    subscription.is_launch_offer  # ÄNDRAT: Boolean direkt för PostgreSQL
+                    subscription.is_launch_offer,
+                    subscription.cancel_at_period_end,  # <-- NY RAD
                 ))
                 row = cur.fetchone()
                 return row['id'] if row else None
@@ -777,8 +784,8 @@ class PremiumSubscriptionRepository(BaseRepository):
             query = """
                 INSERT INTO premium_subscriptions 
                 (user_id, status, started_at, expires_at, payment_method, 
-                 payment_id, amount_paid, currency, is_launch_offer, created_at)
-                VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                 payment_id, amount_paid, currency, is_launch_offer, cancel_at_period_end, created_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             """
             self.db.execute(query, (
                 subscription.user_id,
@@ -788,7 +795,8 @@ class PremiumSubscriptionRepository(BaseRepository):
                 subscription.payment_id,
                 subscription.amount_paid,
                 subscription.currency,
-                1 if subscription.is_launch_offer else 0  # SQLite använder 1/0
+                1 if subscription.is_launch_offer else 0,
+                1 if subscription.cancel_at_period_end else 0,  # <-- NY RAD
             ))
             return self.db.last_insert_id()
     
@@ -831,6 +839,21 @@ class PremiumSubscriptionRepository(BaseRepository):
         query = f"UPDATE premium_subscriptions SET status = {self.db.dialect.placeholder()} WHERE id = {self.db.dialect.placeholder()}"
         self.db.execute(query, (status, sub_id))
         return True
+    
+    def update_cancel_at_period_end(self, user_id: int, cancel: bool) -> bool:
+        """Markera att prenumeration ska avbrytas vid periodens slut."""
+        try:
+            val = self.db.dialect.boolean(cancel)
+            query = f"""
+                UPDATE premium_subscriptions 
+                SET cancel_at_period_end = {val} 
+                WHERE user_id = {self.db.dialect.placeholder()} AND status = 'active'
+            """
+            self.db.execute(query, (user_id,))
+            return True
+        except Exception as e:
+            logger.error(f"Fel vid uppdatering av cancel_at_period_end: {e}")
+            return False
 
 
 # ============================================================================
@@ -1753,64 +1776,30 @@ class PremiumService:
         
         return count
     
-    def get_user_subscription_status(self, user_id: int) -> Dict:
-        """Hämta fullständig prenumerationsstatus för en användare."""
-        
-        # 🔴 VIKTIGT: Uppdatera utgångna prenumerationer först (alltid!)
-        self.check_and_update_expired_subscriptions()
-        
-        # Hämta färsk användardata efter potentiell uppdatering
-        user = self.users.get_by_id(user_id)
-        if not user:
-            return {'has_premium': False, 'error': 'User not found'}
-        
-        # Använd databasspecifik tidsjämförelse
-        if self.db.database_url:
-            query = """
-                SELECT * FROM premium_subscriptions 
-                WHERE user_id = %s 
-                AND (status = 'active' OR status = 'cancelled')
-                AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-                ORDER BY created_at DESC
-                LIMIT 1
-            """
-        else:
-            query = """
-                SELECT * FROM premium_subscriptions 
-                WHERE user_id = ? 
-                AND (status = 'active' OR status = 'cancelled')
-                AND (expires_at IS NULL OR expires_at > datetime('now'))
-                ORDER BY created_at DESC
-                LIMIT 1
-            """
-        row = self.db.fetch_one(query, (user_id,))
-        
-        active_sub = None
-        if row:
-            active_sub = PremiumSubscription(
-                id=row.get('id'),
-                user_id=row.get('user_id', 0),
-                status=row.get('status', 'active'),
-                started_at=row.get('started_at'),
-                expires_at=row.get('expires_at'),
-                payment_method=row.get('payment_method'),
-                payment_id=row.get('payment_id'),
-                amount_paid=row.get('amount_paid'),
-                currency=row.get('currency', 'SEK'),
-                is_launch_offer=bool(row.get('is_launch_offer', 0)),
-                created_at=row.get('created_at')
-            )
-        
-        return {
-            'has_premium': user.has_active_premium(),
-            'is_premium': user.is_premium,
-            'premium_until': user.premium_until,
-            'premium_started_at': user.premium_started_at,
-            'active_subscription': active_sub.to_dict() if active_sub else None,
-            'is_launch_period': self.is_launch_period(),
-            'can_get_free_premium': self.can_get_free_premium(user_id),
-            'regular_price': self.REGULAR_PRICE
-        }
+def get_user_subscription_status(self, user_id: int) -> Dict:
+    """Hämta fullständig prenumerationsstatus för en användare."""
+    
+    # 🔴 VIKTIGT: Uppdatera utgångna prenumerationer först (alltid!)
+    self.check_and_update_expired_subscriptions()
+    
+    # Hämta färsk användardata efter potentiell uppdatering
+    user = self.users.get_by_id(user_id)
+    if not user:
+        return {'has_premium': False, 'error': 'User not found'}
+    
+    # Hämta aktiv prenumeration (inklusive de som ska avbrytas vid periodens slut)
+    active_sub = self._premium_subs.get_active_for_user(user_id)
+    
+    return {
+        'has_premium': user.has_active_premium(),
+        'is_premium': user.is_premium,
+        'premium_until': user.premium_until,
+        'premium_started_at': user.premium_started_at,
+        'active_subscription': active_sub.to_dict() if active_sub else None,
+        'is_launch_period': self.is_launch_period(),
+        'can_get_free_premium': self.can_get_free_premium(user_id),
+        'regular_price': self.REGULAR_PRICE
+    }
 
 
 class MatchingService:
@@ -2134,54 +2123,57 @@ class DatabaseManager:
                 )
             logger.info(f"Indexerade {len(rows)} befintliga användare")
     
-    def _migrate_premium_columns(self, cursor) -> None:
-        # Kolla om tabellen finns
-        try:
-            cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
-            tabell_finns = True
-        except:
-            tabell_finns = False
-        
-        if not tabell_finns:
-            # Skapa ny tabell med alla kolumner
-            serial = self.dialect.auto_increment()
-            cursor.execute(f"""
-                CREATE TABLE premium_subscriptions (
-                    id {serial} PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    status TEXT DEFAULT 'active',
-                    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP,
-                    payment_method TEXT,
-                    payment_id TEXT,
-                    amount_paid REAL,
-                    currency TEXT DEFAULT 'SEK',
-                    is_launch_offer BOOLEAN DEFAULT FALSE,
-                    stripe_subscription_id TEXT,
-                    stripe_customer_id TEXT,
-                    cancel_at_period_end BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
-                )
-            """)
-            logger.info("Skapade premium_subscriptions tabell")
-        else:
-            # Lägg till saknade kolumner
-            nya_kolumner = [
-                ("stripe_subscription_id", "TEXT"),
-                ("stripe_customer_id", "TEXT"),
-                ("cancel_at_period_end", "BOOLEAN DEFAULT FALSE")
-            ]
-            
-            for column, data_type in nya_kolumner:
+def _migrate_premium_columns(self, cursor) -> None:
+    """Migrera premium_subscriptions tabellen med alla nödvändiga kolumner."""
+    
+    # Definiera alla kolumner som ska finnas
+    columns = [
+        ("stripe_subscription_id", "TEXT"),
+        ("stripe_customer_id", "TEXT"),
+        ("cancel_at_period_end", "BOOLEAN DEFAULT FALSE")
+    ]
+    
+    # Kolla om tabellen finns
+    try:
+        cursor.execute("SELECT id FROM premium_subscriptions LIMIT 1")
+        table_exists = True
+    except:
+        table_exists = False
+    
+    if not table_exists:
+        # Skapa ny tabell med alla kolumner
+        serial = self.dialect.auto_increment()
+        cursor.execute(f"""
+            CREATE TABLE premium_subscriptions (
+                id {serial} PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                status TEXT DEFAULT 'active',
+                started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP,
+                payment_method TEXT,
+                payment_id TEXT,
+                amount_paid REAL,
+                currency TEXT DEFAULT 'SEK',
+                is_launch_offer BOOLEAN DEFAULT FALSE,
+                stripe_subscription_id TEXT,
+                stripe_customer_id TEXT,
+                cancel_at_period_end BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        logger.info("Skapade premium_subscriptions tabell")
+    else:
+        # Lägg till saknade kolumner en och en
+        for column, data_type in columns:
+            try:
+                cursor.execute(f"SELECT {column} FROM premium_subscriptions LIMIT 1")
+            except:
                 try:
-                    cursor.execute(f"SELECT {column} FROM premium_subscriptions LIMIT 1")
-                except:
-                    try:
-                        cursor.execute(f"ALTER TABLE premium_subscriptions ADD COLUMN {column} {data_type}")
-                        logger.info(f"La till kolumnen {column}")
-                    except Exception as e:
-                        logger.warning(f"Kunde inte lägga till {column}: {e}")
+                    cursor.execute(f"ALTER TABLE premium_subscriptions ADD COLUMN {column} {data_type}")
+                    logger.info(f"La till kolumnen {column}")
+                except Exception as e:
+                    logger.warning(f"Kunde inte lägga till {column}: {e}")
     
     def _create_indexes(self, cursor) -> None:
         indexes = [
@@ -3055,19 +3047,7 @@ class Database:
 
     def update_cancel_at_period_end(self, user_id: int, cancel: bool) -> bool:
         """Markera att prenumeration ska avbrytas vid periodens slut."""
-        try:
-            if self._db.database_url:
-                val = "TRUE" if cancel else "FALSE"
-                query = f"UPDATE premium_subscriptions SET cancel_at_period_end = {val} WHERE user_id = %s AND status = 'active'"
-            else:
-                val = 1 if cancel else 0
-                query = f"UPDATE premium_subscriptions SET cancel_at_period_end = {val} WHERE user_id = ? AND status = 'active'"
-            
-            self._db.execute(query, (user_id,))
-            return True
-        except Exception as e:
-            logger.error(f"Fel: {e}")
-            return False
+        return self._premium_subs.update_cancel_at_period_end(user_id, cancel)
 
 
 # Skapa global databasinstans
