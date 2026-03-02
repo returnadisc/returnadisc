@@ -217,19 +217,6 @@
             box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
         }
 
-        /* QR signup - grön */
-        .nav-links a.nav-qr {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8) 0%, rgba(22, 101, 52, 0.8) 100%);
-            color: white;
-            border-color: rgba(34, 197, 94, 0.5);
-            font-weight: 700;
-        }
-
-        .nav-links a.nav-qr:hover {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 1) 0%, rgba(22, 101, 52, 1) 100%);
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
-        }
-
         /* Mobile menu button */
         .mobile-menu-btn {
             display: none;
@@ -449,9 +436,6 @@
                 {% else %}
                     <a href="{{ url_for('found.found_manual') }}" class="nav-found">
                         <span>🔢</span> Återlämna hittad disc
-                    </a>
-                    <a href="{{ url_for('auth.signup_with_purchased_qr') }}" class="nav-qr">
-                        <span>🎯</span> Har du köpt QR-kod?
                     </a>
                 {% endif %}
             </div>
