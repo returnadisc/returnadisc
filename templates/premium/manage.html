@@ -28,12 +28,12 @@
     .launch-offer-box { background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%); border-radius: 16px; padding: 25px; margin-bottom: 25px; text-align: center; color: #92400e; border: 2px solid #fbbf24; }
     .launch-offer-box h3 { font-size: 1.2rem; margin-bottom: 12px; color: #78350f; }
     .launch-offer-box p { font-size: 1rem; line-height: 1.6; margin: 0; }
-    .cancel-section { border-top: 1px solid #e5e7eb; padding-top: 25px; margin-top: 25px; }
-    .cancel-section h3 { color: #374151; margin-bottom: 10px; }
-    .cancel-section p { color: #6b7280; margin-bottom: 20px; }
-    .btn-cancel { background: #fee2e2; color: #dc2626; padding: 12px 24px; border: 2px solid #dc2626; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .cancel-section { border-top: 1px solid #e5e7eb; padding-top: 25px; margin-top: 25px; text-align: center; }
+    .cancel-section h3 { color: #374151; margin-bottom: 10px; text-align: center; }
+    .cancel-section p { color: #6b7280; margin-bottom: 20px; text-align: center; }
+    .btn-cancel { background: #fee2e2; color: #dc2626; padding: 12px 24px; border: 2px solid #dc2626; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-block; }
     .btn-cancel:hover { background: #fecaca; }
-    .btn-reactivate { background: #d1fae5; color: #065f46; padding: 12px 24px; border: 2px solid #065f46; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-reactivate { background: #d1fae5; color: #065f46; padding: 12px 24px; border: 2px solid #065f46; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-block; }
     .btn-reactivate:hover { background: #a7f3d0; }
     .pending-info { background: #fef3c7; color: #92400e; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; border: 2px solid #fbbf24; }
     .cancelled-info { background: #d1fae5; color: #065f46; padding: 20px; border-radius: 12px; text-align: center; margin-top: 20px; }
@@ -73,14 +73,14 @@
                 </div>
                 <div class="status-item">
                     <label>Giltig till</label>
-                    <value>{% if premium_status.premium_until %}{{ premium_status.premium_until.strftime('%Y-%m-%d') }}{% else %}2027-03-01{% endif %}</value>
+                    <value>{% if premium_status.premium_until %}{{ premium_status.premium_until.strftime('%Y-%m-%d') }}{% else %}-{% endif %}</value>
                 </div>
             </div>
             
             {% if subscription and subscription.get('is_launch_offer') and not is_cancelled %}
             <div class="launch-offer-box">
-                <h3>🎉 Du har lanseringserbjudandet!</h3>
-                <p>Ditt premium är <strong>helt gratis</strong> till 1 mars 2027. Efter det dras 39 kr/år automatiskt.</p>
+                <h3>🎉 Du aktiverade vårt lanseringserbjudande!</h3>
+                <p>Du fick <strong>1 år gratis</strong> eftersom du anslöt dig före 1 juli 2026.</p>
             </div>
             {% endif %}
             
