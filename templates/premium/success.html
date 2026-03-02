@@ -183,6 +183,22 @@
         margin-top: 8px;
     }
 
+    .email-notice {
+        background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: center;
+        color: #1e40af;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .email-notice strong {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 1.05rem;
+    }
+
     .payment-info {
         background: rgba(22, 101, 52, 0.1);
         border-radius: 12px;
@@ -263,14 +279,19 @@
                 <li>Early access till nya funktioner</li>
             </ul>
             
-            {% if is_launch and premium_status and premium_status.active_subscription and premium_status.active_subscription.is_launch_offer %}
+            {% if is_launch %}
             <div class="valid-until-box">
-                <strong>🎁 Gratis period</strong>
-                <span>Din premium är giltig till och med</span>
-                <div class="date">1 mars 2027</div>
+                <strong>🎁 1 år helt gratis!</strong>
+                <span>Som tack för att du anslöt dig tidigt</span>
+                <div class="date">Giltigt 365 dagar</div>
                 <small>
-                    Därefter kan du välja att fortsätta för 39 kr/år
+                    Därefter 39 kr/år (kan avbrytas när som helst)
                 </small>
+            </div>
+            
+            <div class="email-notice">
+                <strong>📧 Ett bekräftelsemail har skickats</strong>
+                Kolla din inkorg (och skräppost) för mer information om din prenumeration.
             </div>
             {% elif premium_status and premium_status.premium_until %}
             <div class="valid-until-box">
@@ -278,11 +299,15 @@
                 <span>Giltigt till och med</span>
                 <div class="date">{{ premium_status.premium_until[:10] }}</div>
             </div>
-                {% if premium_status.active_subscription and premium_status.active_subscription.payment_method == 'stripe' %}
-                <div class="payment-info">
-                    🔒 Betalningen hanterades säkert via Stripe
-                </div>
-                {% endif %}
+            
+            <div class="email-notice">
+                <strong>📧 Ett kvitto har skickats till din e-post</strong>
+                Kolla din inkorg (och skräppost) för betalningsbekräftelse.
+            </div>
+            
+            <div class="payment-info">
+                🔒 Betalningen hanterades säkert via Stripe
+            </div>
             {% endif %}
         </div>
         
@@ -296,4 +321,3 @@
     </div>
 </section>
 {% endblock %}
-

@@ -88,6 +88,11 @@
         font-size: 0.9rem;
     }
 
+    .premium-badge small {
+        font-weight: 500;
+        opacity: 0.9;
+    }
+
     .premium-cta-box {
         background: linear-gradient(145deg, #166534 0%, #14532d 100%);
         border-radius: 16px;
@@ -287,7 +292,6 @@
         border-color: #d1d5db;
     }
 
-    /* SNYGGARE BESTÄLL STICKERS - Mörkgrön stil */
     .option.stickers-option {
         background: linear-gradient(145deg, #166534 0%, #14532d 100%);
         border-color: #166534;
@@ -535,7 +539,7 @@
         <div class="premium-section">
             {% if has_premium %}
                 <div class="premium-badge">
-                    Premium 
+                    💎 Premium 
                     {% if premium_status and premium_status.premium_until %}
                         <small>till {{ premium_status.premium_until.strftime('%Y-%m-%d') }}</small>
                     {% endif %}
@@ -544,7 +548,7 @@
                 <div class="premium-cta-box">
                     <div class="premium-cta-text">Uppgradera till Premium</div>
                     <a href="{{ url_for('premium.index') }}" class="btn-premium-cta">
-                        {% if is_launch %}Erbjudande - Gratis till 1 mars 2027{% else %}Köp Premium{% endif %}
+                        {% if is_launch %}🎉 1 år gratis (före 1 juli){% else %}Köp Premium{% endif %}
                     </a>
                 </div>
             {% endif %}
