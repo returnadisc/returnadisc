@@ -9,6 +9,7 @@ import io
 from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 
+import resend  # NYTT: Resend istället för SendGrid
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4
@@ -21,54 +22,51 @@ logger = logging.getLogger(__name__)
 
 
 # ============================================================================
-# Email Service
+# Email Service - RESEND
 # ============================================================================
 
 class EmailService:
-    """Service för att skicka email via SendGrid API."""
+    """Service för att skicka email via Resend API."""
     
     def __init__(self):
-        self.api_key = os.environ.get('SENDGRID_API_KEY')
+        self.api_key = os.environ.get('RESEND_API_KEY')
         self.enabled = bool(self.api_key)
         self.from_email = "info@returnadisc.se"
         self.from_name = "ReturnaDisc"
         
         if not self.enabled:
-            logger.warning("SENDGRID_API_KEY saknas - email-funktionen är inaktiverad")
+            logger.warning("RESEND_API_KEY saknas - email-funktionen är inaktiverad")
         else:
-            logger.info("SendGrid email-service initialiserad")
+            resend.api_key = self.api_key
+            logger.info("Resend email-service initialiserad")
     
     def send_async(self, to_email: str, subject: str, html_content: str, reply_to: str = None) -> None:
-        """Skicka email asynkront via SendGrid API."""
+        """Skicka email asynkront via Resend API."""
         if not self.enabled:
-            logger.warning(f"Email skickades inte till {to_email} - SendGrid API key saknas")
+            logger.warning(f"Email skickades inte till {to_email} - Resend API key saknas")
             return
         
         def send():
             try:
-                from sendgrid import SendGridAPIClient
-                from sendgrid.helpers.mail import Mail, Email, ReplyTo
-                
-                message = Mail(
-                    from_email=Email(self.from_email, self.from_name),
-                    to_emails=to_email,
-                    subject=subject,
-                    html_content=html_content
-                )
+                params = {
+                    "from": f"{self.from_name} <{self.from_email}>",
+                    "to": to_email,
+                    "subject": subject,
+                    "html": html_content
+                }
                 
                 if reply_to:
-                    message.reply_to = ReplyTo(reply_to)
+                    params["reply_to"] = reply_to
                 
-                sg = SendGridAPIClient(self.api_key)
-                response = sg.send(message)
+                response = resend.Emails.send(params)
                 
-                if response.status_code in [200, 201, 202]:
-                    logger.info(f"✅ Email skickat till {to_email} (status: {response.status_code})")
+                if response and response.get('id'):
+                    logger.info(f"✅ Email skickat till {to_email} (id: {response['id']})")
                 else:
-                    logger.warning(f"⚠️ SendGrid svarade med status: {response.status_code}")
+                    logger.warning(f"⚠️ Resend svarade utan id: {response}")
                     
             except Exception as e:
-                logger.error(f"❌ Kunde inte skicka email via SendGrid: {e}")
+                logger.error(f"❌ Kunde inte skicka email via Resend: {e}")
         
         thread = threading.Thread(target=send)
         thread.daemon = True
@@ -574,51 +572,47 @@ def notify_admin_new_order(user_data: dict, qr_id: str):
 
 def send_email_with_attachment(to_email: str, subject: str, html_content: str, 
                                attachment_path: str = None, attachment_cid: str = None) -> None:
-    """Skicka email med bifogad bild via SendGrid API."""
+    """Skicka email med bifogad bild via Resend API."""
     if not email_service.enabled:
-        logger.warning(f"Email skickades inte till {to_email} - SendGrid API key saknas")
+        logger.warning(f"Email skickades inte till {to_email} - Resend API key saknas")
         return
     
     def send():
         try:
-            from sendgrid import SendGridAPIClient
-            from sendgrid.helpers.mail import Mail, Email, Attachment, FileContent, FileName, FileType, Disposition, ContentId
-            
-            # Skapa meddelande med HTML som huvudinnehåll
-            message = Mail(
-                from_email=Email(email_service.from_email, email_service.from_name),
-                to_emails=to_email,
-                subject=subject,
-                html_content=html_content
-            )
+            params = {
+                "from": f"{email_service.from_name} <{email_service.from_email}>",
+                "to": to_email,
+                "subject": subject,
+                "html": html_content
+            }
             
             # Bifoga bild som inline om angiven
             if attachment_path and os.path.exists(attachment_path):
                 with open(attachment_path, 'rb') as f:
-                    data = f.read()
+                    file_content = f.read()
                 
-                encoded = base64.b64encode(data).decode()
+                import base64
+                encoded_content = base64.b64encode(file_content).decode('utf-8')
                 
-                attachment = Attachment()
-                attachment.file_content = FileContent(encoded)
-                attachment.file_name = FileName(os.path.basename(attachment_path))
-                attachment.file_type = FileType('image/jpeg')
-                attachment.disposition = Disposition('inline')
-                attachment.content_id = ContentId(attachment_cid)
+                filename = os.path.basename(attachment_path)
                 
-                message.add_attachment(attachment)
+                params["attachments"] = [{
+                    "filename": filename,
+                    "content": encoded_content,
+                    "content_type": "image/jpeg"
+                }]
+                
                 logger.info(f"Bifogade bild: {attachment_path}")
             
-            sg = SendGridAPIClient(email_service.api_key)
-            response = sg.send(message)
+            response = resend.Emails.send(params)
             
-            if response.status_code in [200, 201, 202]:
-                logger.info(f"✅ Email skickat till {to_email} (status: {response.status_code})")
+            if response and response.get('id'):
+                logger.info(f"✅ Email skickat till {to_email} (id: {response['id']})")
             else:
-                logger.warning(f"⚠️ SendGrid svarade med status: {response.status_code}")
+                logger.warning(f"⚠️ Resend svarade utan id: {response}")
                 
         except Exception as e:
-            logger.error(f"❌ Kunde inte skicka email via SendGrid: {e}")
+            logger.error(f"❌ Kunde inte skicka email via Resend: {e}")
     
     thread = threading.Thread(target=send)
     thread.daemon = True
