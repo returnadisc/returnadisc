@@ -30,7 +30,7 @@ class EmailService:
     def __init__(self):
         self.api_key = os.environ.get('SENDGRID_API_KEY')
         self.enabled = bool(self.api_key)
-        self.from_email = "noreply@returnadisc.se"
+        self.from_email = "info@returnadisc.se"
         self.from_name = "ReturnaDisc"
         
         if not self.enabled:
