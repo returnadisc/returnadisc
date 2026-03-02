@@ -225,6 +225,19 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
 
+    .qr-preview .qr-placeholder {
+        width: 200px;
+        height: 200px;
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-size: 4rem;
+        color: white;
+    }
+
     .unassigned-notice {
         background: #e0e7ff;
         border: 1px solid #6366f1;
@@ -352,7 +365,8 @@
             <div class="qr-preview">
                 <img src="{{ url_for('static', filename='qr/qr_' + qr.qr_id + '.png') }}" 
                      alt="QR-kod {{ qr.qr_id }}"
-                     onerror="this.src='{{ url_for('static', filename='images/qr-placeholder.png') }}'">
+                     onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex';">
+                <div id="qrFallback" class="qr-placeholder" style="display: none;">🏷️</div>
                 <p style="margin-top: 10px; color: #6b7280; font-size: 0.9rem;">
                     QR-kod: <code>{{ qr.qr_id }}</code>
                 </p>

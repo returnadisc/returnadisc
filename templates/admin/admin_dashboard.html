@@ -47,7 +47,7 @@
     }
 
     .secondary-stats {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 
     .stat-card {
@@ -91,13 +91,23 @@
         background: linear-gradient(145deg, #22c55e 0%, #16a34a 100%);
     }
 
-    .stat-card.premium {
+    .stat-card.premium-paid {
         background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
         color: #78350f;
         border: none;
     }
 
-    .stat-card.premium::before {
+    .stat-card.premium-paid::before {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .stat-card.premium-free {
+        background: linear-gradient(145deg, #a78bfa 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+    }
+
+    .stat-card.premium-free::before {
         background: rgba(255,255,255,0.3);
     }
 
@@ -116,7 +126,8 @@
     }
 
     .stat-card.highlight .stat-value,
-    .stat-card.premium .stat-value {
+    .stat-card.premium-paid .stat-value,
+    .stat-card.premium-free .stat-value {
         color: white;
     }
 
@@ -129,20 +140,100 @@
     }
 
     .stat-card.highlight .stat-label,
-    .stat-card.premium .stat-label {
+    .stat-card.premium-paid .stat-label,
+    .stat-card.premium-free .stat-label {
         color: rgba(255,255,255,0.9);
     }
 
     .stat-sub {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         margin-top: 8px;
         color: #22c55e;
         font-weight: 600;
     }
 
     .stat-card.highlight .stat-sub,
-    .stat-card.premium .stat-sub {
+    .stat-card.premium-paid .stat-sub,
+    .stat-card.premium-free .stat-sub {
         color: rgba(255,255,255,0.85);
+    }
+
+    /* Premium-sektion */
+    .premium-section {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        margin: 40px 0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        border: 1px solid rgba(22, 101, 52, 0.1);
+    }
+
+    .premium-section h2 {
+        color: #166534;
+        margin-bottom: 25px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .premium-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+
+    .premium-card {
+        padding: 25px;
+        border-radius: 16px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .premium-card.paid {
+        background: linear-gradient(145deg, #fef3c7 0%, #fde68a 100%);
+        color: #78350f;
+        border: 2px solid #f59e0b;
+    }
+
+    .premium-card.free {
+        background: linear-gradient(145deg, #ede9fe 0%, #ddd6fe 100%);
+        color: #5b21b6;
+        border: 2px solid #8b5cf6;
+    }
+
+    .premium-card.total {
+        background: linear-gradient(145deg, #166534 0%, #15803d 100%);
+        color: white;
+    }
+
+    .premium-card .icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .premium-card .value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 5px;
+    }
+
+    .premium-card .label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
+    }
+
+    .premium-card .sub {
+        font-size: 0.8rem;
+        margin-top: 8px;
+        opacity: 0.8;
     }
 
     /* Admin-verktyg */
@@ -268,6 +359,10 @@
         .secondary-stats {
             grid-template-columns: repeat(2, 1fr);
         }
+        
+        .premium-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 768px) {
@@ -340,21 +435,47 @@
                 <div class="stat-label">Nya denna vecka</div>
             </div>
             
-            <div class="stat-card premium">
-                <span class="stat-icon">💎</span>
-                <div class="stat-value">{{ stats.premium_users|default(0) }}</div>
-                <div class="stat-label">Premium-användare</div>
-                <div class="stat-sub">
-                    {% if is_launch %}
-                    Gratis till 1 mars 2027
-                    {% else %}
-                    Betalande
-                    {% endif %}
+            <div class="stat-card">
+                <span class="stat-icon">🏷️</span>
+                <div class="stat-value">{{ stats.total_qr_codes|default(0) }}</div>
+                <div class="stat-label">QR-koder totalt</div>
+            </div>
+            
+            <div class="stat-card">
+                <span class="stat-icon">📦</span>
+                <div class="stat-value">{{ stats.total_orders|default(0) }}</div>
+                <div class="stat-label">Ordrar totalt</div>
+            </div>
+        </div>
+
+        <!-- Premium-statistik -->
+        <div class="premium-section">
+            <h2>💎 Premium-statistik</h2>
+            <div class="premium-grid">
+                <div class="premium-card paid">
+                    <div class="icon">💰</div>
+                    <div class="value">{{ stats.premium_paid|default(0) }}</div>
+                    <div class="label">Betalande Premium</div>
+                    <div class="sub">1 års prenumeration</div>
+                </div>
+                
+                <div class="premium-card free">
+                    <div class="icon">🎁</div>
+                    <div class="value">{{ stats.premium_free|default(0) }}</div>
+                    <div class="label">Gratis Premium</div>
+                    <div class="sub">Tidig användare / Kampanj</div>
+                </div>
+                
+                <div class="premium-card total">
+                    <div class="icon">💎</div>
+                    <div class="value">{{ stats.premium_total|default(0) }}</div>
+                    <div class="label">Totalt Premium</div>
+                    <div class="sub">{{ "%.1f"|format((stats.premium_total / stats.users * 100) if stats.users > 0 else 0) }}% av användarna</div>
                 </div>
             </div>
         </div>
 
-        <!-- Admin-verktyg - UTAN Generera QR-koder -->
+        <!-- Admin-verktyg -->
         <div class="admin-section">
             <h2>Admin-verktyg</h2>
             
