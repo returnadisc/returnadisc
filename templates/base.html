@@ -114,107 +114,111 @@
             font-weight: 600;
             font-size: 0.95rem;
             transition: all 0.3s ease;
-            color: var(--text-light);
+            color: rgba(255, 255, 255, 0.8);
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        /* Min sida - grön */
+        /* Min sida - subtil grön */
         .nav-links a.nav-dashboard {
-            background: linear-gradient(135deg, rgba(22, 101, 52, 0.8) 0%, rgba(34, 197, 94, 0.8) 100%);
-            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(22, 101, 52, 0.3);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .nav-links a.nav-dashboard:hover {
-            background: linear-gradient(135deg, rgba(22, 101, 52, 1) 0%, rgba(34, 197, 94, 1) 100%);
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+            background: rgba(22, 101, 52, 0.5);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: white;
         }
 
-        /* Community Karta - gul/grön */
+        /* Community Karta - GUL (endast som sticker ut) */
         .nav-links a.nav-map {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             color: #1a1a1a;
-            border-color: rgba(251, 191, 36, 0.5);
+            border-color: rgba(251, 191, 36, 0.8);
             font-weight: 700;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
         }
 
         .nav-links a.nav-map:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 1) 0%, rgba(245, 158, 11, 1) 100%);
+            background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 100%);
             box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            transform: translateY(-2px);
         }
 
-        /* Premium - guld med pulse */
+        /* Premium - subtil guld */
         .nav-links a.nav-premium {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.95) 0%, rgba(245, 158, 11, 0.95) 100%);
-            color: #1a1a1a;
-            border-color: rgba(251, 191, 36, 0.5);
-            font-weight: 700;
-            animation: pulse-gold 2s infinite;
-        }
-
-        @keyframes pulse-gold {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0); }
+            background: rgba(251, 191, 36, 0.2);
+            border-color: rgba(251, 191, 36, 0.4);
+            color: #fbbf24;
+            font-weight: 600;
         }
 
         .nav-links a.nav-premium:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 1) 0%, rgba(245, 158, 11, 1) 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5);
-            animation: none;
+            background: rgba(251, 191, 36, 0.3);
+            border-color: rgba(251, 191, 36, 0.6);
+            color: #fcd34d;
         }
 
-        /* Aktiv premium - grön */
+        /* Aktiv premium - subtil grön */
         .nav-links a.nav-premium-active {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(22, 101, 52, 0.9) 100%);
-            color: white;
-            border-color: rgba(34, 197, 94, 0.5);
-            font-weight: 700;
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #22c55e;
+            font-weight: 600;
         }
 
         .nav-links a.nav-premium-active:hover {
-            background: linear-gradient(135deg, rgba(34, 197, 94, 1) 0%, rgba(22, 101, 52, 1) 100%);
-            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+            background: rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.6);
+            color: #4ade80;
         }
 
-        /* Köp stickers - blå/lila */
+        /* Köp stickers - subtil blå */
         .nav-links a.nav-shop {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%);
-            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: rgba(255, 255, 255, 0.85);
         }
 
         .nav-links a.nav-shop:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 1) 0%, rgba(139, 92, 246, 1) 100%);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+            background: rgba(59, 130, 246, 0.35);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: white;
         }
 
-        /* Logga ut - röd */
+        /* Logga ut - subtil röd/grå */
         .nav-links a.nav-logout {
-            background: linear-gradient(135deg, rgba(220, 38, 38, 0.8) 0%, rgba(185, 28, 28, 0.8) 100%);
-            border-color: rgba(220, 38, 38, 0.5);
+            background: rgba(220, 38, 38, 0.15);
+            border-color: rgba(220, 38, 38, 0.25);
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
         }
 
         .nav-links a.nav-logout:hover {
-            background: linear-gradient(135deg, rgba(220, 38, 38, 1) 0%, rgba(185, 28, 28, 1) 100%);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+            background: rgba(220, 38, 38, 0.3);
+            border-color: rgba(220, 38, 38, 0.4);
+            color: white;
         }
 
-        /* Hittat disc - gul highlight */
+        /* Hittat disc - subtil gul */
         .nav-links a.nav-found {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.9) 100%);
-            color: #1a1a1a;
-            border-color: rgba(251, 191, 36, 0.5);
-            font-weight: 700;
+            background: rgba(251, 191, 36, 0.2);
+            border-color: rgba(251, 191, 36, 0.3);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .nav-links a.nav-found:hover {
-            background: linear-gradient(135deg, rgba(251, 191, 36, 1) 0%, rgba(245, 158, 11, 1) 100%);
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            background: rgba(251, 191, 36, 0.35);
+            border-color: rgba(251, 191, 36, 0.5);
+            color: white;
         }
 
         /* Mobile menu button */
@@ -411,31 +415,31 @@
             <div class="nav-links" id="navLinks">
                 {% if session.get('user_id') %}
                     <a href="{{ url_for('disc.dashboard') }}" class="nav-dashboard">
-                        <span>🏠</span> Min sida
+                        Min sida
                     </a>
                     <a href="{{ url_for('missing.community_map') }}" class="nav-map">
-                        <span>🗺️</span> Community Karta
+                        Community Karta
                     </a>
                     
                     {% if not session.get('has_premium') %}
                         <a href="{{ url_for('premium.index') }}" class="nav-premium">
-                            <span>💎</span> Bli Premium
+                            Premium
                         </a>
                     {% else %}
                         <a href="{{ url_for('premium.manage') }}" class="nav-premium-active" title="Premium aktivt">
-                            <span>💎</span> Premium
+                            Premium
                         </a>
                     {% endif %}
                     
                     <a href="{{ url_for('auth.buy_stickers') }}" class="nav-shop">
-                        <span>🛒</span> Köp stickers
+                        Köp stickers
                     </a>
                     <a href="{{ url_for('auth.logout') }}" class="nav-logout">
-                        <span>🚪</span> Logga ut
+                        Logga ut
                     </a>
                 {% else %}
                     <a href="{{ url_for('found.found_manual') }}" class="nav-found">
-                        <span>🔢</span> Återlämna hittad disc
+                        Återlämna hittad disc
                     </a>
                 {% endif %}
             </div>
