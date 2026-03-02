@@ -324,7 +324,7 @@ class AdminStatsService:
         stats = {
             'database_ok': self._check_database(),
             'disk_space_ok': self._check_disk_space(),
-            'email_configured': bool(os.environ.get('SENDGRID_API_KEY')),
+            'email_configured': bool(os.environ.get('RESEND_API_KEY')),
             'admin_configured': bool(Config.ADMIN_PASSWORD_HASH),
             'encryption_configured': bool(os.environ.get('PII_ENCRYPTION_KEY') or os.environ.get('SECRET_KEY'))
         }
