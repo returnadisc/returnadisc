@@ -293,7 +293,7 @@
             </div>
         </div>
         
-        <!-- Premium-statistik (4 kort) -->
+        <!-- Premium-statistik (4 kort) - med |default(0) för att undvika fel -->
         <div class="stats-grid secondary-stats">
             <div class="stat-card vip">
                 <span class="stat-icon">👑</span>
@@ -318,9 +318,9 @@
             
             <div class="stat-card highlight">
                 <span class="stat-icon">💎</span>
-                <div class="stat-value">{{ stats.premium_active|default(0) }}</div>
+                <div class="stat-value">{{ stats.premium_users|default(0) }}</div>
                 <div class="stat-label">Totalt Premium</div>
-                <div class="stat-sub">{{ "%.1f"|format((stats.premium_active / stats.users * 100) if stats.users > 0 else 0) }}% av användarna</div>
+                <div class="stat-sub">{{ "%.1f"|format((stats.premium_users / stats.users * 100) if stats.users > 0 else 0) }}% av användarna</div>
             </div>
         </div>
 
