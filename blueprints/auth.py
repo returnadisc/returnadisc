@@ -585,16 +585,48 @@ def order_confirmation_stripe():
             flash('Betalningen är inte slutförd', 'warning')
             return redirect(url_for('auth.buy_stickers'))
         
-        # Hämta paketinfo från Stripe metadata (detta funkar alltid)
-        package = checkout_session.metadata.get('package')
-        count = int(checkout_session.metadata.get('count', 12))
-        
         # ============================================================================
-        # VIKTIGT: Hämta ALL data från Stripe metadata, INTE från session!
-        # Session försvinner ofta mellan checkout och callback
+        # SÄKER HÄMTNING AV METADATA - Stripe-objekt kan ha None-värden!
         # ============================================================================
         
-        # Försök först från session (bakåtkompatibilitet)
+        metadata = getattr(checkout_session, 'metadata', None) or {}
+        
+        package = metadata.get('package')
+        count_str = metadata.get('count', '12')
+        
+        try:
+            count = int(count_str)
+        except (ValueError, TypeError):
+            count = 12
+        
+        # Fallback om metadata saknas
+        if not package:
+            try:
+                line_items = stripe.checkout.Session.list_line_items(session_id, limit=1)
+                if line_items and line_items.data:
+                    desc = line_items.data[0].description or ''
+                    if 'small' in desc.lower():
+                        package = 'small'
+                        count = 6
+                    elif 'large' in desc.lower():
+                        package = 'large'
+                        count = 24
+                    else:
+                        package = 'medium'
+                        count = 12
+            except Exception as e:
+                logger.warning(f"Kunde inte hämta line_items: {e}")
+                package = 'medium'
+                count = 12
+        
+        if package not in ['small', 'medium', 'large']:
+            package = 'medium'
+            count = 12
+        
+        # ============================================================================
+        # HÄMTA KUNDUPPGIFTER - customer_details kan vara None!
+        # ============================================================================
+        
         shipping_name = session.get('checkout_name', '')
         shipping_email = session.get('checkout_email', '')
         shipping_phone = session.get('checkout_phone', '')
@@ -602,40 +634,40 @@ def order_confirmation_stripe():
         shipping_postal_code = session.get('checkout_postal_code', '')
         shipping_city = session.get('checkout_city', '')
         
-        # Om session saknas, försök hämta från Stripe customer_details
-        if not shipping_email and checkout_session.customer_details:
-            shipping_email = getattr(checkout_session.customer_details, 'email', '') or ''
+        customer_details = getattr(checkout_session, 'customer_details', None)
         
-        if not shipping_name and checkout_session.customer_details:
-            shipping_name = getattr(checkout_session.customer_details, 'name', '') or ''
+        if customer_details:
+            if not shipping_email:
+                shipping_email = getattr(customer_details, 'email', '') or ''
+            if not shipping_name:
+                shipping_name = getattr(customer_details, 'name', '') or ''
+            
+            if not shipping_address:
+                address = getattr(customer_details, 'address', None)
+                if address:
+                    shipping_address = getattr(address, 'line1', '') or ''
+                    line2 = getattr(address, 'line2', '')
+                    if line2:
+                        shipping_address += f", {line2}"
+                    shipping_postal_code = getattr(address, 'postal_code', '') or ''
+                    shipping_city = getattr(address, 'city', '') or ''
         
-        # Om vi fortfarande saknar email, använd customer_email från session creation
         if not shipping_email:
             shipping_email = getattr(checkout_session, 'customer_email', '') or ''
         
-        # Säkerställ att vi har de viktigaste uppgifterna
         if not shipping_email:
-            logger.error("Ingen email hittades för order!")
+            logger.error("Ingen email hittades för order! Session ID: %s", session_id)
             flash('Ett fel uppstod - kunde inte identifiera beställningen', 'error')
             return redirect(url_for('auth.index'))
         
-        # Om adress saknas men vi har customer_details med address
-        if not shipping_address and checkout_session.customer_details:
-            cust_details = checkout_session.customer_details
-            if hasattr(cust_details, 'address') and cust_details.address:
-                addr = cust_details.address
-                shipping_address = getattr(addr, 'line1', '') or ''
-                if getattr(addr, 'line2', ''):
-                    shipping_address += f", {addr.line2}"
-                shipping_postal_code = getattr(addr, 'postal_code', '') or ''
-                shipping_city = getattr(addr, 'city', '') or ''
-                # country = getattr(addr, 'country', 'SE')
-        
         shipping_country = 'SE'
         
-        logger.info(f"Order från: {shipping_email}, paket: {package}")
+        logger.info(f"Order från: {shipping_email}, paket: {package}, count: {count}")
         
-        # Hämta eller skapa användare
+        # ============================================================================
+        # SKAPA ANVÄNDARE ELLER HÄMTA BEFINTLIG
+        # ============================================================================
+        
         user = db.get_user_by_email(shipping_email) if shipping_email else None
         user_id = None
         qr_id = None
@@ -646,13 +678,15 @@ def order_confirmation_stripe():
             if user_qr:
                 qr_id = user_qr.get('qr_id')
         else:
-            user_id = 0  # Temporär, uppdateras vid registrering
+            user_id = 0
         
-        # Beräkna pris
+        # ============================================================================
+        # SKAPA ORDER
+        # ============================================================================
+        
         package_prices = {'small': 49, 'medium': 69, 'large': 99}
         total_amount = package_prices.get(package, 69)
         
-        # Skapa order
         order_data = {
             'user_id': user_id,
             'qr_id': qr_id,
@@ -680,15 +714,21 @@ def order_confirmation_stripe():
             random_suffix = ''.join([str(random.randint(0, 9)) for _ in range(4)])
             order_number = f"RD-{date_str}-{random_suffix}"
         
-        # Rensa session (frivilligt - kan kommenteras ut om du vill behålla datan)
+        # ============================================================================
+        # RENSA SESSION
+        # ============================================================================
+        
         for key in ['checkout_package', 'checkout_name', 'checkout_email', 
                     'checkout_phone', 'checkout_address', 'checkout_postal_code', 
                     'checkout_city']:
             session.pop(key, None)
         
-        # Skicka mail... (resten av koden oförändrad)
+        # ============================================================================
+        # SKICKA MAIL
+        # ============================================================================
+        
         admin_email = 'info@returnadisc.se'
-        address_html = f"{shipping_name}<br>{shipping_address}<br>{shipping_postal_code} {shipping_city}"
+        address_html = f"{shipping_name or ''}<br>{shipping_address or ''}<br>{shipping_postal_code or ''} {shipping_city or ''}"
         
         admin_html = f"""<h2>Ny betalning mottagen!</h2>
 <p><strong>Order:</strong> #{order_number}</p>
@@ -699,7 +739,8 @@ def order_confirmation_stripe():
 <hr>
 <p><strong>Leveransadress:</strong><br>{address_html}</p>
 <hr>
-<p><strong>QR-kod:</strong> {qr_id or 'Tilldelas vid registrering'}</p>"""
+<p><strong>QR-kod:</strong> {qr_id or 'Tilldelas vid registrering'}</p>
+<p><a href="{Config.PUBLIC_URL}/admin/orders">Se alla ordrar i admin</a></p>"""
         
         try:
             send_email_async(admin_email, f"Ny order #{order_number}", admin_html)
