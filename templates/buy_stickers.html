@@ -106,7 +106,7 @@
     .sticker-visual {
         position: relative;
         margin-bottom: 30px;
-		padding-bottom: 45px;
+        padding-bottom: 45px;
     }
 
     .sticker-glow {
@@ -270,6 +270,7 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        white-space: nowrap;
     }
 
     .price-header {
@@ -435,44 +436,142 @@
         }
     }
 
+    /* ==================== MOBIL FIXAR ==================== */
     @media (max-width: 640px) {
         .buy-hero {
             padding: 80px 15px 40px;
         }
 
         .buy-header h1 {
-            font-size: 2.2rem;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        /* Mindre QR-kod på mobil */
+        .sticker-visual {
+            margin-bottom: 20px;
+            padding-bottom: 35px;
         }
 
         .sticker-circle {
-            width: 200px;
-            height: 200px;
-            padding: 6px;
+            width: 180px;
+            height: 180px;
+            padding: 4px;
         }
 
         .qr-example {
-            width: 185px;
-            height: 185px;
+            width: 140px;
+            height: 140px;
         }
 
+        /* Mindre badge */
+        .size-badge {
+            padding: 10px 25px;
+            font-size: 1rem;
+        }
+
+        /* Mindre text under QR */
+        .sticker-info {
+            font-size: 0.9rem;
+            padding: 0 20px;
+            max-width: 100%;
+        }
+
+        /* Fixa "MEST POPULÄR" badge */
+        .popular-badge {
+            padding: 8px 20px;
+            font-size: 0.75rem;
+            top: -12px;
+            white-space: nowrap;
+            max-width: 85%;
+        }
+
+        /* Mindre pris på mobil */
         .price {
-            font-size: 3.5rem;
+            font-size: 2.8rem;
         }
 
         .price-currency {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
+            margin-top: 5px;
         }
 
         .feature-highlight {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
 
+        /* Mindre knappar */
+        .btn-select {
+            padding: 15px;
+            font-size: 1rem;
+        }
+
+        /* Mindre rubriker */
+        .pricing-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 35px;
+        }
+
+        /* Hur det fungerar - mindre steg */
         .how-it-works {
-            padding: 30px 20px;
+            padding: 25px 15px;
+            margin-bottom: 40px;
+        }
+
+        .how-it-works h2 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
         }
 
         .steps {
-            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .step h4 {
+            font-size: 1rem;
+        }
+
+        .step p {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Extra små skärmar */
+    @media (max-width: 380px) {
+        .sticker-circle {
+            width: 150px;
+            height: 150px;
+        }
+
+        .qr-example {
+            width: 120px;
+            height: 120px;
+        }
+
+        .size-badge {
+            padding: 8px 20px;
+            font-size: 0.9rem;
+        }
+
+        .price {
+            font-size: 2.5rem;
+        }
+
+        .popular-badge {
+            font-size: 0.7rem;
+            padding: 6px 15px;
+            top: -10px;
+        }
+
+        .buy-header h1 {
+            font-size: 1.8rem;
         }
     }
 </style>
