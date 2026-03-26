@@ -586,11 +586,27 @@ def order_confirmation_stripe():
             return redirect(url_for('auth.buy_stickers'))
         
         # ============================================================================
-        # SÄKER HÄMTNING AV METADATA - Stripe-objekt kan ha None-värden!
+        # SÄKER HÄMTNING AV METADATA - Stripe-objekt beter sig annorlunda!
         # ============================================================================
         
-        metadata = getattr(checkout_session, 'metadata', None) or {}
+        # Konvertera Stripe metadata-objekt till vanlig dict
+        metadata_obj = getattr(checkout_session, 'metadata', None)
         
+        if metadata_obj is None:
+            metadata = {}
+        elif hasattr(metadata_obj, 'to_dict'):
+            # Nyare Stripe-klienter har to_dict()
+            metadata = metadata_obj.to_dict()
+        elif isinstance(metadata_obj, dict):
+            metadata = metadata_obj
+        else:
+            # Fallback: konvertera via __dict__ eller iterera
+            try:
+                metadata = dict(metadata_obj)
+            except:
+                metadata = {}
+        
+        # Nu kan vi använda .get() säkert
         package = metadata.get('package')
         count_str = metadata.get('count', '12')
         
@@ -624,7 +640,7 @@ def order_confirmation_stripe():
             count = 12
         
         # ============================================================================
-        # HÄMTA KUNDUPPGIFTER - customer_details kan vara None!
+        # HÄMTA KUNDUPPGIFTER
         # ============================================================================
         
         shipping_name = session.get('checkout_name', '')
@@ -634,6 +650,7 @@ def order_confirmation_stripe():
         shipping_postal_code = session.get('checkout_postal_code', '')
         shipping_city = session.get('checkout_city', '')
         
+        # Hämta customer_details på säkert sätt
         customer_details = getattr(checkout_session, 'customer_details', None)
         
         if customer_details:
