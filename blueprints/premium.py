@@ -93,7 +93,7 @@ def checkout():
 @bp.route('/success')
 @login_required
 def success():
-    """Efter lyckad betalning - visa bara bekräftelse, mail skickas via webhook."""
+    """Efter lyckad betalning."""
     session_id = request.args.get('session_id')
     user_id = session.get('user_id')
     
@@ -108,11 +108,30 @@ def success():
             flash('Ingen prenumeration hittades.', 'error')
             return redirect(url_for('premium.index'))
         
-        # Hämta prenumerationsinfo för att visa rätt meddelande
+        # Hämta prenumerationsinfo
         subscription = stripe.Subscription.retrieve(checkout_session.subscription)
-        is_launch_offer = bool(subscription.get('trial_end'))
         
-        # Uppdatera databasen (om inte webhook redan gjort det)
+        # ============================================================================
+        # SÄKER HÄMTNING AV METADATA - Stripe-objekt!
+        # ============================================================================
+        
+        # Konvertera Stripe metadata till dict
+        sub_metadata_obj = getattr(subscription, 'metadata', None)
+        if sub_metadata_obj is None:
+            sub_metadata = {}
+        elif hasattr(sub_metadata_obj, 'to_dict'):
+            sub_metadata = sub_metadata_obj.to_dict()
+        elif isinstance(sub_metadata_obj, dict):
+            sub_metadata = sub_metadata_obj
+        else:
+            try:
+                sub_metadata = dict(sub_metadata_obj)
+            except:
+                sub_metadata = {}
+        
+        is_launch_offer = bool(sub_metadata.get('is_launch_offer')) or bool(subscription.get('trial_end'))
+        
+        # Uppdatera databasen
         period_end = subscription.get('current_period_end')
         if period_end:
             expires_at = datetime.fromtimestamp(period_end)
@@ -136,6 +155,7 @@ def success():
         
     except Exception as e:
         logger.error(f"Fel i success: {e}")
+        logger.exception("Full stacktrace:")
         flash('Ett fel uppstod.', 'error')
         return redirect(url_for('premium.index'))
 
