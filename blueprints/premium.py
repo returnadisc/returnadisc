@@ -104,18 +104,32 @@ def success():
     try:
         checkout_session = stripe.checkout.Session.retrieve(session_id)
         
-        if not checkout_session.subscription:
+        # ============================================================================
+        # SÄKER HÄMTNING AV ATTRIBUT - Stripe-objekt har inte .get()!
+        # ============================================================================
+        
+        # subscription kan vara ett ID (sträng) eller ett StripeObject
+        subscription_attr = getattr(checkout_session, 'subscription', None)
+        
+        if subscription_attr is None:
             flash('Ingen prenumeration hittades.', 'error')
             return redirect(url_for('premium.index'))
         
-        # Hämta prenumerationsinfo
-        subscription = stripe.Subscription.retrieve(checkout_session.subscription)
+        # Om det är en sträng, hämta prenumerationen
+        if isinstance(subscription_attr, str):
+            subscription_id = subscription_attr
+        else:
+            # Det är ett StripeObject, hämta ID
+            subscription_id = getattr(subscription_attr, 'id', None)
         
-        # ============================================================================
-        # SÄKER HÄMTNING AV METADATA - Stripe-objekt!
-        # ============================================================================
+        if not subscription_id:
+            flash('Ingen prenumeration hittades.', 'error')
+            return redirect(url_for('premium.index'))
         
-        # Konvertera Stripe metadata till dict
+        # Hämta prenumerationsdetaljer
+        subscription = stripe.Subscription.retrieve(subscription_id)
+        
+        # Hämta metadata säkert
         sub_metadata_obj = getattr(subscription, 'metadata', None)
         if sub_metadata_obj is None:
             sub_metadata = {}
@@ -129,19 +143,42 @@ def success():
             except:
                 sub_metadata = {}
         
-        is_launch_offer = bool(sub_metadata.get('is_launch_offer')) or bool(subscription.get('trial_end'))
+        is_launch_offer = bool(sub_metadata.get('is_launch_offer'))
         
-        # Uppdatera databasen
-        period_end = subscription.get('current_period_end')
+        # Kolla trial_end för att bekräfta launch offer
+        trial_end = getattr(subscription, 'trial_end', None)
+        if trial_end and not is_launch_offer:
+            is_launch_offer = True
+        
+        # Hämta period_end säkert (kan vara attribut eller dict-key)
+        period_end = getattr(subscription, 'current_period_end', None)
+        if period_end is None:
+            # Försök som dict-access
+            try:
+                period_end = subscription['current_period_end']
+            except (KeyError, TypeError):
+                period_end = None
+        
         if period_end:
             expires_at = datetime.fromtimestamp(period_end)
         else:
             expires_at = datetime.now() + timedelta(days=365)
         
+        # Hämta customer ID säkert
+        customer_attr = getattr(checkout_session, 'customer', None)
+        if isinstance(customer_attr, str):
+            customer_id = customer_attr
+        else:
+            customer_id = getattr(customer_attr, 'id', None) if customer_attr else None
+        
+        # ============================================================================
+        # SPARA I DATABASEN
+        # ============================================================================
+        
         db.activate_premium_subscription(
             user_id=user_id,
-            stripe_subscription_id=subscription.id,
-            stripe_customer_id=checkout_session.customer,
+            stripe_subscription_id=subscription_id,
+            stripe_customer_id=customer_id,
             expires_at=expires_at,
             is_launch_offer=is_launch_offer
         )
