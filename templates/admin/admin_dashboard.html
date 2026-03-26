@@ -1,104 +1,96 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard - ReturnaDisc{% endblock %}
+{% block title %}Admin - ReturnaDisc{% endblock %}
 
 {% block extra_css %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    .admin-page {
-        background: #f5f5dc;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .admin-app {
+        background: #0f172a;
         min-height: 100vh;
-        padding: 20px;
+        color: white;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    .admin-container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    /* Header */
-    .admin-header {
+    /* Top Bar */
+    .top-bar {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        padding: 16px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid rgba(22, 101, 52, 0.1);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
-    .admin-header h1 {
-        font-size: 1.5rem;
-        color: #166534;
+    .logo {
+        font-size: 1.3rem;
         font-weight: 700;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
-    .admin-header p {
-        font-size: 0.85rem;
-        color: #6b7280;
+    .logout-btn {
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.2s;
     }
 
-    /* Compact Stats Grid */
-    .stats-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 25px;
-    }
-
-    .stat-pill {
-        background: white;
-        border-radius: 12px;
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border: 1px solid rgba(22, 101, 52, 0.08);
-    }
-
-    .stat-pill.highlight {
-        background: #166534;
+    .logout-btn:hover {
         color: white;
-        border: none;
+        background: rgba(255,255,255,0.1);
     }
 
-    .stat-pill.success {
-        background: #22c55e;
-        color: white;
-        border: none;
+    /* Main Content */
+    .content {
+        padding: 24px 20px;
+        max-width: 800px;
+        margin: 0 auto;
     }
 
-    .stat-icon {
-        font-size: 1.5rem;
-        width: 40px;
-        height: 40px;
+    /* Stats Cards - Horizontal Scroll */
+    .stats-scroll {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(22, 101, 52, 0.1);
-        border-radius: 10px;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        margin-bottom: 32px;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .stat-pill.highlight .stat-icon,
-    .stat-pill.success .stat-icon {
-        background: rgba(255,255,255,0.2);
+    .stats-scroll::-webkit-scrollbar {
+        display: none;
     }
 
-    .stat-content {
-        flex: 1;
+    .stat-card {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        border-radius: 16px;
+        padding: 20px;
+        min-width: 140px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.05);
     }
 
-    .stat-value {
-        font-size: 1.4rem;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 3px;
+    .stat-card.green {
+        background: linear-gradient(135deg, #166534 0%, #22c55e 100%);
+    }
+
+    .stat-card.blue {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 4px;
     }
 
     .stat-label {
@@ -108,276 +100,237 @@
         opacity: 0.8;
     }
 
-    .stat-sub {
-        font-size: 0.7rem;
-        margin-top: 2px;
-        opacity: 0.7;
+    /* Section */
+    .section {
+        margin-bottom: 24px;
     }
 
-    /* Section Title */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
     .section-title {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
         font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 12px;
-        padding-left: 5px;
+        color: #94a3b8;
     }
 
-    /* Tools Grid - App Style */
-    .tools-grid {
+    .premium-badge {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: #78350f;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    /* Menu Grid */
+    .menu-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
-        margin-bottom: 20px;
     }
 
-    .tool-tile {
-        background: white;
+    .menu-item {
+        background: #1e293b;
         border-radius: 16px;
-        padding: 20px 15px;
+        padding: 24px 20px;
         text-decoration: none;
-        color: inherit;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-        border: 1px solid rgba(22, 101, 52, 0.08);
-        transition: all 0.2s ease;
+        color: white;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        min-height: 100px;
-    }
-
-    .tool-tile:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(22, 101, 52, 0.12);
-    }
-
-    .tool-tile.premium {
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-        color: #78350f;
-        border: none;
-    }
-
-    .tool-icon {
-        font-size: 1.8rem;
-        margin-bottom: 8px;
-    }
-
-    .tool-tile.premium .tool-icon {
-        font-size: 2rem;
-        margin-bottom: 5px;
-    }
-
-    .tool-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .tool-tile.premium .tool-label {
-        color: #78350f;
-    }
-
-    .tool-value {
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 2px;
-    }
-
-    .tool-sub {
-        font-size: 0.65rem;
-        opacity: 0.8;
-    }
-
-    /* Quick Actions */
-    .quick-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .btn {
-        padding: 10px 20px;
-        border-radius: 10px;
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 600;
+        gap: 12px;
+        border: 1px solid rgba(255,255,255,0.05);
         transition: all 0.2s;
-        border: none;
-        cursor: pointer;
     }
 
-    .btn-secondary {
-        background: white;
-        color: #166534;
-        border: 1px solid rgba(22, 101, 52, 0.2);
+    .menu-item:hover {
+        background: #334155;
+        transform: scale(1.02);
     }
 
-    .btn-secondary:hover {
-        background: #166534;
-        color: white;
+    .menu-item.premium {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+        border: 1px solid rgba(251, 191, 36, 0.3);
     }
 
-    .btn-text {
-        background: transparent;
-        color: #6b7280;
+    .menu-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: rgba(255,255,255,0.1);
     }
 
-    .btn-text:hover {
-        color: #dc2626;
+    .menu-item.premium .menu-icon {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
     }
 
-    /* Mobile */
-    @media (max-width: 768px) {
-        .admin-page {
-            padding: 15px;
-        }
-
-        .stats-row {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .stat-pill {
-            padding: 12px 10px;
-            flex-direction: column;
-            text-align: center;
-            gap: 8px;
-        }
-
-        .stat-icon {
-            width: 35px;
-            height: 35px;
-            font-size: 1.2rem;
-        }
-
-        .stat-value {
-            font-size: 1.2rem;
-        }
-
-        .stat-label {
-            font-size: 0.65rem;
-        }
-
-        .tools-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .tool-tile {
-            min-height: 90px;
-            padding: 15px;
-        }
-
-        .quick-actions {
-            flex-direction: column;
-        }
-
-        .btn {
-            text-align: center;
-        }
+    .menu-text {
+        font-size: 0.95rem;
+        font-weight: 500;
     }
 
-    @media (max-width: 480px) {
-        .stats-row {
-            grid-template-columns: repeat(3, 1fr);
+    .menu-item.premium .menu-text {
+        color: #fbbf24;
+    }
+
+    .menu-sub {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 12px 20px 24px;
+        display: flex;
+        justify-content: space-around;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        text-decoration: none;
+        color: #64748b;
+        font-size: 0.7rem;
+        transition: all 0.2s;
+    }
+
+    .nav-item.active {
+        color: #22c55e;
+    }
+
+    .nav-icon {
+        font-size: 1.3rem;
+    }
+
+    /* Desktop */
+    @media (min-width: 768px) {
+        .content {
+            padding: 40px;
         }
 
-        .stat-pill {
-            padding: 10px 8px;
+        .stats-scroll {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            overflow: visible;
         }
 
-        .stat-icon {
-            width: 30px;
-            height: 30px;
-            font-size: 1rem;
+        .stat-card {
+            min-width: auto;
         }
 
-        .stat-value {
-            font-size: 1rem;
+        .menu-grid {
+            grid-template-columns: repeat(4, 1fr);
         }
 
-        .stat-label {
-            font-size: 0.6rem;
+        .bottom-nav {
+            display: none;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="admin-page">
-    <div class="admin-container">
-        <!-- Header -->
-        <div class="admin-header">
-            <div>
-                <h1>Admin</h1>
-                <p>ReturnaDisc</p>
+<div class="admin-app">
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <span class="logo">ReturnaDisc Admin</span>
+        <a href="{{ url_for('admin.logout') }}" class="logout-btn">Logga ut</a>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Stats -->
+        <div class="stats-scroll">
+            <div class="stat-card">
+                <div class="stat-number">{{ stats.users }}</div>
+                <div class="stat-label">Användare</div>
             </div>
-        </div>
-        
-        <!-- Compact Stats -->
-        <div class="stats-row">
-            <div class="stat-pill highlight">
-                <span class="stat-icon">👥</span>
-                <div class="stat-content">
-                    <div class="stat-value">{{ stats.users }}</div>
-                    <div class="stat-label">Användare</div>
-                </div>
+            <div class="stat-card blue">
+                <div class="stat-number">{{ stats.missing_discs }}</div>
+                <div class="stat-label">Saknade</div>
             </div>
-            
-            <div class="stat-pill highlight">
-                <span class="stat-icon">🎯</span>
-                <div class="stat-content">
-                    <div class="stat-value">{{ stats.missing_discs }}</div>
-                    <div class="stat-label">Saknade</div>
-                </div>
+            <div class="stat-card green">
+                <div class="stat-number">{{ stats.found_discs }}</div>
+                <div class="stat-label">Återfunna</div>
             </div>
-            
-            <div class="stat-pill success">
-                <span class="stat-icon">✅</span>
-                <div class="stat-content">
-                    <div class="stat-value">{{ stats.found_discs }}</div>
-                    <div class="stat-label">Återfunna</div>
-                    <div class="stat-sub">{{ stats.return_rate }}%</div>
-                </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ "%.0f"|format(stats.return_rate) }}%</div>
+                <div class="stat-label">Success rate</div>
             </div>
         </div>
 
-        <!-- Tools Grid -->
-        <div class="section-title">Verktyg</div>
-        <div class="tools-grid">
-            <!-- Premium -->
-            <div class="tool-tile premium">
-                <span class="tool-icon">💎</span>
-                <div class="tool-value">{{ stats.premium_users|default(0) }}</div>
-                <div class="tool-label">Premium</div>
-                <div class="tool-sub">{{ "%.0f"|format((stats.premium_users / stats.users * 100) if stats.users > 0 else 0) }}%</div>
+        <!-- Premium Section -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Premium</span>
+                <span class="premium-badge">{{ stats.premium_users|default(0) }} aktiva</span>
             </div>
-            
-            <a href="{{ url_for('admin.list_qr_codes') }}" class="tool-tile">
-                <span class="tool-icon">📋</span>
-                <div class="tool-label">QR-koder</div>
-            </a>
-            
-            <a href="{{ url_for('admin.list_orders') }}" class="tool-tile">
-                <span class="tool-icon">📦</span>
-                <div class="tool-label">Ordrar</div>
-            </a>
-            
-            <a href="{{ url_for('admin.list_users') }}" class="tool-tile">
-                <span class="tool-icon">👤</span>
-                <div class="tool-label">Användare</div>
-            </a>
         </div>
 
-        <!-- Actions -->
-        <div class="quick-actions">
-            <a href="{{ url_for('disc.dashboard') }}" class="btn btn-secondary">← Tillbaka</a>
-            <a href="{{ url_for('admin.logout') }}" class="btn btn-text">Logga ut</a>
+        <!-- Menu -->
+        <div class="menu-grid">
+            <a href="{{ url_for('admin.list_qr_codes') }}" class="menu-item">
+                <div class="menu-icon">📋</div>
+                <span class="menu-text">QR-koder</span>
+                <span class="menu-sub">Hantera alla koder</span>
+            </a>
+            
+            <a href="{{ url_for('admin.list_orders') }}" class="menu-item">
+                <div class="menu-icon">📦</div>
+                <span class="menu-text">Ordrar</span>
+                <span class="menu-sub">Se köp & leveranser</span>
+            </a>
+            
+            <a href="{{ url_for('admin.list_users') }}" class="menu-item">
+                <div class="menu-icon">👤</div>
+                <span class="menu-text">Användare</span>
+                <span class="menu-sub">Alla profiler</span>
+            </a>
+            
+            <a href="{{ url_for('disc.dashboard') }}" class="menu-item premium">
+                <div class="menu-icon">🏠</div>
+                <span class="menu-text">Användarvy</span>
+                <span class="menu-sub">Tillbaka till appen</span>
+            </a>
         </div>
+    </div>
+
+    <!-- Bottom Nav (Mobile) -->
+    <div class="bottom-nav">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="nav-item active">
+            <span class="nav-icon">📊</span>
+            <span>Översikt</span>
+        </a>
+        <a href="{{ url_for('admin.list_qr_codes') }}" class="nav-item">
+            <span class="nav-icon">📋</span>
+            <span>QR</span>
+        </a>
+        <a href="{{ url_for('admin.list_orders') }}" class="nav-item">
+            <span class="nav-icon">📦</span>
+            <span>Ordrar</span>
+        </a>
+        <a href="{{ url_for('admin.list_users') }}" class="nav-item">
+            <span class="nav-icon">👤</span>
+            <span>Användare</span>
+        </a>
     </div>
 </div>
 {% endblock %}
