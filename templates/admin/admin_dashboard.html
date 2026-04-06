@@ -40,10 +40,6 @@
     }
 
     .main-stats {
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .secondary-stats {
         grid-template-columns: repeat(4, 1fr);
     }
 
@@ -85,27 +81,12 @@
         color: white;
     }
 
-    .stat-card.vip {
-        background: linear-gradient(145deg, #1e1b4b 0%, #4c1d95 100%);
-        color: white;
-        border: 2px solid #fbbf24;
-    }
-
-    .stat-card.paid {
+    .stat-card.premium {
         background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%);
         color: #78350f;
     }
 
-    .stat-card.free {
-        background: linear-gradient(145deg, #a78bfa 0%, #8b5cf6 100%);
-        color: white;
-    }
-
-    .stat-card.highlight::before,
-    .stat-card.success::before,
-    .stat-card.vip::before,
-    .stat-card.paid::before,
-    .stat-card.free::before {
+    .stat-card.premium::before {
         background: rgba(255,255,255,0.3);
     }
 
@@ -125,9 +106,7 @@
 
     .stat-card.highlight .stat-value,
     .stat-card.success .stat-value,
-    .stat-card.vip .stat-value,
-    .stat-card.paid .stat-value,
-    .stat-card.free .stat-value {
+    .stat-card.premium .stat-value {
         color: white;
     }
 
@@ -141,9 +120,7 @@
 
     .stat-card.highlight .stat-label,
     .stat-card.success .stat-label,
-    .stat-card.vip .stat-label,
-    .stat-card.paid .stat-label,
-    .stat-card.free .stat-label {
+    .stat-card.premium .stat-label {
         color: rgba(255,255,255,0.9);
     }
 
@@ -251,7 +228,7 @@
     }
 
     @media (max-width: 768px) {
-        .main-stats, .secondary-stats {
+        .main-stats {
             grid-template-columns: 1fr;
         }
         
@@ -271,7 +248,7 @@
             <p>Översikt och hantering av ReturnaDisc</p>
         </div>
         
-        <!-- Huvudstatistik -->
+        <!-- Huvudstatistik - 4 kort i en rad -->
         <div class="stats-grid main-stats">
             <div class="stat-card highlight">
                 <span class="stat-icon">👥</span>
@@ -291,35 +268,11 @@
                 <div class="stat-label">Återfunna</div>
                 <div class="stat-sub">{{ stats.return_rate }}% återfått</div>
             </div>
-        </div>
-        
-        <!-- Premium-statistik (4 kort) - med |default(0) för att undvika fel -->
-        <div class="stats-grid secondary-stats">
-            <div class="stat-card vip">
-                <span class="stat-icon">👑</span>
-                <div class="stat-value">{{ stats.premium_vip|default(0) }}</div>
-                <div class="stat-label">VIP</div>
-                <div class="stat-sub">Livstid gratis</div>
-            </div>
             
-            <div class="stat-card paid">
-                <span class="stat-icon">💰</span>
-                <div class="stat-value">{{ stats.premium_paid|default(0) }}</div>
-                <div class="stat-label">Betalande</div>
-                <div class="stat-sub">1 år</div>
-            </div>
-            
-            <div class="stat-card free">
-                <span class="stat-icon">🎁</span>
-                <div class="stat-value">{{ stats.premium_free|default(0) }}</div>
-                <div class="stat-label">Gratis-kampanj</div>
-                <div class="stat-sub">Tillfälligt</div>
-            </div>
-            
-            <div class="stat-card highlight">
+            <div class="stat-card premium">
                 <span class="stat-icon">💎</span>
                 <div class="stat-value">{{ stats.premium_users|default(0) }}</div>
-                <div class="stat-label">Totalt Premium</div>
+                <div class="stat-label">Premium</div>
                 <div class="stat-sub">{{ "%.1f"|format((stats.premium_users / stats.users * 100) if stats.users > 0 else 0) }}% av användarna</div>
             </div>
         </div>
