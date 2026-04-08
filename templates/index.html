@@ -1,16 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}ReturnaDisc - Få tillbaka dina förlorade discar{% endblock %}
+{% block title %}{% if lang == 'en' %}ReturnaDisc - Get your lost discs back{% else %}ReturnaDisc - Få tillbaka dina förlorade discar{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* Hero Section */
     .hero {
         min-height: 75vh;
         position: relative;
@@ -78,9 +73,7 @@
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     }
 
-    .hero-logo span {
-        color: #fbbf24;
-    }
+    .hero-logo span { color: #fbbf24; }
 
     .hero-tagline {
         font-size: 1.5rem;
@@ -137,10 +130,7 @@
         transform: translateY(-2px);
     }
 
-    /* QR Signup Option */
-    .qr-signup-option {
-        margin-bottom: 40px;
-    }
+    .qr-signup-option { margin-bottom: 40px; }
 
     .qr-signup-link {
         display: inline-flex;
@@ -164,15 +154,9 @@
         transform: translateY(-2px);
     }
 
-    .qr-signup-link span {
-        font-size: 1.2rem;
-    }
+    .qr-signup-link span { font-size: 1.2rem; }
+    .qr-signup-link strong { font-weight: 700; }
 
-    .qr-signup-link strong {
-        font-weight: 700;
-    }
-
-    /* Scroll-prompts - ENDAST PILAR MED TEXT */
     .scroll-prompts {
         display: flex;
         justify-content: center;
@@ -190,9 +174,7 @@
         text-decoration: none;
     }
 
-    .scroll-prompt:hover {
-        transform: translateY(-5px);
-    }
+    .scroll-prompt:hover { transform: translateY(-5px); }
 
     .scroll-prompt-text {
         color: rgba(255, 255, 255, 0.9);
@@ -227,7 +209,6 @@
         50% { transform: translateY(-10px); }
     }
 
-    /* How It Works Section */
     .how-it-works {
         background: linear-gradient(135deg, #f5f5dc 0%, #e8e4d9 100%);
         color: #1a1a1a;
@@ -269,7 +250,6 @@
         color: #4b5563;
     }
 
-    /* QR Intro Section - NYTT */
     .qr-intro {
         background: linear-gradient(145deg, #ffffff 0%, #f8f6f0 100%);
         border-radius: 24px;
@@ -357,9 +337,7 @@
         display: block;
     }
 
-    .qr-intro-image.hidden {
-        display: none;
-    }
+    .qr-intro-image.hidden { display: none; }
 
     .qr-intro-placeholder {
         width: 100%;
@@ -371,7 +349,6 @@
         font-size: 6rem;
     }
 
-    /* Horizontal Steps */
     .steps-horizontal {
         display: flex;
         justify-content: center;
@@ -423,9 +400,7 @@
         box-shadow: 0 15px 40px rgba(0,0,0,0.2);
     }
 
-    .step-image.hidden {
-        display: none;
-    }
+    .step-image.hidden { display: none; }
 
     .step-placeholder {
         width: 100%;
@@ -472,7 +447,6 @@
         font-size: 0.95rem;
     }
 
-    /* Community Map Section */
     .news-section {
         background: linear-gradient(135deg, #166534 0%, #15803d 100%);
         color: white;
@@ -547,9 +521,7 @@
         opacity: 0.95;
     }
 
-    .news-features {
-        margin: 25px 0;
-    }
+    .news-features { margin: 25px 0; }
 
     .news-feature {
         display: flex;
@@ -590,9 +562,7 @@
         display: block;
     }
 
-    .news-image.hidden {
-        display: none;
-    }
+    .news-image.hidden { display: none; }
 
     .news-image-placeholder {
         width: 100%;
@@ -605,14 +575,8 @@
         gap: 15px;
     }
 
-    .news-image-placeholder .map-icon {
-        font-size: 6rem;
-    }
-
-    .news-image-placeholder p {
-        font-size: 1.2rem;
-        opacity: 0.9;
-    }
+    .news-image-placeholder .map-icon { font-size: 6rem; }
+    .news-image-placeholder p { font-size: 1.2rem; opacity: 0.9; }
 
     .btn-news {
         display: inline-block;
@@ -635,51 +599,8 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.3);
     }
 
-    /* Footer */
-    .footer-new {
-        background: #000000;
-        color: white;
-        padding: 60px 0 30px;
-    }
-
-    .footer-content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 40px;
-        margin-bottom: 40px;
-    }
-
-    .footer-section h4 {
-        font-size: 1.1rem;
-        margin-bottom: 20px;
-        color: #fbbf24;
-        font-weight: 700;
-    }
-
-    .footer-section a {
-        display: block;
-        color: #9ca3af;
-        text-decoration: none;
-        margin-bottom: 10px;
-        transition: color 0.3s ease;
-    }
-
-    .footer-section a:hover {
-        color: white;
-    }
-
-    .footer-bottom {
-        text-align: center;
-        padding-top: 30px;
-        border-top: 1px solid #1a1a1a;
-        color: #6b7280;
-    }
-
-    /* Responsive */
     @media (max-width: 1200px) {
-        .step-item:not(:last-child)::after {
-            display: none;
-        }
+        .step-item:not(:last-child)::after { display: none; }
     }
 
     @media (max-width: 1024px) {
@@ -700,10 +621,7 @@
             transform: none;
         }
         
-        .qr-intro-image-wrapper:hover {
-            transform: scale(1.02);
-        }
-        
+        .qr-intro-image-wrapper:hover { transform: scale(1.02); }
         .qr-benefits {
             display: inline-block;
             text-align: left;
@@ -716,21 +634,14 @@
             text-align: center;
         }
 
-        .news-content {
-            order: 2;
-        }
-
+        .news-content { order: 2; }
         .news-image-wrapper {
             order: 1;
             max-width: 500px;
             margin: 0 auto;
             transform: none;
         }
-
-        .news-image-wrapper:hover {
-            transform: scale(1.02);
-        }
-
+        .news-image-wrapper:hover { transform: scale(1.02); }
         .news-features {
             display: inline-block;
             text-align: left;
@@ -738,17 +649,9 @@
     }
 
     @media (max-width: 768px) {
-        .hero {
-            min-height: 70vh;
-        }
-
-        .hero-logo {
-            font-size: 2.5rem;
-        }
-        
-        .hero-tagline {
-            font-size: 1.2rem;
-        }
+        .hero { min-height: 70vh; }
+        .hero-logo { font-size: 2.5rem; }
+        .hero-tagline { font-size: 1.2rem; }
         
         .hero-buttons {
             flex-direction: column;
@@ -761,23 +664,14 @@
             max-width: 300px;
         }
 
-        .qr-signup-option {
-            margin-bottom: 30px;
-        }
-
+        .qr-signup-option { margin-bottom: 30px; }
         .qr-signup-link {
             font-size: 0.9rem;
             padding: 10px 20px;
         }
 
-        .scroll-prompts {
-            gap: 30px;
-        }
-
-        .scroll-prompt-text {
-            font-size: 0.8rem;
-        }
-
+        .scroll-prompts { gap: 30px; }
+        .scroll-prompt-text { font-size: 0.8rem; }
         .scroll-prompt-arrow {
             width: 40px;
             height: 40px;
@@ -794,153 +688,161 @@
             width: 100%;
         }
 
-        .step-image, .step-placeholder {
-            height: 250px;
-        }
-
-        .news-content h2 {
-            font-size: 1.8rem;
-        }
-        
-        .qr-intro {
-            padding: 30px 20px;
-        }
-        
-        .qr-intro-text h3 {
-            font-size: 1.6rem;
-        }
+        .step-image, .step-placeholder { height: 250px; }
+        .news-content h2 { font-size: 1.8rem; }
+        .qr-intro { padding: 30px 20px; }
+        .qr-intro-text h3 { font-size: 1.6rem; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero">
     <div class="hero-bg" style="background-image: url('{{ url_for('static', filename='images/hero-bg.png') }}');" id="heroBg"></div>
     <div class="hero-overlay"></div>
     
     <div class="hero-content">
         <h1 class="hero-logo">Return <span>a</span> Disc</h1>
-        <p class="hero-tagline">Discgolfens Lost & Found. QR-kod gör återlämningen anonym och enkel – bild och position kommer direkt till din mail.</p>
+        
+        {% if lang == 'en' %}
+            <p class="hero-tagline">Disc golf's Lost & Found. QR code makes returns anonymous and easy – photo and location come straight to your email.</p>
+        {% else %}
+            <p class="hero-tagline">Discgolfens Lost & Found. QR-kod gör återlämningen anonym och enkel – bild och position kommer direkt till din mail.</p>
+        {% endif %}
         
         <div class="hero-buttons">
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary">Skapa konto gratis</a>
-            <a href="{{ url_for('auth.login') }}" class="btn-secondary">Logga in</a>
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary">
+                {% if lang == 'en' %}Create free account{% else %}Skapa konto gratis{% endif %}
+            </a>
+            <a href="{{ url_for('auth.login') }}" class="btn-secondary">
+                {% if lang == 'en' %}Log in{% else %}Logga in{% endif %}
+            </a>
         </div>
         
-        <!-- QR-kod alternativ -->
         <div class="qr-signup-option">
             <a href="{{ url_for('auth.signup_with_purchased_qr') }}" class="qr-signup-link">
-                <span>🎯</span> Har du köpt QR-kod? <strong>Aktivera + skapa konto →</strong>
+                <span>🎯</span> 
+                {% if lang == 'en' %}
+                    Bought a QR code? <strong>Activate + create account →</strong>
+                {% else %}
+                    Har du köpt QR-kod? <strong>Aktivera + skapa konto →</strong>
+                {% endif %}
             </a>
         </div>
     
-        <!-- ENDAST PILAR MED TEXT - inga separata knappar -->
         <div class="scroll-prompts">
             <a href="#how-it-works" class="scroll-prompt">
-                <span class="scroll-prompt-text">Så fungerar det</span>
+                <span class="scroll-prompt-text">
+                    {% if lang == 'en' %}How it works{% else %}Så fungerar det{% endif %}
+                </span>
                 <div class="scroll-prompt-arrow">↓</div>
             </a>
             <a href="#community-map" class="scroll-prompt">
-                <span class="scroll-prompt-text">Community-kartan</span>
+                <span class="scroll-prompt-text">
+                    {% if lang == 'en' %}Community Map{% else %}Community-kartan{% endif %}
+                </span>
                 <div class="scroll-prompt-arrow">↓</div>
             </a>
         </div>
     </div>
 </section>
 
-<!-- How It Works Section -->
 <section class="how-it-works" id="how-it-works">
     <div class="container">
         <div class="section-header">
-            <h2>Så här fungerar det</h2>
+            <h2>{% if lang == 'en' %}How it works{% else %}Så här fungerar det{% endif %}</h2>
         </div>
         
         <div class="steps-horizontal">
-            <!-- Step 1 -->
             <div class="step-item">
                 <div class="step-image-wrapper">
                     <div class="step-number">1</div>
                     <img src="{{ url_for('static', filename='images/step1-disc-found.png') }}" 
-                         alt="Discen blir hittad" 
+                         alt="{% if lang == 'en' %}Disc gets found{% else %}Discen blir hittad{% endif %}" 
                          class="step-image"
                          loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">🥏</div>
                 </div>
                 <div class="step-content">
-                    <h3>Discen hittas</h3>
-                    <p>Någon hittar din disc i skogen eller på banan.</p>
+                    <h3>{% if lang == 'en' %}Disc gets found{% else %}Discen hittas{% endif %}</h3>
+                    <p>{% if lang == 'en' %}Someone finds your disc in the woods or on the course.{% else %}Någon hittar din disc i skogen eller på banan.{% endif %}</p>
                 </div>
             </div>
 
-            <!-- Step 2 -->
             <div class="step-item">
                 <div class="step-image-wrapper">
                     <div class="step-number">2</div>
                     <img src="{{ url_for('static', filename='images/step2-scan-qr.png') }}" 
-                         alt="Scannar QR-kod" 
+                         alt="{% if lang == 'en' %}Scan QR code{% else %}Scannar QR-kod{% endif %}" 
                          class="step-image"
                          loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">📱</div>
                 </div>
                 <div class="step-content">
-                    <h3>Scannar koden</h3>
-                    <p>QR-koden skannas med telefonen. Ingen app behövs.</p>
+                    <h3>{% if lang == 'en' %}Scan the code{% else %}Scannar koden{% endif %}</h3>
+                    <p>{% if lang == 'en' %}The QR code is scanned with a phone. No app needed.{% else %}QR-koden skannas med telefonen. Ingen app behövs.{% endif %}</p>
                 </div>
             </div>
 
-            <!-- Step 3 -->
             <div class="step-item">
                 <div class="step-image-wrapper">
                     <div class="step-number">3</div>
                     <img src="{{ url_for('static', filename='images/step3-hide-disc.png') }}" 
-                         alt="Gömmer discen" 
+                         alt="{% if lang == 'en' %}Hide & send{% else %}Gömmer & skickar{% endif %}" 
                          class="step-image"
                          loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">📍</div>
                 </div>
                 <div class="step-content">
-                    <h3>Gömmer & skickar</h3>
-                    <p>Discen göms säkert. Bild och position skickas.</p>
+                    <h3>{% if lang == 'en' %}Hide & notify{% else %}Gömmer & skickar{% endif %}</h3>
+                    <p>{% if lang == 'en' %}The disc is hidden safely. Photo and location are sent.{% else %}Discen göms säkert. Bild och position skickas.{% endif %}</p>
                 </div>
             </div>
 
-            <!-- Step 4 -->
             <div class="step-item">
                 <div class="step-image-wrapper">
                     <div class="step-number">4</div>
                     <img src="{{ url_for('static', filename='images/step4-walk-away.png') }}" 
-                         alt="Hämta discen" 
+                         alt="{% if lang == 'en' %}Pick up{% else %}Hämta{% endif %}" 
                          class="step-image"
                          loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                     <div class="step-placeholder" style="display: none;">✅</div>
                 </div>
                 <div class="step-content">
-                    <h3>Du hämtar</h3>
-                    <p>Du får mail med plats. Hämta när det passar.</p>
+                    <h3>{% if lang == 'en' %}You pick up{% else %}Du hämtar{% endif %}</h3>
+                    <p>{% if lang == 'en' %}You get an email with the location. Pick up when it suits you.{% else %}Du får mail med plats. Hämta när det passar.{% endif %}</p>
                 </div>
             </div>
         </div>
         
-        <!-- QR Intro - NYTT -->
         <div class="qr-intro">
             <div class="qr-intro-content">
                 <div class="qr-intro-text">
-                    <h3>Behåll discens värde med QR-kod</h3>
-                    <p>Slipp förstöra din disc med permanent tusch eller skriva ut ditt telefonnummer för alla att se. Med ReturnaDiscs QR-kod behåller discen sitt ursprungliga skick och all kontakt sker anonymt.</p>
-                    <ul class="qr-benefits">
-                        <li>Inget permanent tusch som sänker värdet</li>
-                        <li>Slipp exponera ditt telefonnummer</li>
-                        <li>All kontakt sker anonymt via ReturnaDisc</li>
-                    </ul>
+                    {% if lang == 'en' %}
+                        <h3>Keep your disc's value with QR code</h3>
+                        <p>Avoid ruining your disc with permanent marker or writing your phone number for everyone to see. With ReturnaDisc's QR code, your disc keeps its original condition and all contact happens anonymously.</p>
+                        <ul class="qr-benefits">
+                            <li>No permanent marker that lowers the value</li>
+                            <li>Avoid exposing your phone number</li>
+                            <li>All contact happens anonymously via ReturnaDisc</li>
+                        </ul>
+                    {% else %}
+                        <h3>Behåll discens värde med QR-kod</h3>
+                        <p>Slipp förstöra din disc med permanent tusch eller skriva ut ditt telefonnummer för alla att se. Med ReturnaDiscs QR-kod behåller discen sitt ursprungliga skick och all kontakt sker anonymt.</p>
+                        <ul class="qr-benefits">
+                            <li>Inget permanent tusch som sänker värdet</li>
+                            <li>Slipp exponera ditt telefonnummer</li>
+                            <li>All kontakt sker anonymt via ReturnaDisc</li>
+                        </ul>
+                    {% endif %}
                 </div>
                 <div class="qr-intro-image-wrapper">
                     <img src="{{ url_for('static', filename='images/qrondisc.png') }}" 
-                         alt="QR-kod på disc istället för permanent tusch" 
+                         alt="{% if lang == 'en' %}QR code on disc{% else %}QR-kod på disc{% endif %}" 
                          class="qr-intro-image"
                          loading="lazy"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
@@ -952,38 +854,44 @@
     </div>
 </section>
 
-<!-- Community Map Section -->
 <section class="news-section" id="community-map">
     <div class="news-container">
         <div class="news-content">
-            <span class="news-badge">NYHET!</span>
-            <h2>Community-kartan</h2>
-            <p>Discgolfens Lost & Found: Markera din saknade disc på kartan, se var andra har tappat sina och hjälp till att leta – tillsammans hittar vi fler.</p>
+            <span class="news-badge">{% if lang == 'en' %}NEW!{% else %}NYHET!{% endif %}</span>
+            <h2>{% if lang == 'en' %}Community Map{% else %}Community-kartan{% endif %}</h2>
+            
+            {% if lang == 'en' %}
+                <p>Disc golf's Lost & Found: Mark your lost disc on the map, see where others have lost theirs, and help search – together we find more.</p>
+            {% else %}
+                <p>Discgolfens Lost & Found: Markera din saknade disc på kartan, se var andra har tappat sina och hjälp till att leta – tillsammans hittar vi fler.</p>
+            {% endif %}
             
             <div class="news-features">
                 <div class="news-feature">
                     <span class="news-feature-icon">📍</span>
-                    <span>Markera var du tappade en disc</span>
+                    <span>{% if lang == 'en' %}Mark where you lost a disc{% else %}Markera var du tappade en disc{% endif %}</span>
                 </div>
                 <div class="news-feature">
                     <span class="news-feature-icon">🔍</span>
-                    <span>Se andras saknade discar i närheten</span>
+                    <span>{% if lang == 'en' %}See others' lost discs nearby{% else %}Se andras saknade discar i närheten{% endif %}</span>
                 </div>
                 <div class="news-feature">
                     <span class="news-feature-icon">🤝</span>
-                    <span>Hjälp till att återlämna anonymt</span>
+                    <span>{% if lang == 'en' %}Help return anonymously{% else %}Hjälp till att återlämna anonymt{% endif %}</span>
                 </div>
             </div>
             
-            <a href="{{ url_for('missing.community_map') }}" class="btn-news">Utforska kartan →</a>
+            <a href="{{ url_for('missing.community_map') }}" class="btn-news">
+                {% if lang == 'en' %}Explore the map →{% else %}Utforska kartan →{% endif %}
+            </a>
         </div>
         
         <div class="news-image-wrapper">
             <img src="{{ url_for('static', filename='images/community-map-sweden.png') }}" 
-                 alt="Community-karta över Sverige med borttappade discar" 
+                 alt="{% if lang == 'en' %}Community map{% else %}Community-karta{% endif %}" 
                  class="news-image"
                  loading="lazy"
-                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'news-image-placeholder\'><span class=\'map-icon\'>🗺️</span><p>Community-karta</p></div>'">
+                 onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'news-image-placeholder\'><span class=\'map-icon\'>🗺️</span><p>{% if lang == 'en' %}Community Map{% else %}Community-karta{% endif %}</p></div>'">
         </div>
     </div>
 </section>

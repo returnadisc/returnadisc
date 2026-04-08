@@ -2,7 +2,7 @@
 import os
 import logging
 from datetime import datetime
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, g
 from config import config
 from blueprints import qr
 from blueprints import missing
@@ -35,6 +35,28 @@ def create_app(config_name=None):
     if not app.config.get('SECRET_KEY'):
         raise ValueError("SECRET_KEY måste sättas!")
     
+    # === INTERNATIONALISERING: Detektera domän och språk ===
+    @app.before_request
+    def detect_domain():
+        """Kör före varje request för att se vilken domän som besöks."""
+        host = request.headers.get('Host', '').lower()
+        
+        if 'returnadisc.com' in host:
+            g.domain = 'returnadisc.com'
+            g.language = 'en'
+            g.currency = 'usd'
+            g.is_com = True
+        else:
+            g.domain = 'returnadisc.se'
+            g.language = 'sv'
+            g.currency = 'sek'
+            g.is_com = False
+        
+        # Gör tillgängligt i templates
+        app.jinja_env.globals['lang'] = g.language
+        app.jinja_env.globals['currency'] = g.currency
+        app.jinja_env.globals['is_com'] = g.is_com
+    
     # Importera och registrera blueprints
     from blueprints import auth, disc, admin, found, missing, premium
     
@@ -43,7 +65,7 @@ def create_app(config_name=None):
     app.register_blueprint(admin.bp)
     app.register_blueprint(found.bp)
     app.register_blueprint(missing.bp)
-    app.register_blueprint(premium.bp)  # Premium-blueprint registrerad här   
+    app.register_blueprint(premium.bp)
     app.register_blueprint(qr.bp)
     
     # Debug: Skriv ut alla registrerade endpoints
@@ -62,7 +84,10 @@ def create_app(config_name=None):
     def inject_globals():
         return {
             'now': datetime.now(),
-            'app_name': 'ReturnADisc'
+            'app_name': 'ReturnADisc',
+            'lang': g.get('language', 'sv'),
+            'currency': g.get('currency', 'sek'),
+            'is_com': g.get('is_com', False)
         }
     
     # Error handlers
@@ -82,7 +107,6 @@ def create_app(config_name=None):
     
     logger.info(f"Applikationen startad i {config_name}-läge")
     return app
-
 
 
 # Skapa app-instansen

@@ -31,11 +31,11 @@ class Config:
     # Database
     DATABASE_PATH = os.environ.get('DATABASE_URL', 'database.db')
     
-    # Email (Resend) - UPPDATERAT FRÅN SENDGRID
+    # Email (Resend)
     RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
     MAIL_DEFAULT_SENDER = "info@returnadisc.se"
     
-    # Email (SMTP) - fallback om Resend inte funkar
+    # Email (SMTP) - fallback
     EMAIL_ENABLED = os.environ.get('EMAIL_ENABLED', 'false').lower() == 'true'
     EMAIL_FROM = os.environ.get('EMAIL_FROM', 'info@returnadisc.se')
     SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
@@ -43,39 +43,58 @@ class Config:
     EMAIL_USER = os.environ.get('EMAIL_USER', 'info@returnadisc.se')
     EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD', '')
     
-    # URL:er - VIKTIGA FÖR PRODUKTION
+    # URL:er
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
     PUBLIC_URL = os.environ.get('PUBLIC_URL', BASE_URL)
     
     # Admin
     ADMIN_KEY = os.environ.get('ADMIN_KEY')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')  # Ändrat till info@
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')
     ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
-
     
     # QR/PDF
     QR_FOLDER = 'static/qr'
     PDF_FOLDER = 'static/pdfs'
     MAX_QR_PER_REQUEST = 30
     
-    # Premium-kampanj (gratis fram till 1 juli)
+    # === INTERNATIONALISERING ===
+    # Domäner
+    DOMAIN_SE = 'returnadisc.se'
+    DOMAIN_COM = 'returnadisc.com'
+    
+    # Valutor
+    CURRENCY_SE = 'sek'
+    CURRENCY_COM = 'usd'
+    
+    # Priser (i ören/cents)
+    PREMIUM_PRICE_SEK = 3900  # 39 SEK
+    PREMIUM_PRICE_USD = 399   # $3.99
+    
+    # Lanseringsdatum
     PREMIUM_LAUNCH_DATE = datetime(2026, 7, 1)
-    PREMIUM_PRICE_SEK = 39
-    STRIPE_PREMIUM_PRICE_ID = os.environ.get('STRIPE_PREMIUM_PRICE_ID')
     
     @classmethod
     def is_launch_period(cls) -> bool:
-        """Kolla om vi fortfarande är i lanseringsperioden (gratis premium)."""
+        """Kolla om vi fortfarande är i lanseringsperioden."""
         return datetime.now() < cls.PREMIUM_LAUNCH_DATE
     
     @classmethod
-    def get_premium_price(cls) -> int:
-        """Hämta aktuellt pris (0 under lansering)."""
-        return 0 if cls.is_launch_period() else cls.PREMIUM_PRICE_SEK
+    def get_premium_price(cls, currency='sek'):
+        """Hämta aktuellt pris baserat på valuta."""
+        if cls.is_launch_period():
+            return 0
+        return cls.PREMIUM_PRICE_USD if currency == 'usd' else cls.PREMIUM_PRICE_SEK
+    
+    @classmethod
+    def get_currency(cls, domain):
+        """Hämta valuta baserat på domän."""
+        if cls.DOMAIN_COM in domain:
+            return cls.CURRENCY_COM
+        return cls.CURRENCY_SE
 
 
 class DevelopmentConfig(Config):
-    """Utvecklings-konfig - tillåter säkra defaults."""
+    """Utvecklings-konfig."""
     DEBUG = True
     TESTING = False
     
@@ -85,14 +104,11 @@ class DevelopmentConfig(Config):
         logging.warning("WARNING: Using default ADMIN_KEY in development!")
     
     ADMIN_KEY = _admin_key
-    ADMIN_EMAIL = 'info@returnadisc.se'  # Ändrat till info@
-
+    ADMIN_EMAIL = 'info@returnadisc.se'
     ADMIN_PASSWORD_HASH = os.environ.get(
         'ADMIN_PASSWORD_HASH',
         'scrypt:32768:8:1$Te18cVzCiLyvdNJH$da5c98b8ce33d3cdab4eb8436c5bb29c0ae183f51f2e395f9f9c220a917dbfaf48a2f45fb9393315d757eb2e3ff58de8af0a6f9aa1bd6b1f8e3765be06404679'
     )
-
-    
 
 
 class ProductionConfig(Config):
@@ -103,7 +119,7 @@ class ProductionConfig(Config):
     PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
     
     ADMIN_KEY = os.environ.get('ADMIN_KEY')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')  # Ändrat till info@
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'info@returnadisc.se')
     ADMIN_PASSWORD_HASH = os.environ.get('ADMIN_PASSWORD_HASH')
     
     if not ADMIN_PASSWORD_HASH:
