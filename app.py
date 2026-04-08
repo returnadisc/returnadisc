@@ -4,11 +4,8 @@ import logging
 from datetime import datetime
 from flask import Flask, render_template, request, session, g
 from config import config
-from blueprints import qr
-from blueprints import missing
 
 
-# Konfigurera logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -31,34 +28,32 @@ def create_app(config_name=None):
 
     app.config.from_object(config[config_name])
     
-    # Säkerställ att SECRET_KEY är satt
     if not app.config.get('SECRET_KEY'):
         raise ValueError("SECRET_KEY måste sättas!")
     
-    # === INTERNATIONALISERING: Detektera domän och språk ===
     @app.before_request
-    def detect_domain():
-        """Kör före varje request för att se vilken domän som besöks."""
-        host = request.headers.get('Host', '').lower()
+    def detect_language():
+        url_lang = request.args.get('lang')
         
-        if 'returnadisc.com' in host:
-            g.domain = 'returnadisc.com'
-            g.language = 'en'
-            g.currency = 'usd'
-            g.is_com = True
+        if url_lang in ['sv', 'en']:
+            session['lang'] = url_lang
+            g.language = url_lang
+        elif session.get('lang') in ['sv', 'en']:
+            g.language = session['lang']
         else:
-            g.domain = 'returnadisc.se'
-            g.language = 'sv'
-            g.currency = 'sek'
-            g.is_com = False
+            host = request.headers.get('Host', '').lower()
+            g.language = 'en' if 'returnadisc.com' in host else 'sv'
+            session['lang'] = g.language
         
-        # Gör tillgängligt i templates
+        g.is_com = g.language == 'en'
+        g.currency = 'usd' if g.is_com else 'sek'
+        g.domain = 'returnadisc.com' if g.is_com else 'returnadisc.se'
+        
         app.jinja_env.globals['lang'] = g.language
         app.jinja_env.globals['currency'] = g.currency
         app.jinja_env.globals['is_com'] = g.is_com
     
-    # Importera och registrera blueprints
-    from blueprints import auth, disc, admin, found, missing, premium
+    from blueprints import auth, disc, admin, found, missing, premium, qr
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(disc.bp)
@@ -68,29 +63,25 @@ def create_app(config_name=None):
     app.register_blueprint(premium.bp)
     app.register_blueprint(qr.bp)
     
-    # Debug: Skriv ut alla registrerade endpoints
     with app.app_context():
         for rule in app.url_map.iter_rules():
             print(f"Endpoint: {rule.endpoint}")
     
-    # Skapa databastabeller
     with app.app_context():
         from database import db
         db.init_tables()
         logger.info("Databasen initialiserad")
     
-    # Global template variables
     @app.context_processor
     def inject_globals():
         return {
             'now': datetime.now(),
-            'app_name': 'ReturnADisc',
+            'app_name': 'ReturnaDisc',
             'lang': g.get('language', 'sv'),
             'currency': g.get('currency', 'sek'),
             'is_com': g.get('is_com', False)
         }
     
-    # Error handlers
     @app.errorhandler(404)
     def not_found(error):
         return render_template('errors/404.html'), 404
@@ -99,7 +90,6 @@ def create_app(config_name=None):
     def internal_error(error):
         return render_template('errors/500.html'), 500
     
-    # Logga alla requests i development
     if app.config.get('DEBUG'):
         @app.before_request
         def log_request():
@@ -109,7 +99,6 @@ def create_app(config_name=None):
     return app
 
 
-# Skapa app-instansen
 app = create_app()
 
 if __name__ == '__main__':

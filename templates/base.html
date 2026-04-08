@@ -78,26 +78,29 @@
         .logo img.hidden { display: none; }
         .logo img.hidden + .logo-fallback { display: flex; }
 
-        /* Språkväljare */
         .language-switcher {
             display: flex;
-            gap: 8px;
             align-items: center;
+            gap: 12px;
             margin-right: 20px;
             margin-left: auto;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
 
         .language-switcher a {
             text-decoration: none;
-            font-size: 1.5rem;
-            padding: 4px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 4px 8px;
             border-radius: 4px;
-            opacity: 0.6;
             transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .language-switcher a:hover { opacity: 0.8; transform: scale(1.1); }
-        .language-switcher a.active { opacity: 1; background: rgba(255, 255, 255, 0.2); }
+        .language-switcher a:hover { color: rgba(255, 255, 255, 0.9); }
+        .language-switcher a.active { color: #fbbf24; background: rgba(251, 191, 36, 0.1); }
+        .lang-divider { color: rgba(255, 255, 255, 0.3); font-weight: 300; }
 
         .nav-links {
             display: flex;
@@ -307,10 +310,10 @@
             
             .language-switcher {
                 margin-right: 10px;
+                font-size: 0.85rem;
+                gap: 8px;
                 order: -1;
             }
-            
-            .language-switcher a { font-size: 1.3rem; }
 
             .nav-links {
                 position: fixed;
@@ -364,8 +367,9 @@
             </a>
             
             <div class="language-switcher">
-                <a href="?lang=sv" class="{% if lang == 'sv' %}active{% endif %}">🇸🇪</a>
-                <a href="?lang=en" class="{% if lang == 'en' %}active{% endif %}">🇬🇧</a>
+                <a href="?lang=sv" class="{% if lang == 'sv' %}active{% endif %}">SV</a>
+                <span class="lang-divider">|</span>
+                <a href="?lang=en" class="{% if lang == 'en' %}active{% endif %}">EN</a>
             </div>
             
             <div class="nav-links" id="navLinks">
