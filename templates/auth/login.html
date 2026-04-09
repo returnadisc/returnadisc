@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Logga in - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Log in - ReturnaDisc{% else %}Logga in - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -118,7 +118,6 @@
         box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
     }
 
-    /* Kom ihåg mig & Glömt lösenord */
     .form-options {
         display: flex;
         justify-content: space-between;
@@ -235,42 +234,56 @@
 
 {% block content %}
 <div class="login-page">
-    <!-- BAKGRUNDSBILD -->
     <div class="login-bg" style="background-image: url('{{ url_for('static', filename='images/login-bg.png') }}');"></div>
     <div class="login-overlay"></div>
     
-	
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1>Välkommen tillbaka</h1>
-                <p>Logga in för att se din QR-kod</p>
+                <h1>
+                    {% if lang == 'en' %}Welcome back{% else %}Välkommen tillbaka{% endif %}
+                </h1>
+                <p>
+                    {% if lang == 'en' %}
+                        Log in to see your QR code
+                    {% else %}
+                        Logga in för att se din QR-kod
+                    {% endif %}
+                </p>
             </div>
             
             <form method="post" class="login-form" autocomplete="on">
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">{% if lang == 'en' %}Email{% else %}Email{% endif %}</label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="username email">
+                           placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}" 
+                           autocomplete="username email">
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Lösenord</label>
+                    <label for="password">
+                        {% if lang == 'en' %}Password{% else %}Lösenord{% endif %}
+                    </label>
                     <input type="password" id="password" name="password" required 
-                           placeholder="Ditt lösenord" autocomplete="current-password">
+                           placeholder="{% if lang == 'en' %}Your password{% else %}Ditt lösenord{% endif %}" 
+                           autocomplete="current-password">
                 </div>
 
                 <div class="form-options" style="justify-content: flex-end;">
-                    <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Glömt lösenord?</a>
+                    <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">
+                        {% if lang == 'en' %}Forgot password?{% else %}Glömt lösenord?{% endif %}
+                    </a>
                 </div>
                 
                 <button type="submit" class="btn-login">
-                    Logga in
+                    {% if lang == 'en' %}Log in{% else %}Logga in{% endif %}
                 </button>
             </form>
             
             <div class="login-links">
-                <a href="{{ url_for('auth.signup') }}">Skapa konto</a>
+                <a href="{{ url_for('auth.signup') }}">
+                    {% if lang == 'en' %}Create account{% else %}Skapa konto{% endif %}
+                </a>
             </div>
         </div>
         
@@ -278,12 +291,11 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            Tillbaka till startsidan
+            {% if lang == 'en' %}Back to homepage{% else %}Tillbaka till startsidan{% endif %}
         </a>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Borttagen parallax-kod som konfliktade med CSS animation -->
 {% endblock %}
