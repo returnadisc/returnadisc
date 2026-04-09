@@ -1,16 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Disc hittades inte - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Disc not found - ReturnaDisc{% else %}Disc hittades inte - ReturnaDisc{% endif %}{% endblock %}
 
 {% block content %}
 <div class="card-container">
     <div class="card text-center">
         <div class="error-icon" style="font-size: 4rem; margin-bottom: 16px;">❓</div>
-        <h2>Discen hittades inte</h2>
-        <p>Det finns ingen disc med detta ID i vårt system.</p>
+        <h2>
+            {% if lang == 'en' %}Disc not found{% else %}Discen hittades inte{% endif %}
+        </h2>
+        <p>
+            {% if lang == 'en' %}There is no disc with this ID in our system.{% else %}Det finns ingen disc med detta ID i vårt system.{% endif %}
+        </p>
         
         <a href="{{ url_for('auth.index') }}" class="btn-primary btn-full" style="margin-top: 16px;">
-            Till startsidan
+            {% if lang == 'en' %}To homepage{% else %}Till startsidan{% endif %}
         </a>
     </div>
 </div>

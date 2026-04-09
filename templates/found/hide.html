@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Göm discen - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Hide disc - ReturnaDisc{% else %}Göm discen - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -355,8 +355,12 @@
     <div class="hero-content">
         <!-- Header -->
         <div class="hide-header">
-            <h1>Jag <span>gömmer</span> discen</h1>
-            <p>Bild + position skickas anonymt till ägaren</p>
+            <h1>
+                {% if lang == 'en' %}I <span>hide</span> the disc{% else %}Jag <span>gömmer</span> discen{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Photo + position sent anonymously to the owner{% else %}Bild + position skickas anonymt till ägaren{% endif %}
+            </p>
         </div>
         
         <!-- Main Card -->
@@ -364,26 +368,38 @@
             <form method="post" enctype="multipart/form-data" class="hide-form" id="hideForm">
                 <!-- Camera Upload -->
                 <div class="camera-section">
-                    <label class="section-label">📷 Ta en bild (valfritt men hjälpsamt)</label>
+                    <label class="section-label">
+                        {% if lang == 'en' %}📷 Take a photo (optional but helpful){% else %}📷 Ta en bild (valfritt men hjälpsamt){% endif %}
+                    </label>
                     <div class="camera-upload">
                         <input type="file" id="photo" name="photo" accept="image/*" capture="environment" class="hidden-input" onchange="showPreview(this)">
                         <label for="photo" class="camera-button" id="cameraBtn">
                             <span class="camera-icon">📸</span>
-                            <span class="camera-text">Öppna kameran</span>
-                            <span class="camera-hint">Fota discen och gömstället</span>
+                            <span class="camera-text">
+                                {% if lang == 'en' %}Open camera{% else %}Öppna kameran{% endif %}
+                            </span>
+                            <span class="camera-hint">
+                                {% if lang == 'en' %}Photo the disc and hiding spot{% else %}Fota discen och gömstället{% endif %}
+                            </span>
                         </label>
                         <div id="preview-container" class="preview-container" style="display: none;">
-                            <img id="image-preview" alt="Förhandsvisning">
-                            <button type="button" class="btn-retake" onclick="retakePhoto()">📷 Ta ny bild</button>
+                            <img id="image-preview" alt="{% if lang == 'en' %}Preview{% else %}Förhandsvisning{% endif %}">
+                            <button type="button" class="btn-retake" onclick="retakePhoto()">
+                                {% if lang == 'en' %}📷 Take new photo{% else %}📷 Ta ny bild{% endif %}
+                            </button>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Note -->
                 <div class="form-group">
-                    <label for="note">📝 Meddelande (valfritt)</label>
-                    <textarea id="note" name="note" rows="3" placeholder="T.ex. 'Gömd bakom stora grå stenen vid hål 7'"></textarea>
-                    <span class="help-text">Beskriv tydligt var du gömde discen så ägaren hittar den lätt</span>
+                    <label for="note">📝 
+                        {% if lang == 'en' %}Message (optional){% else %}Meddelande (valfritt){% endif %}
+                    </label>
+                    <textarea id="note" name="note" rows="3" placeholder="{% if lang == 'en' %}E.g. 'Hidden behind the big gray stone at hole 7'{% else %}T.ex. 'Gömd bakom stora grå stenen vid hål 7'{% endif %}"></textarea>
+                    <span class="help-text">
+                        {% if lang == 'en' %}Describe clearly where you hid the disc so the owner can find it easily{% else %}Beskriv tydligt var du gömde discen så ägaren hittar den lätt{% endif %}
+                    </span>
                 </div>
                 
                 <!-- Hidden fields -->
@@ -393,12 +409,14 @@
                 <!-- Location Status -->
                 <div class="location-status loading" id="locationStatus">
                     <span class="status-icon">📡</span>
-                    <span class="status-text">Hämtar din position...</span>
+                    <span class="status-text">
+                        {% if lang == 'en' %}Getting your position...{% else %}Hämtar din position...{% endif %}
+                    </span>
                 </div>
                 
                 <!-- Submit -->
                 <button type="submit" class="btn-submit" id="submitBtn" disabled>
-                    ✉️ Skicka till ägaren
+                    {% if lang == 'en' %}✉️ Send to owner{% else %}✉️ Skicka till ägaren{% endif %}
                 </button>
             </form>
             
@@ -408,7 +426,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka
+                    {% if lang == 'en' %}Back{% else %}Tillbaka{% endif %}
                 </a>
             </div>
         </div>
@@ -427,14 +445,14 @@
                 
                 var statusEl = document.getElementById('locationStatus');
                 statusEl.className = 'location-status';
-                statusEl.innerHTML = '<span class="status-icon">✅</span><span class="status-text">Position hittad!</span>';
+                statusEl.innerHTML = '<span class="status-icon">✅</span><span class="status-text">{% if lang == "en" %}Position found!{% else %}Position hittad!{% endif %}</span>';
                 
                 document.getElementById('submitBtn').disabled = false;
             },
             function() {
                 var statusEl = document.getElementById('locationStatus');
                 statusEl.className = 'location-status error';
-                statusEl.innerHTML = '<span class="status-icon">⚠️</span><span class="status-text">Kunde inte hämta position - skicka ändå</span>';
+                statusEl.innerHTML = '<span class="status-icon">⚠️</span><span class="status-text">{% if lang == "en" %}Could not get position - send anyway{% else %}Kunde inte hämta position - skicka ändå{% endif %}</span>';
                 
                 document.getElementById('submitBtn').disabled = false;
             },
@@ -447,7 +465,7 @@
     } else {
         var statusEl = document.getElementById('locationStatus');
         statusEl.className = 'location-status error';
-        statusEl.innerHTML = '<span class="status-icon">⚠️</span><span class="status-text">Din enhet stödjer inte GPS</span>';
+        statusEl.innerHTML = '<span class="status-icon">⚠️</span><span class="status-text">{% if lang == "en" %}Your device does not support GPS{% else %}Din enhet stödjer inte GPS{% endif %}</span>';
         
         document.getElementById('submitBtn').disabled = false;
     }

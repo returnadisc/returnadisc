@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Återlämna disc med kod - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Return disc with code - ReturnaDisc{% else %}Återlämna disc med kod - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -319,8 +319,12 @@
     <div class="hero-overlay"></div>
     
     <div class="hero-content">
-        <h1>Återlämna disc <span>med kod</span></h1>
-        <p class="hero-tagline">Skriv in koden som står på discen för att återlämna den anonymt</p>
+        <h1>
+            {% if lang == 'en' %}Return disc <span>with code</span>{% else %}Återlämna disc <span>med kod</span>{% endif %}
+        </h1>
+        <p class="hero-tagline">
+            {% if lang == 'en' %}Enter the code on the disc to return it anonymously{% else %}Skriv in koden som står på discen för att återlämna den anonymt{% endif %}
+        </p>
         
         <!-- Main Card -->
         <div class="main-card">
@@ -334,29 +338,35 @@
             
             <!-- Code Example -->
             <div class="code-example">
-                <p>Så här kan koden se ut:</p>
+                <p>
+                    {% if lang == 'en' %}The code looks like this:{% else %}Så här kan koden se ut:{% endif %}
+                </p>
                 <div class="example-box">
                     <span class="example-text">A7B9X</span>
                 </div>
-                <p class="hint">5-6 tecken med bokstäver och siffror</p>
+                <p class="hint">
+                    {% if lang == 'en' %}5-6 characters with letters and numbers{% else %}5-6 tecken med bokstäver och siffror{% endif %}
+                </p>
             </div>
             
             <!-- Form -->
             <form method="post" class="manual-form">
                 <div class="form-group">
-                    <label for="qr_id">🔤 Discens kod</label>
+                    <label for="qr_id">
+                        {% if lang == 'en' %}🔤 Disc code{% else %}🔤 Discens kod{% endif %}
+                    </label>
                     <input type="text" 
                            id="qr_id" 
                            name="qr_id" 
                            required 
                            maxlength="6"
-                           placeholder="T.EX. A7B9X"
+                           placeholder="{% if lang == 'en' %}E.G. A7B9X{% else %}T.EX. A7B9X{% endif %}"
                            autocomplete="off"
                            autofocus>
                 </div>
                 
                 <button type="submit" class="btn-primary">
-                    Fortsätt →
+                    {% if lang == 'en' %}Continue →{% else %}Fortsätt →{% endif %}
                 </button>
             </form>
             
@@ -364,12 +374,18 @@
             <div class="help-section">
                 <h3>
                     <span>🤔</span>
-                    Var hittar jag koden?
+                    {% if lang == 'en' %}Where do I find the code?{% else %}Var hittar jag koden?{% endif %}
                 </h3>
                 <ul class="help-list">
-                    <li>📍 På en liten QR-sticker på discen</li>
-                    <li>✍️ Skrivet med permanent tusch på undersidan</li>
-                    <li>🏷️ På ett klistermärke från ReturnaDisc</li>
+                    <li>
+                        {% if lang == 'en' %}📍 On a small QR sticker on the disc{% else %}📍 På en liten QR-sticker på discen{% endif %}
+                    </li>
+                    <li>
+                        {% if lang == 'en' %}✍️ Written with permanent marker on the bottom{% else %}✍️ Skrivet med permanent tusch på undersidan{% endif %}
+                    </li>
+                    <li>
+                        {% if lang == 'en' %}🏷️ On a ReturnaDisc sticker{% else %}🏷️ På ett klistermärke från ReturnaDisc{% endif %}
+                    </li>
                 </ul>
             </div>
             
@@ -379,7 +395,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till startsidan
+                    {% if lang == 'en' %}Back to homepage{% else %}Tillbaka till startsidan{% endif %}
                 </a>
             </div>
         </div>

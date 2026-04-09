@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Premium - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Premium - ReturnaDisc{% else %}Premium - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -47,59 +47,155 @@
     <div class="premium-content">
         <div class="premium-icon">💎</div>
         <h1>Returna<span>Disc</span> Premium</h1>
-        <p class="premium-tagline">Få ut mer av din discgolf-upplevelse</p>
+        <p class="premium-tagline">
+            {% if lang == 'en' %}
+                Get more out of your disc golf experience
+            {% else %}
+                Få ut mer av din discgolf-upplevelse
+            {% endif %}
+        </p>
 
         {% if premium_status and premium_status.has_premium %}
         <div class="already-premium">
-            <span class="card-badge active">✓ Aktivt</span>
-            <h2>Du har redan Premium!</h2>
+            <span class="card-badge active">
+                {% if lang == 'en' %}
+                    ✓ Active
+                {% else %}
+                    ✓ Aktivt
+                {% endif %}
+            </span>
+            <h2>
+                {% if lang == 'en' %}
+                    You already have Premium!
+                {% else %}
+                    Du har redan Premium!
+                {% endif %}
+            </h2>
             {% if premium_status.premium_until %}
             <div class="valid-until">
-                <strong>Premium giltigt till</strong>
+                <strong>
+                    {% if lang == 'en' %}
+                        Premium valid until
+                    {% else %}
+                        Premium giltigt till
+                    {% endif %}
+                </strong>
                 {{ premium_status.premium_until[:10] }}
             </div>
             {% endif %}
-            <a href="{{ url_for('premium.manage') }}" class="btn-premium" style="font-size: 1rem; padding: 14px 35px;">Hantera Premium</a>
+            <a href="{{ url_for('premium.manage') }}" class="btn-premium" style="font-size: 1rem; padding: 14px 35px;">
+                {% if lang == 'en' %}
+                    Manage Premium
+                {% else %}
+                    Hantera Premium
+                {% endif %}
+            </a>
         </div>
         {% else %}
             {% if is_launch %}
-            <div class="launch-banner">🚀 LANSERINGSKAMPANJ: 1 år gratis om du ansluter före 1 juli 2026!</div>
+            <div class="launch-banner">
+                {% if lang == 'en' %}
+                    🚀 LAUNCH CAMPAIGN: 1 year free if you join before July 1, 2026!
+                {% else %}
+                    🚀 LANSERINGSKAMPANJ: 1 år gratis om du ansluter före 1 juli 2026!
+                {% endif %}
+            </div>
             {% endif %}
 
             <div class="pricing-card">
-                <span class="card-badge {% if is_launch %}free{% endif %}">{% if is_launch %}Gratis Nu!{% else %}Populärast{% endif %}</span>
-                <h2>1 År Premium</h2>
+                <span class="card-badge {% if is_launch %}free{% endif %}">
+                    {% if is_launch %}
+                        {% if lang == 'en' %}Free Now!{% else %}Gratis Nu!{% endif %}
+                    {% else %}
+                        {% if lang == 'en' %}Most Popular{% else %}Populärast{% endif %}
+                    {% endif %}
+                </span>
+                <h2>
+                    {% if lang == 'en' %}
+                        1 Year Premium
+                    {% else %}
+                        1 År Premium
+                    {% endif %}
+                </h2>
                 <div class="price">
                     {% if is_launch %}
-                    <div class="price-original">39 kr/år</div>
-                    <span class="free-text">GRATIS</span>
+                    <div class="price-original">
+                        {% if lang == 'en' %}$4.99/year{% else %}39 kr/år{% endif %}
+                    </div>
+                    <span class="free-text">
+                        {% if lang == 'en' %}FREE{% else %}GRATIS{% endif %}
+                    </span>
                     {% else %}
-                    39 kr/år
+                    {% if lang == 'en' %}$4.99/year{% else %}39 kr/år{% endif %}
                     {% endif %}
                 </div>
                 <ul class="features">
-                    <li>Full tillgång till Community kartan</li>
-                    <li>Prioriterad support</li>
-                    <li>Early access till nya funktioner</li>
+                    <li>
+                        {% if lang == 'en' %}
+                            Full access to Community Map
+                        {% else %}
+                            Full tillgång till Community kartan
+                        {% endif %}
+                    </li>
+                    <li>
+                        {% if lang == 'en' %}
+                            Priority support
+                        {% else %}
+                            Prioriterad support
+                        {% endif %}
+                    </li>
+                    <li>
+                        {% if lang == 'en' %}
+                            Early access to new features
+                        {% else %}
+                            Early access till nya funktioner
+                        {% endif %}
+                    </li>
                 </ul>
                 
                 {% if is_launch %}
                 <div class="trial-info">
-                    <strong>🎉 365 dagar helt gratis!</strong>
-                    Registrera ditt betalkort nu. Ingen debitering förrän om 1 år (39 kr/år).
+                    <strong>
+                        {% if lang == 'en' %}
+                            🎉 365 days completely free!
+                        {% else %}
+                            🎉 365 dagar helt gratis!
+                        {% endif %}
+                    </strong>
+                    {% if lang == 'en' %}
+                        Register your payment card now. No charge until 1 year ($4.99/year).
+                    {% else %}
+                        Registrera ditt betalkort nu. Ingen debitering förrän om 1 år (39 kr/år).
+                    {% endif %}
                 </div>
                 {% endif %}
                 
                 <form action="{{ url_for('premium.checkout') }}" method="POST" style="display: inline;">
                     <button type="submit" class="btn-premium {% if is_launch %}free{% endif %}">
-                        {% if is_launch %}🎉 Aktivera Gratis Premium{% else %}🔒 Köp Premium{% endif %}
+                        {% if is_launch %}
+                            {% if lang == 'en' %}🎉 Activate Free Premium{% else %}🎉 Aktivera Gratis Premium{% endif %}
+                        {% else %}
+                            {% if lang == 'en' %}🔒 Buy Premium{% else %}🔒 Köp Premium{% endif %}
+                        {% endif %}
                     </button>
                 </form>
-                <p class="secure-text">🔒 Säker betalning via Stripe</p>
+                <p class="secure-text">
+                    {% if lang == 'en' %}
+                        🔒 Secure payment via Stripe
+                    {% else %}
+                        🔒 Säker betalning via Stripe
+                    {% endif %}
+                </p>
             </div>
         {% endif %}
 
-        <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary">← Tillbaka till Dashboard</a>
+        <a href="{{ url_for('disc.dashboard') }}" class="btn-secondary">
+            {% if lang == 'en' %}
+                ← Back to Dashboard
+            {% else %}
+                ← Tillbaka till Dashboard
+            {% endif %}
+        </a>
     </div>
 </section>
 {% endblock %}

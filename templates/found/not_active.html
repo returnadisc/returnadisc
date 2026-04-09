@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Välkommen till ReturnaDisc - Aktivera din QR-kod{% endblock %}
+{% block title %}{% if lang == 'en' %}Welcome to ReturnaDisc - Activate your QR code{% else %}Välkommen till ReturnaDisc - Aktivera din QR-kod{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -312,47 +312,77 @@
     <div class="container">
         <div class="card">
             
-            <h1>Välkommen till <span>ReturnaDisc</span></h1>
-            <p class="subtitle">Din QR-kod är redo att aktiveras. Skapa ett konto för att komma igång.</p>
+            <h1>
+                {% if lang == 'en' %}Welcome to <span>ReturnaDisc</span>{% else %}Välkommen till <span>ReturnaDisc</span>{% endif %}
+            </h1>
+            <p class="subtitle">
+                {% if lang == 'en' %}Your QR code is ready to be activated. Create an account to get started.{% else %}Din QR-kod är redo att aktiveras. Skapa ett konto för att komma igång.{% endif %}
+            </p>
             
             <div class="code-box">
-                <div class="code-label">Din kod</div>
+                <div class="code-label">
+                    {% if lang == 'en' %}Your code{% else %}Din kod{% endif %}
+                </div>
                 <div class="code-value">{{ qr_id }}</div>
             </div>
             
             <div class="steps">
                 <div class="step">
                     <div class="step-number">1</div>
-                    <p>Skapa konto</p>
+                    <p>
+                        {% if lang == 'en' %}Create account{% else %}Skapa konto{% endif %}
+                    </p>
                 </div>
                 <div class="step">
                     <div class="step-number">2</div>
-                    <p>Aktivera kod</p>
+                    <p>
+                        {% if lang == 'en' %}Activate code{% else %}Aktivera kod{% endif %}
+                    </p>
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <p>Fäst på disc</p>
+                    <p>
+                        {% if lang == 'en' %}Attach to disc{% else %}Fäst på disc{% endif %}
+                    </p>
                 </div>
             </div>
             
             <div class="cta-section">
-                <h2>Kom igång nu</h2>
-                <p>Det tar mindre än en minut.</p>
+                <h2>
+                    {% if lang == 'en' %}Get started now{% else %}Kom igång nu{% endif %}
+                </h2>
+                <p>
+                    {% if lang == 'en' %}It takes less than a minute.{% else %}Det tar mindre än en minut.{% endif %}
+                </p>
                 
                 <a href="{{ url_for('auth.signup') }}" class="btn-primary">
-                    Skapa gratiskonto
+                    {% if lang == 'en' %}Create free account{% else %}Skapa gratiskonto{% endif %}
                 </a>
                 
                 <div class="login-prompt">
-                    <p>Har du redan ett konto?</p>
-                    <a href="{{ url_for('auth.login') }}" class="btn-text">Logga in här</a>
+                    <p>
+                        {% if lang == 'en' %}Already have an account?{% else %}Har du redan ett konto?{% endif %}
+                    </p>
+                    <a href="{{ url_for('auth.login') }}" class="btn-text">
+                        {% if lang == 'en' %}Log in here{% else %}Logga in här{% endif %}
+                    </a>
                 </div>
             </div>
             
             <div class="info-box">
-                <h3>Vad är ReturnaDisc?</h3>
-                <p>En QR-kod på dina discar som gör det enkelt för andra att återlämna dem anonymt. Du får bild och position direkt till din mail.</p>
-                <a href="{{ url_for('auth.how_it_works') }}">Läs mer om hur det fungerar</a>
+                <h3>
+                    {% if lang == 'en' %}What is ReturnaDisc?{% else %}Vad är ReturnaDisc?{% endif %}
+                </h3>
+                <p>
+                    {% if lang == 'en' %}
+                        A QR code on your discs that makes it easy for others to return them anonymously. You get photo and location directly to your email.
+                    {% else %}
+                        En QR-kod på dina discar som gör det enkelt för andra att återlämna dem anonymt. Du får bild och position direkt till din mail.
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('auth.how_it_works') }}">
+                    {% if lang == 'en' %}Read more about how it works{% else %}Läs mer om hur det fungerar{% endif %}
+                </a>
             </div>
         </div>
     </div>

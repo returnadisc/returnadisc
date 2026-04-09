@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Du har hittat en disc - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}You found a disc - ReturnaDisc{% else %}Du har hittat en disc - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -289,38 +289,56 @@
     <div class="hero-content">
         <!-- Header - utan emoji -->
         <div class="found-header">
-            <h1>Du har hittat en <span>disc!</span></h1>
-            <p>Tack för att du vill hjälpa till. Vad vill du göra?</p>
+            <h1>
+                {% if lang == 'en' %}You found a <span>disc!</span>{% else %}Du har hittat en <span>disc!</span>{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Thanks for wanting to help. What do you want to do?{% else %}Tack för att du vill hjälpa till. Vad vill du göra?{% endif %}
+            </p>
         </div>
         
         <!-- Choices Card -->
         <div class="choices-card">
             <!-- Primary Choice: Hide -->
             <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="choice-primary">
-                <span class="rekommenderas-badge">Rekommenderas</span>
+                <span class="rekommenderas-badge">
+                    {% if lang == 'en' %}Recommended{% else %}Rekommenderas{% endif %}
+                </span>
                 <div class="choice-main">
                     <span class="choice-icon-big">📍</span>
                     <div class="choice-content">
-                        <h3>Jag gömmer discen</h3>
-                        <p>Bild + Position skickas anonymt till ägaren</p>
-                        <span class="time-badge">⚡ 30 sekunder</span>
+                        <h3>
+                            {% if lang == 'en' %}I hide the disc{% else %}Jag gömmer discen{% endif %}
+                        </h3>
+                        <p>
+                            {% if lang == 'en' %}Photo + Position sent anonymously to owner{% else %}Bild + Position skickas anonymt till ägaren{% endif %}
+                        </p>
+                        <span class="time-badge">⚡ 
+                            {% if lang == 'en' %}30 seconds{% else %}30 sekunder{% endif %}
+                        </span>
                     </div>
                 </div>
             </a>
             
             <!-- Divider -->
-            <div class="divider">andra alternativ</div>
+            <div class="divider">
+                {% if lang == 'en' %}other options{% else %}andra alternativ{% endif %}
+            </div>
             
             <!-- Secondary Choices -->
             <div class="choices-grid">
                 <a href="{{ url_for('found.found_note', qr_id=qr_id) }}" class="choice-secondary">
                     <span class="choice-icon-small">✍️</span>
-                    <h4>Lämna meddelande</h4>
+                    <h4>
+                        {% if lang == 'en' %}Leave message{% else %}Lämna meddelande{% endif %}
+                    </h4>
                 </a>
                 
                 <a href="{{ url_for('found.found_meet', qr_id=qr_id) }}" class="choice-secondary">
                     <span class="choice-icon-small">🤝</span>
-                    <h4>Jag vill mötas</h4>
+                    <h4>
+                        {% if lang == 'en' %}I want to meet{% else %}Jag vill mötas{% endif %}
+                    </h4>
                 </a>
             </div>
             
@@ -330,7 +348,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till startsidan
+                    {% if lang == 'en' %}Back to homepage{% else %}Tillbaka till startsidan{% endif %}
                 </a>
             </div>
         </div>

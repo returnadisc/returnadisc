@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tack för hjälpen! - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Thanks for helping! - ReturnaDisc{% else %}Tack för hjälpen! - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -304,44 +304,80 @@
 <div class="thanks-page">
     <div class="container">
         <div class="thanks-card">
-            <div class="success-badge">Meddelande skickat</div>
+            <div class="success-badge">
+                {% if lang == 'en' %}Message sent{% else %}Meddelande skickat{% endif %}
+            </div>
             
-            <h1>Tack för hjälpen!</h1>
-            <p class="subtitle">Du gör discgolf-communityn bättre genom att hjälpa andra få tillbaka sina discar.</p>
+            <h1>
+                {% if lang == 'en' %}Thanks for helping!{% else %}Tack för hjälpen!{% endif %}
+            </h1>
+            <p class="subtitle">
+                {% if lang == 'en' %}
+                    You're making the disc golf community better by helping others get their discs back.
+                {% else %}
+                    Du gör discgolf-communityn bättre genom att hjälpa andra få tillbaka sina discar.
+                {% endif %}
+            </p>
             
             <div class="info-box">
-                <h3>Ägaren har fått ditt meddelande</h3>
-                <p>Du har lämnat information om var discen finns. Ägaren kan nu hämta den!</p>
+                <h3>
+                    {% if lang == 'en' %}The owner has received your message{% else %}Ägaren har fått ditt meddelande{% endif %}
+                </h3>
+                <p>
+                    {% if lang == 'en' %}
+                        You've left information about where the disc is. The owner can now pick it up!
+                    {% else %}
+                        Du har lämnat information om var discen finns. Ägaren kan nu hämta den!
+                    {% endif %}
+                </p>
             </div>
             
             <div class="steps-section">
-                <h3 class="steps-title">Vad händer nu?</h3>
+                <h3 class="steps-title">
+                    {% if lang == 'en' %}What happens now?{% else %}Vad händer nu?{% endif %}
+                </h3>
                 <div class="steps-horizontal">
                     <div class="step-item">
                         <div class="step-number">1</div>
-                        <p>Ägaren läser ditt meddelande</p>
+                        <p>
+                            {% if lang == 'en' %}The owner reads your message{% else %}Ägaren läser ditt meddelande{% endif %}
+                        </p>
                     </div>
                     <div class="step-item">
                         <div class="step-number">2</div>
-                        <p>De hämtar discen på den plats du angav</p>
+                        <p>
+                            {% if lang == 'en' %}They pick up the disc at the location you provided{% else %}De hämtar discen på den plats du angav{% endif %}
+                        </p>
                     </div>
                     <div class="step-item">
                         <div class="step-number">3</div>
-                        <p>Alla är glada! Tack för att du hjälpte till</p>
+                        <p>
+                            {% if lang == 'en' %}Everyone is happy! Thanks for helping{% else %}Alla är glada! Tack för att du hjälpte till{% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
             
             <div class="cta-section">
-                <h2>Bra jobbat!</h2>
-                <p>Enkelt och smidigt, eller hur?</p>
+                <h2>
+                    {% if lang == 'en' %}Great job!{% else %}Bra jobbat!{% endif %}
+                </h2>
+                <p>
+                    {% if lang == 'en' %}Easy and smooth, right?{% else %}Enkelt och smidigt, eller hur?{% endif %}
+                </p>
                 
                 <a href="{{ url_for('auth.index') }}" class="btn-primary">
-                    Till startsidan
+                    {% if lang == 'en' %}To homepage{% else %}Till startsidan{% endif %}
                 </a>
                 
                 <div class="hint-box">
-                    <p>Tips: <a href="{{ url_for('auth.signup') }}">Skaffa du också QR-koder</a> så du får tillbaka dina egna discar!</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            Tip: <a href="{{ url_for('auth.signup') }}">Get QR codes too</a> so you can get your own discs back!
+                        {% else %}
+                            Tips: <a href="{{ url_for('auth.signup') }}">Skaffa du också QR-koder</a> så du får tillbaka dina egna discar!
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         </div>

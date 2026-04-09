@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Premium Aktiverat! - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Premium Activated! - ReturnaDisc{% else %}Premium Aktiverat! - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -263,56 +263,152 @@
     
     <div class="success-content">
         <div class="success-icon">🎉</div>
-        <h1>Premium är <span>aktiverat!</span></h1>
-        <p class="success-tagline">Välkommen till ReturnaDisc Premium. Du har nu tillgång till alla premium-funktioner.</p>
+        <h1>
+            {% if lang == 'en' %}
+                Premium is <span>activated!</span>
+            {% else %}
+                Premium är <span>aktiverat!</span>
+            {% endif %}
+        </h1>
+        <p class="success-tagline">
+            {% if lang == 'en' %}
+                Welcome to ReturnaDisc Premium. You now have access to all premium features.
+            {% else %}
+                Välkommen till ReturnaDisc Premium. Du har nu tillgång till alla premium-funktioner.
+            {% endif %}
+        </p>
         
         <div class="premium-card">
             <h3>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
-                Dina premium-förmåner
+                {% if lang == 'en' %}
+                    Your Premium Benefits
+                {% else %}
+                    Dina premium-förmåner
+                {% endif %}
             </h3>
             <ul class="premium-features">
-                <li>Full tillgång till Community kartan</li>
-                <li>Prioriterad support och hjälp</li>
-                <li>Early access till nya funktioner</li>
+                <li>
+                    {% if lang == 'en' %}
+                        Full access to the Community map
+                    {% else %}
+                        Full tillgång till Community kartan
+                    {% endif %}
+                </li>
+                <li>
+                    {% if lang == 'en' %}
+                        Priority support and help
+                    {% else %}
+                        Prioriterad support och hjälp
+                    {% endif %}
+                </li>
+                <li>
+                    {% if lang == 'en' %}
+                        Early access to new features
+                    {% else %}
+                        Early access till nya funktioner
+                    {% endif %}
+                </li>
             </ul>
             
             {% if is_launch %}
             <div class="valid-until-box">
-                <strong>🎁 1 år helt gratis!</strong>
-                <span>Som tack för att du anslöt dig tidigt</span>
-                <div class="date">Giltigt 365 dagar</div>
+                <strong>
+                    {% if lang == 'en' %}
+                        🎁 1 year completely free!
+                    {% else %}
+                        🎁 1 år helt gratis!
+                    {% endif %}
+                </strong>
+                <span>
+                    {% if lang == 'en' %}
+                        As a thank you for joining early
+                    {% else %}
+                        Som tack för att du anslöt dig tidigt
+                    {% endif %}
+                </span>
+                <div class="date">
+                    {% if lang == 'en' %}
+                        Valid 365 days
+                    {% else %}
+                        Giltigt 365 dagar
+                    {% endif %}
+                </div>
                 <small>
-                    Därefter 39 kr/år (kan avbrytas när som helst)
+                    {% if lang == 'en' %}
+                        Then $4.99/year (can be cancelled anytime)
+                    {% else %}
+                        Därefter 4.99 USD/år (kan avbrytas när som helst)
+                    {% endif %}
                 </small>
             </div>
             
             <div class="email-notice">
-                <strong>📧 Ett bekräftelsemail har skickats</strong>
-                Kolla din inkorg (och skräppost) för mer information om din prenumeration.
+                <strong>
+                    {% if lang == 'en' %}
+                        📧 A confirmation email has been sent
+                    {% else %}
+                        📧 Ett bekräftelsemail har skickats
+                    {% endif %}
+                </strong>
+                {% if lang == 'en' %}
+                    Check your inbox (and spam folder) for more information about your subscription.
+                {% else %}
+                    Kolla din inkorg (och skräppost) för mer information om din prenumeration.
+                {% endif %}
             </div>
             {% elif premium_status and premium_status.premium_until %}
             <div class="valid-until-box">
-                <strong>✓ Premium aktivt</strong>
-                <span>Giltigt till och med</span>
+                <strong>
+                    {% if lang == 'en' %}
+                        ✓ Premium active
+                    {% else %}
+                        ✓ Premium aktivt
+                    {% endif %}
+                </strong>
+                <span>
+                    {% if lang == 'en' %}
+                        Valid until
+                    {% else %}
+                        Giltigt till och med
+                    {% endif %}
+                </span>
                 <div class="date">{{ premium_status.premium_until[:10] }}</div>
             </div>
             
             <div class="email-notice">
-                <strong>📧 Ett kvitto har skickats till din e-post</strong>
-                Kolla din inkorg (och skräppost) för betalningsbekräftelse.
+                <strong>
+                    {% if lang == 'en' %}
+                        📧 A receipt has been sent to your email
+                    {% else %}
+                        📧 Ett kvitto har skickats till din e-post
+                    {% endif %}
+                </strong>
+                {% if lang == 'en' %}
+                    Check your inbox (and spam folder) for payment confirmation.
+                {% else %}
+                    Kolla din inkorg (och skräppost) för betalningsbekräftelse.
+                {% endif %}
             </div>
             
             <div class="payment-info">
-                🔒 Betalningen hanterades säkert via Stripe
+                {% if lang == 'en' %}
+                    🔒 Payment handled securely via Stripe
+                {% else %}
+                    🔒 Betalningen hanterades säkert via Stripe
+                {% endif %}
             </div>
             {% endif %}
         </div>
         
         <a href="{{ url_for('disc.dashboard') }}" class="btn-primary">
-            Gå till Min Sida
+            {% if lang == 'en' %}
+                Go to Dashboard
+            {% else %}
+                Gå till Min Sida
+            {% endif %}
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tack för hjälpen! - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Thanks for helping! - ReturnaDisc{% else %}Tack för hjälpen! - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -324,48 +324,84 @@
 <div class="thanks-page">
     <div class="container">
         <div class="thanks-card">
-            <div class="success-badge">Discen är rapporterad</div>
+            <div class="success-badge">
+                {% if lang == 'en' %}Disc reported{% else %}Discen är rapporterad{% endif %}
+            </div>
             
-            <h1>Tack för hjälpen!</h1>
-            <p class="subtitle">Du gör discgolf-communityn bättre genom att hjälpa andra få tillbaka sina discar.</p>
+            <h1>
+                {% if lang == 'en' %}Thanks for helping!{% else %}Tack för hjälpen!{% endif %}
+            </h1>
+            <p class="subtitle">
+                {% if lang == 'en' %}
+                    You're making the disc golf community better by helping others get their discs back.
+                {% else %}
+                    Du gör discgolf-communityn bättre genom att hjälpa andra få tillbaka sina discar.
+                {% endif %}
+            </p>
             
             <div class="info-box">
-                <h3>Ägaren har fått ett mail med:</h3>
+                <h3>
+                    {% if lang == 'en' %}The owner has received an email with:{% else %}Ägaren har fått ett mail med:{% endif %}
+                </h3>
                 <ul class="info-list">
-                    <li>Bild på discen (om du tog en)</li>
-                    <li>Exakt position i Google Maps</li>
-                    <li>Ditt meddelande om var du gömde den</li>
+                    <li>
+                        {% if lang == 'en' %}Photo of the disc (if you took one){% else %}Bild på discen (om du tog en){% endif %}
+                    </li>
+                    <li>
+                        {% if lang == 'en' %}Exact position in Google Maps{% else %}Exakt position i Google Maps{% endif %}
+                    </li>
+                    <li>
+                        {% if lang == 'en' %}Your message about where you hid it{% else %}Ditt meddelande om var du gömde den{% endif %}
+                    </li>
                 </ul>
             </div>
             
             <div class="steps-section">
-                <h3 class="steps-title">Vad händer nu?</h3>
+                <h3 class="steps-title">
+                    {% if lang == 'en' %}What happens now?{% else %}Vad händer nu?{% endif %}
+                </h3>
                 <div class="steps-horizontal">
                     <div class="step-item">
                         <div class="step-number">1</div>
-                        <p>Ägaren får mailet och vet var discen finns</p>
+                        <p>
+                            {% if lang == 'en' %}The owner gets the email and knows where the disc is{% else %}Ägaren får mailet och vet var discen finns{% endif %}
+                        </p>
                     </div>
                     <div class="step-item">
                         <div class="step-number">2</div>
-                        <p>De hämtar discen när det passar dem</p>
+                        <p>
+                            {% if lang == 'en' %}They pick up the disc when it suits them{% else %}De hämtar discen när det passar dem{% endif %}
+                        </p>
                     </div>
                     <div class="step-item">
                         <div class="step-number">3</div>
-                        <p>Alla är glada! Inget krångel, ingen stress</p>
+                        <p>
+                            {% if lang == 'en' %}Everyone's happy! No hassle, no stress{% else %}Alla är glada! Inget krångel, ingen stress{% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
             
             <div class="cta-section">
-                <h2>Bra jobbat!</h2>
-                <p>Hoppas någon hjälper dig lika snällt om du tappar en disc.</p>
+                <h2>
+                    {% if lang == 'en' %}Great job!{% else %}Bra jobbat!{% endif %}
+                </h2>
+                <p>
+                    {% if lang == 'en' %}Hope someone helps you just as kindly if you lose a disc.{% else %}Hoppas någon hjälper dig lika snällt om du tappar en disc.{% endif %}
+                </p>
                 
                 <a href="{{ url_for('auth.index') }}" class="btn-primary">
-                    Till startsidan
+                    {% if lang == 'en' %}To homepage{% else %}Till startsidan{% endif %}
                 </a>
                 
                 <div class="hint-box">
-                    <p>Tips: <a href="{{ url_for('auth.signup') }}">Skaffa du också QR-koder</a> så du får tillbaka dina egna discar!</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            Tip: <a href="{{ url_for('auth.signup') }}">Get QR codes too</a> so you can get your own discs back!
+                        {% else %}
+                            Tips: <a href="{{ url_for('auth.signup') }}">Skaffa du också QR-koder</a> så du får tillbaka dina egna discar!
+                        {% endif %}
+                    </p>
                 </div>
             </div>
         </div>

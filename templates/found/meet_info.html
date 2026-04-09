@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mötesförfrågan - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Meeting request - ReturnaDisc{% else %}Mötesförfrågan - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -406,8 +406,12 @@
         <!-- Header -->
         <div class="meet-header">
             <span class="meet-icon">🤝</span>
-            <h1>Mötes<span>förfrågan</span></h1>
-            <p>Varför inte gömma discen istället?</p>
+            <h1>
+                {% if lang == 'en' %}Meeting<span>request</span>{% else %}Mötes<span>förfrågan</span>{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Why not hide the disc instead?{% else %}Varför inte gömma discen istället?{% endif %}
+            </p>
         </div>
         
         <!-- Main Card -->
@@ -416,8 +420,14 @@
             <div class="info-box">
                 <span class="info-icon">💡</span>
                 <p class="info-text">
-                    <strong>Smartare sätt att återlämna</strong>
-                    Att mötas upp kräver planering och koordinering. Att gömma discen är snabbt, anonymt och smidigt för båda parter.
+                    <strong>
+                        {% if lang == 'en' %}Smarter way to return{% else %}Smartare sätt att återlämna{% endif %}
+                    </strong>
+                    {% if lang == 'en' %}
+                        Meeting up requires planning and coordination. Hiding the disc is quick, anonymous and smooth for both parties.
+                    {% else %}
+                        Att mötas upp kräver planering och koordinering. Att gömma discen är snabbt, anonymt och smidigt för båda parter.
+                    {% endif %}
                 </p>
             </div>
             
@@ -425,37 +435,63 @@
             <div class="comparison">
                 <!-- Recommended Option -->
                 <div class="option recommended">
-                    <span class="option-badge">✅ Rekommenderas</span>
-                    <h3>📍 Göm discen</h3>
+                    <span class="option-badge">
+                        {% if lang == 'en' %}✅ Recommended{% else %}✅ Rekommenderas{% endif %}
+                    </span>
+                    <h3>📍 
+                        {% if lang == 'en' %}Hide the disc{% else %}Göm discen{% endif %}
+                    </h3>
                     <ul>
-                        <li>⚡ Tar bara 30 sekunder</li>
-                        <li>🎭 Helt anonymt för båda</li>
-                        <li>📅 Ingen planering behövs</li>
-                        <li>🚫 Ingen frakt eller resa</li>
-                        <li>✨ Ägaren hämtar när det passar</li>
+                        <li>
+                            {% if lang == 'en' %}⚡ Takes only 30 seconds{% else %}⚡ Tar bara 30 sekunder{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}🎭 Completely anonymous for both{% else %}🎭 Helt anonymt för båda{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}📅 No planning needed{% else %}📅 Ingen planering behövs{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}🚫 No shipping or travel{% else %}🚫 Ingen frakt eller resa{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}✨ Owner picks up when convenient{% else %}✨ Ägaren hämtar när det passar{% endif %}
+                        </li>
                     </ul>
                     <a href="{{ url_for('found.found_hide', qr_id=qr_id) }}" class="btn-recommended">
-                        Jag gömmer istället →
+                        {% if lang == 'en' %}I'll hide it instead →{% else %}Jag gömmer istället →{% endif %}
                     </a>
                 </div>
                 
                 <!-- Not Recommended -->
                 <div class="option not-recommended">
-                    <h3>🤝 Mötas upp</h3>
+                    <h3>🤝 
+                        {% if lang == 'en' %}Meet up{% else %}Mötas upp{% endif %}
+                    </h3>
                     <ul>
-                        <li>❌ Lämna kontaktuppgifter</li>
-                        <li>❌ Planera tid och plats</li>
-                        <li>❌ Vänta på varandra</li>
-                        <li>❌ Kanske åka långt</li>
+                        <li>
+                            {% if lang == 'en' %}❌ Leave contact details{% else %}❌ Lämna kontaktuppgifter{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}❌ Plan time and place{% else %}❌ Planera tid och plats{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}❌ Wait for each other{% else %}❌ Vänta på varandra{% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}❌ Might travel far{% else %}❌ Kanske åka långt{% endif %}
+                        </li>
                     </ul>
                 </div>
             </div>
             
             <!-- Still want to meet -->
             <div class="still-want" id="stillWantSection">
-                <p>Du vill fortfarande mötas upp?</p>
+                <p>
+                    {% if lang == 'en' %}Still want to meet up?{% else %}Du vill fortfarande mötas upp?{% endif %}
+                </p>
                 <button onclick="showMeetForm()" class="btn-text">
-                    Jag förstår, men vill ändå mötas
+                    {% if lang == 'en' %}I understand, but still want to meet{% else %}Jag förstår, men vill ändå mötas{% endif %}
                 </button>
             </div>
             
@@ -466,31 +502,39 @@
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                         <polyline points="22,6 12,13 2,6"></polyline>
                     </svg>
-                    Fyll i dina kontaktuppgifter
+                    {% if lang == 'en' %}Fill in your contact details{% else %}Fyll i dina kontaktuppgifter{% endif %}
                 </h3>
                 
                 <form method="post" action="{{ url_for('found.found_meet', qr_id=qr_id) }}" class="meet-form">
                     <div class="form-group">
-                        <label for="finder_email">📧 Email</label>
+                        <label for="finder_email">📧 
+                            {% if lang == 'en' %}Email{% else %}Email{% endif %}
+                        </label>
                         <input type="email" id="finder_email" name="finder_email" 
-                               placeholder="din@email.se">
-                        <span class="form-hint">Minst email ELLER telefon måste fyllas i</span>
+                               placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}">
+                        <span class="form-hint">
+                            {% if lang == 'en' %}At least email OR phone must be filled in{% else %}Minst email ELLER telefon måste fyllas i{% endif %}
+                        </span>
                     </div>
                     
                     <div class="form-group">
-                        <label for="finder_phone">📱 Telefonnummer</label>
+                        <label for="finder_phone">📱 
+                            {% if lang == 'en' %}Phone number{% else %}Telefonnummer{% endif %}
+                        </label>
                         <input type="tel" id="finder_phone" name="finder_phone" 
-                               placeholder="07X-XXX XX XX">
+                               placeholder="{% if lang == 'en' %}XXX-XXX XXXX{% else %}07X-XXX XX XX{% endif %}">
                     </div>
                     
                     <div class="form-group">
-                        <label for="note">📝 Meddelande till ägaren</label>
+                        <label for="note">📝 
+                            {% if lang == 'en' %}Message to the owner{% else %}Meddelande till ägaren{% endif %}
+                        </label>
                         <textarea id="note" name="note" rows="3" 
-                                  placeholder="Förslag på tid och plats för möte, eller annan information..."></textarea>
+                                  placeholder="{% if lang == 'en' %}Suggested time and place for meeting, or other information...{% else %}Förslag på tid och plats för möte, eller annan information...{% endif %}"></textarea>
                     </div>
                     
                     <button type="submit" class="btn-submit">
-                        ✉️ Skicka mötesförfrågan
+                        {% if lang == 'en' %}✉️ Send meeting request{% else %}✉️ Skicka mötesförfrågan{% endif %}
                     </button>
                 </form>
             </div>
@@ -501,7 +545,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka
+                    {% if lang == 'en' %}Back{% else %}Tillbaka{% endif %}
                 </a>
             </div>
         </div>

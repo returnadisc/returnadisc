@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hantera Premium - ReturnADisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Manage Premium - ReturnaDisc{% else %}Hantera Premium - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -51,12 +51,30 @@
     <div class="manage-content">
         <div class="manage-header">
             <div class="manage-icon">💎</div>
-            <h1>Din prenumeration</h1>
-            <p class="manage-tagline">Hantera ditt ReturnaDisc Premium</p>
+            <h1>
+                {% if lang == 'en' %}
+                    Your Subscription
+                {% else %}
+                    Din prenumeration
+                {% endif %}
+            </h1>
+            <p class="manage-tagline">
+                {% if lang == 'en' %}
+                    Manage your ReturnaDisc Premium
+                {% else %}
+                    Hantera ditt ReturnaDisc Premium
+                {% endif %}
+            </p>
         </div>
 
         <div class="manage-card">
-            <h2>Prenumerationsdetaljer</h2>
+            <h2>
+                {% if lang == 'en' %}
+                    Subscription Details
+                {% else %}
+                    Prenumerationsdetaljer
+                {% endif %}
+            </h2>
             
             {% set subscription = premium_status.active_subscription %}
             {% set is_cancelled = subscription and subscription.status == 'cancelled' %}
@@ -64,55 +82,137 @@
             
             <div class="status-grid">
                 <div class="status-item {% if is_cancelled %}cancelled{% elif will_cancel %}pending{% else %}active{% endif %}">
-                    <label>Status</label>
+                    <label>
+                        {% if lang == 'en' %}
+                            Status
+                        {% else %}
+                            Status
+                        {% endif %}
+                    </label>
                     <value>
-                        {% if is_cancelled %}Avbruten
-                        {% elif will_cancel %}Avbryts vid förnyelse
-                        {% else %}Aktiv{% endif %}
+                        {% if is_cancelled %}
+                            {% if lang == 'en' %}Cancelled{% else %}Avbruten{% endif %}
+                        {% elif will_cancel %}
+                            {% if lang == 'en' %}Cancels at renewal{% else %}Avbryts vid förnyelse{% endif %}
+                        {% else %}
+                            {% if lang == 'en' %}Active{% else %}Aktiv{% endif %}
+                        {% endif %}
                     </value>
                 </div>
                 <div class="status-item">
-                    <label>Giltig till</label>
+                    <label>
+                        {% if lang == 'en' %}
+                            Valid until
+                        {% else %}
+                            Giltig till
+                        {% endif %}
+                    </label>
                     <value>{% if premium_status.premium_until %}{{ premium_status.premium_until.strftime('%Y-%m-%d') }}{% else %}-{% endif %}</value>
                 </div>
             </div>
             
             {% if subscription and subscription.get('is_launch_offer') and not is_cancelled %}
             <div class="launch-offer-box">
-                <h3>🎉 Du aktiverade vårt lanseringserbjudande!</h3>
-                <p>Du fick <strong>1 år gratis</strong> eftersom du anslöt dig före 1 juli 2026.</p>
+                <h3>
+                    {% if lang == 'en' %}
+                        🎉 You activated our launch offer!
+                    {% else %}
+                        🎉 Du aktiverade vårt lanseringserbjudande!
+                    {% endif %}
+                </h3>
+                <p>
+                    {% if lang == 'en' %}
+                        You got <strong>1 year free</strong> because you joined before July 1, 2026.
+                    {% else %}
+                        Du fick <strong>1 år gratis</strong> eftersom du anslöt dig före 1 juli 2026.
+                    {% endif %}
+                </p>
             </div>
             {% endif %}
             
             {% if not is_cancelled %}
                 {% if will_cancel %}
                 <div class="pending-info">
-                    <p>⚠️ Din prenumeration kommer att avbrytas vid nästa förnyelse ({{ premium_status.premium_until.strftime('%Y-%m-%d') }}).</p>
-                    <p style="margin-top: 10px; font-size: 0.9rem;">Du har fortfarande tillgång till alla premium-funktioner tills dess.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            ⚠️ Your subscription will be cancelled at the next renewal ({{ premium_status.premium_until.strftime('%Y-%m-%d') }}).
+                        {% else %}
+                            ⚠️ Din prenumeration kommer att avbrytas vid nästa förnyelse ({{ premium_status.premium_until.strftime('%Y-%m-%d') }}).
+                        {% endif %}
+                    </p>
+                    <p style="margin-top: 10px; font-size: 0.9rem;">
+                        {% if lang == 'en' %}
+                            You still have access to all premium features until then.
+                        {% else %}
+                            Du har fortfarande tillgång till alla premium-funktioner tills dess.
+                        {% endif %}
+                    </p>
                     <form action="{{ url_for('premium.reactivate') }}" method="POST" style="margin-top: 15px;">
-                        <button type="submit" class="btn-reactivate">Återaktivera prenumeration</button>
+                        <button type="submit" class="btn-reactivate">
+                            {% if lang == 'en' %}
+                                Reactivate subscription
+                            {% else %}
+                                Återaktivera prenumeration
+                            {% endif %}
+                        </button>
                     </form>
                 </div>
                 {% else %}
                 <div class="cancel-section">
-                    <h3>Avbryt prenumeration</h3>
-                    <p>Du kan avbryta när som helst. Du behåller premium till periodens slut och kan återaktivera innan dess om du ångrar dig.</p>
+                    <h3>
+                        {% if lang == 'en' %}
+                            Cancel subscription
+                        {% else %}
+                            Avbryt prenumeration
+                        {% endif %}
+                    </h3>
+                    <p>
+                        {% if lang == 'en' %}
+                            You can cancel anytime. You keep premium until the end of the period and can reactivate before then if you change your mind.
+                        {% else %}
+                            Du kan avbryta när som helst. Du behåller premium till periodens slut och kan återaktivera innan dess om du ångrar dig.
+                        {% endif %}
+                    </p>
                     <form action="{{ url_for('premium.cancel') }}" method="POST" 
-                          onsubmit="return confirm('Är du säker på att du vill avbryta prenumerationen? Du behåller premium till {{ premium_status.premium_until.strftime('%Y-%m-%d') }} och kan återaktivera när som helst innan dess.');">
-                        <button type="submit" class="btn-cancel">Avbryt prenumeration</button>
+                          onsubmit="return confirm('{% if lang == 'en' %}Are you sure you want to cancel the subscription? You keep premium until {{ premium_status.premium_until.strftime('%Y-%m-%d') }} and can reactivate anytime before then.{% else %}Är du säker på att du vill avbryta prenumerationen? Du behåller premium till {{ premium_status.premium_until.strftime('%Y-%m-%d') }} och kan återaktivera när som helst innan dess.{% endif %}');">
+                        <button type="submit" class="btn-cancel">
+                            {% if lang == 'en' %}
+                                Cancel subscription
+                            {% else %}
+                                Avbryt prenumeration
+                            {% endif %}
+                        </button>
                     </form>
                 </div>
                 {% endif %}
             {% else %}
             <div class="cancelled-info">
-                <p>✓ Din prenumeration är avbruten.</p>
-                <p style="margin-top: 10px; font-size: 0.9rem;">Du kan inte längre återaktivera denna prenumeration. Skapa en ny för att få premium igen.</p>
+                <p>
+                    {% if lang == 'en' %}
+                        ✓ Your subscription is cancelled.
+                    {% else %}
+                        ✓ Din prenumeration är avbruten.
+                    {% endif %}
+                </p>
+                <p style="margin-top: 10px; font-size: 0.9rem;">
+                    {% if lang == 'en' %}
+                        You can no longer reactivate this subscription. Create a new one to get premium again.
+                    {% else %}
+                        Du kan inte längre återaktivera denna prenumeration. Skapa en ny för att få premium igen.
+                    {% endif %}
+                </p>
             </div>
             {% endif %}
         </div>
         
         <div class="back-section">
-            <a href="{{ url_for('disc.dashboard') }}" class="btn-back">← Tillbaka till Dashboard</a>
+            <a href="{{ url_for('disc.dashboard') }}" class="btn-back">
+                {% if lang == 'en' %}
+                    ← Back to Dashboard
+                {% else %}
+                    ← Tillbaka till Dashboard
+                {% endif %}
+            </a>
         </div>
     </div>
 </section>

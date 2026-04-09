@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Lämna meddelande - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Leave message - ReturnaDisc{% else %}Lämna meddelande - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -265,8 +265,12 @@
     <div class="hero-content">
         <!-- Header -->
         <div class="note-header">
-            <h1>Lämna <span>meddelande</span></h1>
-            <p>Beskriv var discen finns</p>
+            <h1>
+                {% if lang == 'en' %}Leave <span>message</span>{% else %}Lämna <span>meddelande</span>{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Describe where the disc is{% else %}Beskriv var discen finns{% endif %}
+            </p>
         </div>
         
         <!-- Main Card -->
@@ -275,26 +279,40 @@
             <div class="info-box">
                 <span class="info-icon">💡</span>
                 <p class="info-text">
-                    <strong>Tips för ett bra meddelande</strong>
-                    Var så specifik som möjligt så ägaren lätt kan hitta discen. Nämn gärna landmärken eller vägmarkeringar.
+                    <strong>
+                        {% if lang == 'en' %}Tips for a good message{% else %}Tips för ett bra meddelande{% endif %}
+                    </strong>
+                    {% if lang == 'en' %}
+                        Be as specific as possible so the owner can easily find the disc. Mention landmarks or path markings.
+                    {% else %}
+                        Var så specifik som möjligt så ägaren lätt kan hitta discen. Nämn gärna landmärken eller vägmarkeringar.
+                    {% endif %}
                 </p>
             </div>
             
             <!-- Form -->
             <form method="post" class="note-form">
                 <div class="form-group">
-                    <label for="note">📝 Ditt meddelande</label>
+                    <label for="note">📝 
+                        {% if lang == 'en' %}Your message{% else %}Ditt meddelande{% endif %}
+                    </label>
                     <textarea id="note" name="note" rows="4" required 
-                              placeholder="T.ex. 'Jag lämnade den i klubbhuset på hyllan till vänster'"></textarea>
+                              placeholder="{% if lang == 'en' %}E.g. 'I left it in the clubhouse on the shelf to the left'{% else %}T.ex. 'Jag lämnade den i klubbhuset på hyllan till vänster'{% endif %}"></textarea>
                     
                     <div class="example-box">
-                        <p><strong>Exempel på bra meddelande:</strong><br>
-                        "Hej! Jag hittade din disc i buskaget till höger om fairway på hål 7. Jag har lagt den i klubbhuset i den röda lådan märkt 'Hittade discar'. MVH /En discgolfare"</p>
+                        <p><strong>
+                            {% if lang == 'en' %}Example of a good message:{% else %}Exempel på bra meddelande:{% endif %}
+                        </strong><br>
+                        {% if lang == 'en' %}
+                            "Hi! I found your disc in the bushes to the right of fairway on hole 7. I've placed it in the clubhouse in the red box labeled 'Found discs'. Best regards /A disc golfer"
+                        {% else %}
+                            "Hej! Jag hittade din disc i buskaget till höger om fairway på hål 7. Jag har lagt den i klubbhuset i den röda lådan märkt 'Hittade discar'. MVH /En discgolfare"
+                        {% endif %}</p>
                     </div>
                 </div>
                 
                 <button type="submit" class="btn-submit">
-                    ✉️ Skicka meddelande
+                    {% if lang == 'en' %}✉️ Send message{% else %}✉️ Skicka meddelande{% endif %}
                 </button>
             </form>
             
@@ -304,7 +322,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka
+                    {% if lang == 'en' %}Back{% else %}Tillbaka{% endif %}
                 </a>
             </div>
         </div>
