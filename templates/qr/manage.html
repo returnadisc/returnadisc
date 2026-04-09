@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hantera QR-koder - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Manage QR Codes - ReturnaDisc{% else %}Hantera QR-koder - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -366,8 +366,20 @@
     
     <div class="qr-manage-content">
         <div class="qr-manage-header">
-            <h1>Hantera QR-koder</h1>
-            <p>Aktivera och hantera alla dina QR-koder</p>
+            <h1>
+                {% if lang == 'en' %}
+                    Manage QR Codes
+                {% else %}
+                    Hantera QR-koder
+                {% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}
+                    Activate and manage all your QR codes
+                {% else %}
+                    Aktivera och hantera alla dina QR-koder
+                {% endif %}
+            </p>
         </div>
 
         <!-- Aktivera ny QR -->
@@ -378,23 +390,43 @@
                     <line x1="12" y1="8" x2="12" y2="16"></line>
                     <line x1="8" y1="12" x2="16" y2="12"></line>
                 </svg>
-                Aktivera ny QR-kod
+                {% if lang == 'en' %}
+                    Activate New QR Code
+                {% else %}
+                    Aktivera ny QR-kod
+                {% endif %}
             </h2>
             <form action="{{ url_for('qr.activate') }}" method="POST" class="activate-form">
-                <input type="text" name="qr_id" placeholder="Skriv QR-kod (t.ex. ABC123)" maxlength="20" required>
-                <button type="submit" class="btn-activate">Aktivera till mitt konto</button>
+                <input type="text" name="qr_id" placeholder="{% if lang == 'en' %}Enter QR code (e.g. ABC123){% else %}Skriv QR-kod (t.ex. ABC123){% endif %}" maxlength="20" required>
+                <button type="submit" class="btn-activate">
+                    {% if lang == 'en' %}
+                        Activate to my account
+                    {% else %}
+                        Aktivera till mitt konto
+                    {% endif %}
+                </button>
             </form>
             
             <!-- Köp nya stickers -->
             <div class="buy-stickers-section">
-                <p class="buy-stickers-text">Behöver du fler QR-koder?</p>
+                <p class="buy-stickers-text">
+                    {% if lang == 'en' %}
+                        Need more QR codes?
+                    {% else %}
+                        Behöver du fler QR-koder?
+                    {% endif %}
+                </p>
                 <a href="{{ url_for('auth.buy_stickers') }}" class="btn-buy-small">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="9" cy="21" r="1"></circle>
                         <circle cx="20" cy="21" r="1"></circle>
                         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                     </svg>
-                    Köp nya stickers
+                    {% if lang == 'en' %}
+                        Buy new stickers
+                    {% else %}
+                        Köp nya stickers
+                    {% endif %}
                 </a>
             </div>
         </div>
@@ -402,19 +434,31 @@
         <!-- QR-lista -->
         <div class="qr-list-container">
             <div class="qr-list-header">
-                <h2>Mina QR-koder</h2>
-                <span class="qr-count">{{ all_qrs|length }} st</span>
+                <h2>
+                    {% if lang == 'en' %}
+                        My QR Codes
+                    {% else %}
+                        Mina QR-koder
+                    {% endif %}
+                </h2>
+                <span class="qr-count">{{ all_qrs|length }} {% if lang == 'en' %}pcs{% else %}st{% endif %}</span>
             </div>
 
             {% if all_qrs %}
                 <div class="info-box">
-                    <p>💡 <strong>Tips:</strong> Du kan ha obegränsat med QR-koder. Alla dina QR-koder fungerar samtidigt och hänvisar till ditt konto. .</p>
+                    <p>
+                        💡 <strong>{% if lang == 'en' %}Tip:{% else %}Tips:{% endif %}</strong> 
+                        {% if lang == 'en' %}
+                            You can have unlimited QR codes. All your QR codes work simultaneously and refer to your account.
+                        {% else %}
+                            Du kan ha obegränsat med QR-koder. Alla dina QR-koder fungerar samtidigt och hänvisar till ditt konto.
+                        {% endif %}
+                    </p>
                 </div>
 
                 <div class="qr-grid">
                     {% for qr in all_qrs %}
                     <div class="qr-card">
-                        <!-- FIXAD: Använd disc.qr_image route -->
                         <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
                              alt="QR {{ qr.qr_id }}" 
                              class="qr-image-small"
@@ -422,8 +466,16 @@
                         <div class="qr-info">
                             <h3>{{ qr.qr_id }}</h3>
                             <div class="qr-meta">
-                                <span class="status-badge active">● Aktiv</span>
-                                <span>📊 {{ qr.total_scans }} scanningar</span>
+                                <span class="status-badge active">
+                                    ● {% if lang == 'en' %}Active{% else %}Aktiv{% endif %}
+                                </span>
+                                <span>📊 {{ qr.total_scans }} 
+                                    {% if lang == 'en' %}
+                                        {{ 'scan' if qr.total_scans == 1 else 'scans' }}
+                                    {% else %}
+                                        {{ 'scanning' if qr.total_scans == 1 else 'scanningar' }}
+                                    {% endif %}
+                                </span>
                                 {% if qr.activated_at %}
                                 <span>📅 {{ qr.activated_at[:10] if qr.activated_at is string else qr.activated_at.strftime('%Y-%m-%d') }}</span>
                                 {% endif %}
@@ -436,8 +488,20 @@
             {% else %}
                 <div class="empty-state">
                     <div class="empty-state-icon">📭</div>
-                    <h3>Inga QR-koder ännu</h3>
-                    <p>Du har inga QR-koder kopplade till ditt konto. Aktivera en QR-kod ovan eller köp nya stickers.</p>
+                    <h3>
+                        {% if lang == 'en' %}
+                            No QR codes yet
+                        {% else %}
+                            Inga QR-koder ännu
+                        {% endif %}
+                    </h3>
+                    <p>
+                        {% if lang == 'en' %}
+                            You have no QR codes linked to your account. Activate a QR code above or buy new stickers.
+                        {% else %}
+                            Du har inga QR-koder kopplade till ditt konto. Aktivera en QR-kod ovan eller köp nya stickers.
+                        {% endif %}
+                    </p>
                     <div style="margin-top: 20px;">
                         <a href="{{ url_for('auth.buy_stickers') }}" class="btn-buy-small" style="background: #166534; border-color: #166534;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -445,7 +509,11 @@
                                 <circle cx="20" cy="21" r="1"></circle>
                                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
                             </svg>
-                            Köp stickers
+                            {% if lang == 'en' %}
+                                Buy stickers
+                            {% else %}
+                                Köp stickers
+                            {% endif %}
                         </a>
                     </div>
                 </div>
@@ -458,7 +526,11 @@
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                Tillbaka till Dashboard
+                {% if lang == 'en' %}
+                    Back to Dashboard
+                {% else %}
+                    Tillbaka till Dashboard
+                {% endif %}
             </a>
         </div>
     </div>
