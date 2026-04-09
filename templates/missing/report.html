@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Rapportera saknad disc - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Report Lost Disc - ReturnaDisc{% else %}Rapportera saknad disc - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -392,8 +392,20 @@
         <!-- HEADER -->
         <div class="report-header">
             <div class="report-icon">🎯</div>
-            <h1>Rapportera saknad disc</h1>
-            <p class="subtitle">Markera var du tappade den så andra kan hjälpa till att leta</p>
+            <h1>
+                {% if lang == 'en' %}
+                    Report Lost Disc
+                {% else %}
+                    Rapportera saknad disc
+                {% endif %}
+            </h1>
+            <p class="subtitle">
+                {% if lang == 'en' %}
+                    Mark where you lost it so others can help search
+                {% else %}
+                    Markera var du tappade den så andra kan hjälpa till att leta
+                {% endif %}
+            </p>
         </div>
         
         <!-- MAIN CARD -->
@@ -401,14 +413,24 @@
             <!-- GPS SECTION -->
             <div class="gps-section">
                 <div class="gps-icon">📍</div>
-                <p class="gps-text">Börja med att hämta din position eller klicka på kartan</p>
+                <p class="gps-text">
+                    {% if lang == 'en' %}
+                        Start by getting your position or click on the map
+                    {% else %}
+                        Börja med att hämta din position eller klicka på kartan
+                    {% endif %}
+                </p>
                 
                 <button type="button" class="btn-gps" id="gpsBtn" onclick="getGPSPosition()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <circle cx="12" cy="12" r="3"></circle>
                     </svg>
-                    Hämta min position
+                    {% if lang == 'en' %}
+                        Get my position
+                    {% else %}
+                        Hämta min position
+                    {% endif %}
                 </button>
                 
                 <div class="gps-status" id="gpsStatus" style="display: none;"></div>
@@ -418,28 +440,54 @@
             <form method="post" class="report-form" id="reportForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="disc_name">Discens namn *</label>
+                        <label for="disc_name">
+                            {% if lang == 'en' %}
+                                Disc name *
+                            {% else %}
+                                Discens namn *
+                            {% endif %}
+                        </label>
                         <input type="text" id="disc_name" name="disc_name" required 
-                               placeholder="t.ex. Gul Destroyer" maxlength="50">
+                               placeholder="{% if lang == 'en' %}e.g. Yellow Destroyer{% else %}t.ex. Gul Destroyer{% endif %}" 
+                               maxlength="50">
                     </div>
                     
                     <div class="form-group">
-                        <label for="hole_number">Hål (valfritt)</label>
+                        <label for="hole_number">
+                            {% if lang == 'en' %}
+                                Hole (optional)
+                            {% else %}
+                                Hål (valfritt)
+                            {% endif %}
+                        </label>
                         <input type="text" id="hole_number" name="hole_number" 
-                               placeholder="t.ex. 3" maxlength="10">
+                               placeholder="{% if lang == 'en' %}e.g. 3{% else %}t.ex. 3{% endif %}" 
+                               maxlength="10">
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="course_name">Bana (valfritt)</label>
+                    <label for="course_name">
+                        {% if lang == 'en' %}
+                            Course (optional)
+                        {% else %}
+                            Bana (valfritt)
+                        {% endif %}
+                    </label>
                     <input type="text" id="course_name" name="course_name" 
-                           placeholder="t.ex. Kärsö Discgolf">
+                           placeholder="{% if lang == 'en' %}e.g. Kärsö Discgolf{% else %}t.ex. Kärsö Discgolf{% endif %}">
                 </div>
                 
                 <div class="form-group">
-                    <label for="description">Beskrivning *</label>
+                    <label for="description">
+                        {% if lang == 'en' %}
+                            Description *
+                        {% else %}
+                            Beskrivning *
+                        {% endif %}
+                    </label>
                     <textarea id="description" name="description" rows="3" required
-                              placeholder="t.ex. Driver i gult plast, troligen i buskaget till höger om fairway"></textarea>
+                              placeholder="{% if lang == 'en' %}e.g. Driver in yellow plastic, probably in the bushes to the right of fairway{% else %}t.ex. Driver i gult plast, troligen i buskaget till höger om fairway{% endif %}"></textarea>
                 </div>
                 
                 <!-- MAP SECTION med layer controls -->
@@ -451,7 +499,11 @@
                                 <line x1="8" y1="2" x2="8" y2="18"></line>
                                 <line x1="16" y1="6" x2="16" y2="22"></line>
                             </svg>
-                            Var tappade du discen? *
+                            {% if lang == 'en' %}
+                                Where did you lose the disc? *
+                            {% else %}
+                                Var tappade du discen? *
+                            {% endif %}
                         </label>
                         
                         <div class="map-controls">
@@ -473,7 +525,11 @@
                             <line x1="12" y1="16" x2="12" y2="12"></line>
                             <line x1="12" y1="8" x2="12.01" y2="8"></line>
                         </svg>
-                        Klicka på "Hämta min position" eller klicka på kartan för att markera
+                        {% if lang == 'en' %}
+                            Click "Get my position" or click on the map to mark
+                        {% else %}
+                            Klicka på "Hämta min position" eller klicka på kartan för att markera
+                        {% endif %}
                     </p>
                     
                     <div id="map"></div>
@@ -483,7 +539,11 @@
                 </div>
                 
                 <button type="submit" class="btn-submit" id="submitBtn" disabled>
-                    Rapportera saknad disc
+                    {% if lang == 'en' %}
+                        Report Lost Disc
+                    {% else %}
+                        Rapportera saknad disc
+                    {% endif %}
                 </button>
             </form>
         </div>
@@ -494,7 +554,11 @@
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                 </svg>
-                Tillbaka till min sida
+                {% if lang == 'en' %}
+                    Back to my page
+                {% else %}
+                    Tillbaka till min sida
+                {% endif %}
             </a>
         </div>
     </div>
@@ -509,6 +573,37 @@
     var map;
     var marker = null;
     var currentLayer = null;
+    var lang = '{{ lang }}';
+    
+    // Översättningar för JavaScript-meddelanden
+    var translations = {
+        sv: {
+            gettingPosition: '⏳ Hämtar din position...',
+            gpsNotSupported: '❌ Din webbläsare stödjer inte GPS',
+            positionFound: '✅ Position hittad! Klicka på kartan för att justera.',
+            positionSelected: '✅ Position vald manuellt på kartan',
+            positionSelectedShort: '✅ Position vald! Klicka på kartan för att ändra.',
+            permissionDenied: '❌ Tillåt platsåtkomst i webbläsaren',
+            positionUnavailable: '❌ Position ej tillgänglig',
+            timeout: '❌ Timeout - försök igen',
+            errorPrefix: 'Kunde inte hämta position'
+        },
+        en: {
+            gettingPosition: '⏳ Getting your position...',
+            gpsNotSupported: '❌ Your browser does not support GPS',
+            positionFound: '✅ Position found! Click on the map to adjust.',
+            positionSelected: '✅ Position selected manually on the map',
+            positionSelectedShort: '✅ Position selected! Click on the map to change.',
+            permissionDenied: '❌ Allow location access in your browser',
+            positionUnavailable: '❌ Position unavailable',
+            timeout: '❌ Timeout - try again',
+            errorPrefix: 'Could not get position'
+        }
+    };
+
+    function t(key) {
+        return translations[lang][key] || key;
+    }
     
     // Olika kart-lager - SAMMA som community-kartan
     var layers = {
@@ -582,7 +677,7 @@
         
         // Uppdatera hint-text
         var hintEl = document.getElementById('mapHint');
-        hintEl.innerHTML = '✅ Position vald! Klicka på kartan för att ändra.';
+        hintEl.innerHTML = t('positionSelectedShort');
         hintEl.className = 'map-hint success';
         
         if (zoomIn) {
@@ -598,11 +693,11 @@
         btn.disabled = true;
         statusEl.style.display = 'block';
         statusEl.className = 'gps-status';
-        statusEl.textContent = '⏳ Hämtar din position...';
+        statusEl.textContent = t('gettingPosition');
         
         if (!navigator.geolocation) {
             statusEl.className = 'gps-status error';
-            statusEl.textContent = '❌ Din webbläsare stödjer inte GPS';
+            statusEl.textContent = t('gpsNotSupported');
             btn.disabled = false;
             return;
         }
@@ -615,14 +710,14 @@
                 setMarker(lat, lng, true);
                 
                 statusEl.className = 'gps-status success';
-                statusEl.textContent = '✅ Position hittad! Klicka på kartan för att justera.';
+                statusEl.textContent = t('positionFound');
                 btn.disabled = false;
             },
             function(error) {
-                var msg = 'Kunde inte hämta position';
-                if (error.code === 1) msg = '❌ Tillåt platsåtkomst i webbläsaren';
-                if (error.code === 2) msg = '❌ Position ej tillgänglig';
-                if (error.code === 3) msg = '❌ Timeout - försök igen';
+                var msg = t('errorPrefix');
+                if (error.code === 1) msg = t('permissionDenied');
+                if (error.code === 2) msg = t('positionUnavailable');
+                if (error.code === 3) msg = t('timeout');
                 
                 statusEl.className = 'gps-status error';
                 statusEl.textContent = msg;
@@ -643,7 +738,7 @@
         var statusEl = document.getElementById('gpsStatus');
         statusEl.style.display = 'block';
         statusEl.className = 'gps-status success';
-        statusEl.textContent = '✅ Position vald manuellt på kartan';
+        statusEl.textContent = t('positionSelected');
     });
     
     // Parallax-effekt på bakgrundsbilden

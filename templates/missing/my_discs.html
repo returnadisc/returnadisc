@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Mina saknade discar - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}My Lost Discs - ReturnaDisc{% else %}Mina saknade discar - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -395,21 +395,43 @@
         
         <div class="discs-container">
             <div class="page-header">
-                <h1>Mina <span>saknade discar</span></h1>
-                <p class="subtitle">Hantera dina rapporterade discar och markera dem som hittade</p>
+                <h1>
+                    {% if lang == 'en' %}
+                        My <span>Lost Discs</span>
+                    {% else %}
+                        Mina <span>saknade discar</span>
+                    {% endif %}
+                </h1>
+                <p class="subtitle">
+                    {% if lang == 'en' %}
+                        Manage your reported discs and mark them as found
+                    {% else %}
+                        Hantera dina rapporterade discar och markera dem som hittade
+                    {% endif %}
+                </p>
             </div>
 
             <div class="content-wrapper">
                 {% if discs %}
                     <div class="header-actions">
-                        <h2>📋 Dina registrerade discar ({{ discs|length }})</h2>
+                        <h2>
+                            {% if lang == 'en' %}
+                                📋 Your registered discs ({{ discs|length }})
+                            {% else %}
+                                📋 Dina registrerade discar ({{ discs|length }})
+                            {% endif %}
+                        </h2>
                         <a href="{{ url_for('missing.report') }}" class="btn-primary">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="16"></line>
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
                             </svg>
-                            Jag har tappat en disc
+                            {% if lang == 'en' %}
+                                I've lost a disc
+                            {% else %}
+                                Jag har tappat en disc
+                            {% endif %}
                         </a>
                     </div>
 
@@ -417,7 +439,11 @@
                         {% for disc in discs %}
                         <div class="disc-card {% if disc.status == 'found' %}found{% endif %}">
                             <div class="disc-status-badge {% if disc.status == 'found' %}found{% else %}missing{% endif %}">
-                                {% if disc.status == 'found' %}✅ Hittad{% else %}🎯 Saknas{% endif %}
+                                {% if disc.status == 'found' %}
+                                    {% if lang == 'en' %}✅ Found{% else %}✅ Hittad{% endif %}
+                                {% else %}
+                                    {% if lang == 'en' %}🎯 Missing{% else %}🎯 Saknas{% endif %}
+                                {% endif %}
                             </div>
                             
                             <div class="disc-info">
@@ -430,13 +456,23 @@
                                             <circle cx="12" cy="10" r="3"></circle>
                                         </svg>
                                         {{ disc.course_name }}
-                                        {% if disc.hole_number %} - Hål {{ disc.hole_number }}{% endif %}
+                                        {% if disc.hole_number %}
+                                            {% if lang == 'en' %} - Hole {% else %} - Hål {% endif %}
+                                            {{ disc.hole_number }}
+                                        {% endif %}
                                     </p>
                                 {% endif %}
                                 
                                 <p class="description">{{ disc.description }}</p>
                                 
-                                <p class="date">📅 Rapporterad: {{ disc.created_at.strftime('%Y-%m-%d') }}</p>
+                                <p class="date">
+                                    📅 
+                                    {% if lang == 'en' %}
+                                        Reported: {{ disc.created_at.strftime('%Y-%m-%d') }}
+                                    {% else %}
+                                        Rapporterad: {{ disc.created_at.strftime('%Y-%m-%d') }}
+                                    {% endif %}
+                                </p>
                             </div>
                             
                             <div class="disc-actions">
@@ -446,20 +482,28 @@
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <polyline points="20 6 9 17 4 12"></polyline>
                                             </svg>
-                                            Jag hittade den!
+                                            {% if lang == 'en' %}
+                                                I found it!
+                                            {% else %}
+                                                Jag hittade den!
+                                            {% endif %}
                                         </button>
                                     </form>
                                 {% endif %}
                                 
                                 <form method="post" action="/missing/delete/{{ disc.id }}" 
                                       style="display: inline;" 
-                                      onsubmit="return confirm('Ta bort denna rapport?');">
+                                      onsubmit="return confirm('{% if lang == 'en' %}Delete this report?{% else %}Ta bort denna rapport?{% endif %}');">
                                     <button type="submit" class="btn-danger btn-small">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <polyline points="3 6 5 6 21 6"></polyline>
                                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                         </svg>
-                                        Ta bort
+                                        {% if lang == 'en' %}
+                                            Delete
+                                        {% else %}
+                                            Ta bort
+                                        {% endif %}
                                     </button>
                                 </form>
                             </div>
@@ -469,15 +513,31 @@
                 {% else %}
                     <div class="empty-state">
                         <div class="empty-icon">🥏</div>
-                        <h2>Inga rapporterade discar</h2>
-                        <p>Har du tappat en disc? Rapportera den så andra kan hjälpa till att leta!</p>
+                        <h2>
+                            {% if lang == 'en' %}
+                                No reported discs
+                            {% else %}
+                                Inga rapporterade discar
+                            {% endif %}
+                        </h2>
+                        <p>
+                            {% if lang == 'en' %}
+                                Have you lost a disc? Report it so others can help search!
+                            {% else %}
+                                Har du tappat en disc? Rapportera den så andra kan hjälpa till att leta!
+                            {% endif %}
+                        </p>
                         <a href="{{ url_for('missing.report') }}" class="btn-primary btn-large">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="16"></line>
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
                             </svg>
-                            Rapportera saknad disc
+                            {% if lang == 'en' %}
+                                Report lost disc
+                            {% else %}
+                                Rapportera saknad disc
+                            {% endif %}
                         </a>
                     </div>
                 {% endif %}
@@ -488,7 +548,11 @@
                             <line x1="19" y1="12" x2="5" y2="12"></line>
                             <polyline points="12 19 5 12 12 5"></polyline>
                         </svg>
-                        Tillbaka till kartan
+                        {% if lang == 'en' %}
+                            Back to map
+                        {% else %}
+                            Tillbaka till kartan
+                        {% endif %}
                     </a>
                 </div>
             </div>
