@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Vanliga frågor - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}FAQ - ReturnaDisc{% else %}Vanliga frågor - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -220,128 +220,380 @@
     
     <div class="faq-content">
         <div class="faq-header">
-            <h1>Vanliga frågor</h1>
-            <p>Här hittar du svar på de vanligaste frågorna om ReturnaDisc</p>
+            <h1>
+                {% if lang == 'en' %}
+                    FAQ
+                {% else %}
+                    Vanliga frågor
+                {% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}
+                    Here you'll find answers to the most common questions about ReturnaDisc
+                {% else %}
+                    Här hittar du svar på de vanligaste frågorna om ReturnaDisc
+                {% endif %}
+            </p>
         </div>
 
         <div class="faq-container">
-            <!-- Varför ska jag använda returnadisc.se? (ÖVERST) -->
+            <!-- Why use ReturnaDisc? (TOP) -->
             <div class="faq-item featured">
-                <div class="faq-question">Varför ska jag använda returnadisc.se?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Why should I use ReturnaDisc?
+                    {% else %}
+                        Varför ska jag använda returnadisc.se?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>ReturnaDisc är framtaget för att underlätta återlämning av hittade discar till ägaren på ett anonymt, snabbt och säkert sätt.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            ReturnaDisc is designed to facilitate the return of found discs to their owner in an anonymous, fast, and secure way.
+                        {% else %}
+                            ReturnaDisc är framtaget för att underlätta återlämning av hittade discar till ägaren på ett anonymt, snabbt och säkert sätt.
+                        {% endif %}
+                    </p>
                     
-                    <p><strong>Fördelarna är:</strong></p>
+                    <p><strong>
+                        {% if lang == 'en' %}
+                            The benefits are:
+                        {% else %}
+                            Fördelarna är:
+                        {% endif %}
+                    </strong></p>
                     <ul>
-                        <li>Anonym överlämning utan att dela personlig information</li>
-                        <li>Den som hittar discen skannar QR-koden och placerar den på en trygg plats tills ägaren hämtar den</li>
-                        <li>Behåll discens värde – permanent tusch sänker värdet vid försäljning eller byte. QR-koden kan alltid tas bort när du vill sälja discen</li>
-                        <li>Community-kartan fungerar som en samlingsplats för borttappade discar, där fler användare ökar chansen att få sin disc återfunnen</li>
-						<li>Ingen kontakt krävs – du slipper samtal, meddelanden och att koordinera möten</li>
-						<li>Ingen frakt behövs – discen kan lämnas säkert utan paketering eller porto</li>
-						<li>Spara tid – processen startar direkt när QR-koden skannas</li>	
+                        <li>
+                            {% if lang == 'en' %}
+                                Anonymous handover without sharing personal information
+                            {% else %}
+                                Anonym överlämning utan att dela personlig information
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                The finder scans the QR code and places the disc in a safe spot until the owner picks it up
+                            {% else %}
+                                Den som hittar discen skannar QR-koden och placerar den på en trygg plats tills ägaren hämtar den
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Keep the disc's value – permanent ink reduces value when selling or trading. The QR code can always be removed when you want to sell the disc
+                            {% else %}
+                                Behåll discens värde – permanent tusch sänker värdet vid försäljning eller byte. QR-koden kan alltid tas bort när du vill sälja discen
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                The community map works as a gathering place for lost discs, where more users increase the chance of getting your disc back
+                            {% else %}
+                                Community-kartan fungerar som en samlingsplats för borttappade discar, där fler användare ökar chansen att få sin disc återfunnen
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                No contact required – you avoid calls, messages, and coordinating meetings
+                            {% else %}
+                                Ingen kontakt krävs – du slipper samtal, meddelanden och att koordinera möten
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                No shipping needed – the disc can be left safely without packaging or postage
+                            {% else %}
+                                Ingen frakt behövs – discen kan lämnas säkert utan paketering eller porto
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Save time – the process starts immediately when the QR code is scanned
+                            {% else %}
+                                Spara tid – processen startar direkt när QR-koden skannas
+                            {% endif %}
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Vad gör jag om jag hittar en omärkt disc? -->
+            <!-- What if I find an unmarked disc? -->
             <div class="faq-item">
-                <div class="faq-question">Vad gör jag om jag hittar en omärkt disc?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        What do I do if I find an unmarked disc?
+                    {% else %}
+                        Vad gör jag om jag hittar en omärkt disc?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
                     <ul>
-                        <li>Gå till communitykartan och kontrollera platsen där du hittade discen.</li>
-                        <li>Om en matchande disc är registrerad i närheten kan du följa samma procedur: placera discen på en trygg plats och markera den som hittad.</li>
-                        <li>Ägaren får då automatiskt ett mejl med information om var discen finns.</li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Go to the community map and check the location where you found the disc.
+                            {% else %}
+                                Gå till communitykartan och kontrollera platsen där du hittade discen.
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                If a matching disc is registered nearby, you can follow the same procedure: place the disc in a safe spot and mark it as found.
+                            {% else %}
+                                Om en matchande disc är registrerad i närheten kan du följa samma procedur: placera discen på en trygg plats och markera den som hittad.
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                The owner will then automatically receive an email with information about where the disc is located.
+                            {% else %}
+                                Ägaren får då automatiskt ett mejl med information om var discen finns.
+                            {% endif %}
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Kan jag registrera en redan borttappad disc?-->
+            <!-- Can I register an already lost disc? -->
             <div class="faq-item">
-                <div class="faq-question">Kan jag registrera en redan borttappad disc?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Can I register an already lost disc?
+                    {% else %}
+                        Kan jag registrera en redan borttappad disc?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
                     <ul>
-                        <li>Ja. Du kan registrera en disc du redan tappat bort genom att markera platsen på communitykartan och ange en beskrivning av discen.</li>
-                        <li>Detta gör det möjligt för andra att identifiera och returnera den om den hittas.</li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Yes. You can register a disc you have already lost by marking the location on the community map and providing a description of the disc.
+                            {% else %}
+                                Ja. Du kan registrera en disc du redan tappat bort genom att markera platsen på communitykartan och ange en beskrivning av discen.
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                This makes it possible for others to identify and return it if found.
+                            {% else %}
+                                Detta gör det möjligt för andra att identifiera och returnera den om den hittas.
+                            {% endif %}
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Vad ingår i BAS? -->
+            <!-- What's included in BASIC? -->
             <div class="faq-item">
-                <div class="faq-question">Vad ingår i BAS?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        What's included in BASIC?
+                    {% else %}
+                        Vad ingår i BAS?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
                     <ul>
-                        <li>Gratis användande av tjänsten med anonym överlämning, bild och position</li>
-                        <li>Registrera din disc på community-kartan för att göra den synlig för premiummedlemmar.</li>
-                        <li>Skriv ut din egen QR-kod</li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Free use of the service with anonymous handover, photo and position
+                            {% else %}
+                                Gratis användande av tjänsten med anonym överlämning, bild och position
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Register your disc on the community map to make it visible to premium members.
+                            {% else %}
+                                Registrera din disc på community-kartan för att göra den synlig för premiummedlemmar.
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Print your own QR code
+                            {% else %}
+                                Skriv ut din egen QR-kod
+                            {% endif %}
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Vad ingår i Premium? -->
+            <!-- What's included in Premium? -->
             <div class="faq-item">
-                <div class="faq-question">Vad ingår i Premium?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        What's included in Premium?
+                    {% else %}
+                        Vad ingår i Premium?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>Premium inkluderar samtliga funktioner i BAS, samt:</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            Premium includes all features in BASIC, plus:
+                        {% else %}
+                            Premium inkluderar samtliga funktioner i BAS, samt:
+                        {% endif %}
+                    </p>
                     <ul>
-                        <li>Full tillgång till community-kartan med samtliga registrerade discar</li>
-                        <li>Early access till nya funktioner som lanseras</li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Full access to the community map with all registered discs
+                            {% else %}
+                                Full tillgång till community-kartan med samtliga registrerade discar
+                            {% endif %}
+                        </li>
+                        <li>
+                            {% if lang == 'en' %}
+                                Early access to new features that are launched
+                            {% else %}
+                                Early access till nya funktioner som lanseras
+                            {% endif %}
+                        </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Varför får inte BAS tillgång till allt? -->
+            <!-- Why can't BASIC users see all discs? -->
             <div class="faq-item">
-                <div class="faq-question">Varför får inte BAS-användare se alla discar på kartan?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Why can't BASIC users see all discs on the map?
+                    {% else %}
+                        Varför får inte BAS-användare se alla discar på kartan?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>Detta är en säkerhetsåtgärd för att skydda communityns saknade discar mot ohederliga personer. Endast premiummedlemmar kan se exakta positioner för saknade discar, vilket säkerställer att de som har tillgång till informationen är engagerade i communityn.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            This is a security measure to protect the community's lost discs from dishonest individuals. Only premium members can see exact positions of lost discs, ensuring that those who have access to the information are engaged in the community.
+                        {% else %}
+                            Detta är en säkerhetsåtgärd för att skydda communityns saknade discar mot ohederliga personer. Endast premiummedlemmar kan se exakta positioner för saknade discar, vilket säkerställer att de som har tillgång till informationen är engagerade i communityn.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            <!-- Vart ska QR koden placeras? -->
+            <!-- Where should the QR code be placed? -->
             <div class="faq-item">
-                <div class="faq-question">Var ska QR-koden placeras?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Where should the QR code be placed?
+                    {% else %}
+                        Var ska QR-koden placeras?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>Vi rekommenderar att du fäster klistermärket på undersidan av discen.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            We recommend attaching the sticker on the underside of the disc.
+                        {% else %}
+                            Vi rekommenderar att du fäster klistermärket på undersidan av discen.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            <!-- Vad väger ett QR-klistermärke? -->
+            <!-- How much does a QR sticker weigh? -->
             <div class="faq-item">
-                <div class="faq-question">Vad väger ett QR-klistermärke?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        How much does a QR sticker weigh?
+                    {% else %}
+                        Vad väger ett QR-klistermärke?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p style="margin-top: 12px;">0,1 gram</p>
+                    <p style="margin-top: 12px;">
+                        {% if lang == 'en' %}
+                            0.1 grams
+                        {% else %}
+                            0,1 gram
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            <!-- Måste jag köpa stickers? -->
+            <!-- Do I have to buy stickers? -->
             <div class="faq-item">
-                <div class="faq-question">Måste jag köpa stickers?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Do I have to buy stickers?
+                    {% else %}
+                        Måste jag köpa stickers?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>Nej, det är inte obligatoriskt. Du kan skriva ut din egen QR-kod eller skriva ID-numret direkt på discen.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            No, it is not mandatory. You can print your own QR code or write the ID number directly on the disc.
+                        {% else %}
+                            Nej, det är inte obligatoriskt. Du kan skriva ut din egen QR-kod eller skriva ID-numret direkt på discen.
+                        {% endif %}
+                    </p>
                     <div class="info-box">
-                        <p>Våra klistermärken är speciellt framtagna för att sitta fast ordentligt och tåla vatten, vilket ger bäst skydd för din disc.</p>
+                        <p>
+                            {% if lang == 'en' %}
+                                Our stickers are specially designed to stick properly and withstand water, providing the best protection for your disc.
+                            {% else %}
+                                Våra klistermärken är speciellt framtagna för att sitta fast ordentligt och tåla vatten, vilket ger bäst skydd för din disc.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Kan jag ha flera QR-koder? -->
+            <!-- Can I have multiple QR codes? -->
             <div class="faq-item">
-                <div class="faq-question">Kan jag ha flera QR-koder?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Can I have multiple QR codes?
+                    {% else %}
+                        Kan jag ha flera QR-koder?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>Ja. När du köper ett stickerspaket får du QR-koder med ett nytt ID, som kopplas till ditt konto. Du kan ha flera QR-koder aktiverade samtidigt.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            Yes. When you buy a sticker package, you get QR codes with a new ID, which are linked to your account. You can have several QR codes activated simultaneously.
+                        {% else %}
+                            Ja. När du köper ett stickerspaket får du QR-koder med ett nytt ID, som kopplas till ditt konto. Du kan ha flera QR-koder aktiverade samtidigt.
+                        {% endif %}
+                    </p>
                 </div>
             </div>
 
-            <!-- Kan jag tävla med QR-koden? -->
+            <!-- Can I compete with the QR code? -->
             <div class="faq-item">
-                <div class="faq-question">Kan jag tävla med QR-koden på discen?</div>
+                <div class="faq-question">
+                    {% if lang == 'en' %}
+                        Can I compete with the QR code on the disc?
+                    {% else %}
+                        Kan jag tävla med QR-koden på discen?
+                    {% endif %}
+                </div>
                 <div class="faq-answer">
-                    <p>Nej. Enligt PDGA:s regler (813.01 Illegal Disc) är det inte tillåtet att addera material till discen.</p>
-                    <p>Däremot är det tillåtet att märka discen med permanent tusch. Du kan till exempel skriva QR-kodens ID-nummer och returnadisc.se direkt på discen.</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            No. According to PDGA rules (813.01 Illegal Disc), it is not allowed to add material to the disc.
+                        {% else %}
+                            Nej. Enligt PDGA:s regler (813.01 Illegal Disc) är det inte tillåtet att addera material till discen.
+                        {% endif %}
+                    </p>
+                    <p>
+                        {% if lang == 'en' %}
+                            However, it is allowed to mark the disc with permanent ink. For example, you can write the QR code's ID number and returnadisc.com directly on the disc.
+                        {% else %}
+                            Däremot är det tillåtet att märka discen med permanent tusch. Du kan till exempel skriva QR-kodens ID-nummer och returnadisc.se direkt på discen.
+                        {% endif %}
+                    </p>
                     <div class="info-box">
-                        <p>Discen måste vara identifikationsmärkt vid tävling. Ett omarkerat disc kast ger varning första gången, och straffkast vid upprepade tillfällen.</p>
+                        <p>
+                            {% if lang == 'en' %}
+                                The disc must be identification-marked during competition. An unmarked disc throw results in a warning the first time, and penalty throws on repeated occasions.
+                            {% else %}
+                                Discen måste vara identifikationsmärkt vid tävling. Ett omarkerat disc kast ger varning första gången, och straffkast vid upprepade tillfällen.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -353,7 +605,11 @@
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                Tillbaka till startsidan
+                {% if lang == 'en' %}
+                    Back to homepage
+                {% else %}
+                    Tillbaka till startsidan
+                {% endif %}
             </a>
         </div>
     </div>

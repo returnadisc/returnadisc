@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Köp QR-klistermärken - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Buy QR Stickers - ReturnaDisc{% else %}Köp QR-klistermärken - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -586,7 +586,13 @@
         <div class="buy-container">
             <!-- HEADER -->
             <div class="buy-header">
-                <h1>Köp <span>Stickers</span></h1>
+                <h1>
+                    {% if lang == 'en' %}
+                        Buy <span>Stickers</span>
+                    {% else %}
+                        Köp <span>Stickers</span>
+                    {% endif %}
+                </h1>
             </div>
             
             <!-- STICKER SHOWCASE -->
@@ -595,7 +601,7 @@
                     <div class="sticker-glow"></div>
                     <div class="sticker-circle">
                         <img src="{{ url_for('static', filename='qr/qr_EXEMP.png') }}"    
-                             alt="QR-kod exempel" 
+                             alt="{% if lang == 'en' %}QR code example{% else %}QR-kod exempel{% endif %}" 
                              class="qr-example"
                              onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='flex'">
                         <div id="qrFallback" class="qr-fallback" style="display: none;">
@@ -608,55 +614,143 @@
                 </div>
                 
                 <div class="sticker-info">
-                    <p>Vattentåliga • UV-beständiga • Klarar -20°C</p>
+                    <p>
+                        {% if lang == 'en' %}
+                            Waterproof • UV-resistant • Handles -20°C
+                        {% else %}
+                            Vattentåliga • UV-beständiga • Klarar -20°C
+                        {% endif %}
+                    </p>
                 </div>
             </div>
             
             <!-- HOW IT WORKS -->
             <div class="how-it-works">
-                <h2>Så fungerar det</h2>
+                <h2>
+                    {% if lang == 'en' %}
+                        How It Works
+                    {% else %}
+                        Så fungerar det
+                    {% endif %}
+                </h2>
                 <div class="steps">
                     <div class="step">
                         <div class="step-number">1</div>
-                        <h4>Välj paket</h4>
-                        <p>Välj hur många stickers du vill ha</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                Choose package
+                            {% else %}
+                                Välj paket
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Choose how many stickers you want
+                            {% else %}
+                                Välj hur många stickers du vill ha
+                            {% endif %}
+                        </p>
                     </div>
                     <div class="step">
                         <div class="step-number">2</div>
-                        <h4>Fyll i adress</h4>
-                        <p>Ange leveransadress i nästa steg</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                Fill in address
+                            {% else %}
+                                Fyll i adress
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Enter delivery address in the next step
+                            {% else %}
+                                Ange leveransadress i nästa steg
+                            {% endif %}
+                        </p>
                     </div>
                     <div class="step">
                         <div class="step-number">3</div>
-                        <h4>Betala med Stripe</h4>
-                        <p>Säker betalning med kort</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                Pay with Stripe
+                            {% else %}
+                                Betala med Stripe
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Secure payment with card
+                            {% else %}
+                                Säker betalning med kort
+                            {% endif %}
+                        </p>
                     </div>
                     <div class="step">
                         <div class="step-number">4</div>
-                        <h4>Vi skickar!</h4>
-                        <p>Stickers skickas inom 1-2 dagar</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                We ship!
+                            {% else %}
+                                Vi skickar!
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Stickers shipped within 1-2 days
+                            {% else %}
+                                Stickers skickas inom 1-2 dagar
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
             
             <!-- PRICING -->
             <div class="pricing-section">
-                <h2>Välj paket</h2>
+                <h2>
+                    {% if lang == 'en' %}
+                        Choose Package
+                    {% else %}
+                        Välj paket
+                    {% endif %}
+                </h2>
                 <div class="pricing-grid">
                     <!-- Small -->
                     <div class="price-card">
                         <div class="price-header">
                             <h3>Small</h3>
                             <div class="price">
-                                49<span class="price-currency">kr</span>
+                                {% if lang == 'en' %}
+                                    $5<span class="price-currency">.99</span>
+                                {% else %}
+                                    49<span class="price-currency">kr</span>
+                                {% endif %}
                             </div>
-                            <div class="price-note">Fri frakt</div>
+                            <div class="price-note">
+                                {% if lang == 'en' %}
+                                    Free shipping
+                                {% else %}
+                                    Fri frakt
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">6 stickers</div>
-                            <p>Perfekt för nybörjaren</p>
+                            <p>
+                                {% if lang == 'en' %}
+                                    Perfect for beginners
+                                {% else %}
+                                    Perfekt för nybörjaren
+                                {% endif %}
+                            </p>
                         </div>
-                        <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">Köp nu</a>
+                        <a href="{{ url_for('auth.checkout', package='small') }}" class="btn-select">
+                            {% if lang == 'en' %}
+                                Buy now
+                            {% else %}
+                                Köp nu
+                            {% endif %}
+                        </a>
                     </div>
                     
                     <!-- Medium -->
@@ -664,32 +758,82 @@
                         <div class="price-header">
                             <h3>Medium</h3>
                             <div class="price">
-                                69<span class="price-currency">kr</span>
+                                {% if lang == 'en' %}
+                                    $7<span class="price-currency">.99</span>
+                                {% else %}
+                                    69<span class="price-currency">kr</span>
+                                {% endif %}
                             </div>
-                            <div class="price-note">Fri frakt</div>
+                            <div class="price-note">
+                                {% if lang == 'en' %}
+                                    Free shipping
+                                {% else %}
+                                    Fri frakt
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">12 stickers</div>
-                            <p>För den regelbundna spelaren</p>
+                            <p>
+                                {% if lang == 'en' %}
+                                    For the regular player
+                                {% else %}
+                                    För den regelbundna spelaren
+                                {% endif %}
+                            </p>
                         </div>
-                        <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">Köp nu</a>
+                        <a href="{{ url_for('auth.checkout', package='medium') }}" class="btn-select">
+                            {% if lang == 'en' %}
+                                Buy now
+                            {% else %}
+                                Köp nu
+                            {% endif %}
+                        </a>
                     </div>
                     
                     <!-- Large - POPULÄR -->
                     <div class="price-card popular">
-                        <div class="popular-badge">Mest populär</div>
+                        <div class="popular-badge">
+                            {% if lang == 'en' %}
+                                Most popular
+                            {% else %}
+                                Mest populär
+                            {% endif %}
+                        </div>
                         <div class="price-header">
                             <h3>Large</h3>
                             <div class="price">
-                                99<span class="price-currency">kr</span>
+                                {% if lang == 'en' %}
+                                    $11<span class="price-currency">.99</span>
+                                {% else %}
+                                    99<span class="price-currency">kr</span>
+                                {% endif %}
                             </div>
-                            <div class="price-note">Fri frakt</div>
+                            <div class="price-note">
+                                {% if lang == 'en' %}
+                                    Free shipping
+                                {% else %}
+                                    Fri frakt
+                                {% endif %}
+                            </div>
                         </div>
                         <div class="price-features">
                             <div class="feature-highlight">24 stickers</div>
-                            <p>För den aktiva spelaren</p>
+                            <p>
+                                {% if lang == 'en' %}
+                                    For the active player
+                                {% else %}
+                                    För den aktiva spelaren
+                                {% endif %}
+                            </p>
                         </div>
-                        <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">Köp nu</a>
+                        <a href="{{ url_for('auth.checkout', package='large') }}" class="btn-select">
+                            {% if lang == 'en' %}
+                                Buy now
+                            {% else %}
+                                Köp nu
+                            {% endif %}
+                        </a>
                     </div>
                 </div>
             </div>

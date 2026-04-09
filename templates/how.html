@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Så fungerar ReturnaDisc - Steg för steg{% endblock %}
+{% block title %}{% if lang == 'en' %}How ReturnaDisc Works - Step by Step{% else %}Så fungerar ReturnaDisc - Steg för steg{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -362,8 +362,20 @@
 {% block content %}
 <div class="how-it-works-page">
     <div class="page-header">
-        <h1>Så fungerar <span>ReturnaDisc</span></h1>
-        <p>Från borttappad till återfunnen på fyra enkla steg</p>
+        <h1>
+            {% if lang == 'en' %}
+                How <span>ReturnaDisc</span> Works
+            {% else %}
+                Så fungerar <span>ReturnaDisc</span>
+            {% endif %}
+        </h1>
+        <p>
+            {% if lang == 'en' %}
+                From lost to found in four simple steps
+            {% else %}
+                Från borttappad till återfunnen på fyra enkla steg
+            {% endif %}
+        </p>
     </div>
 
     <div class="container">
@@ -375,15 +387,27 @@
                     <div class="step-image-wrapper">
                         <div class="step-number">1</div>
                         <img src="{{ url_for('static', filename='images/step1-disc-found.png') }}" 
-                             alt="Discen blir hittad" 
+                             alt="{% if lang == 'en' %}Disc is found{% else %}Discen blir hittad{% endif %}" 
                              class="step-image"
                              loading="lazy"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                         <div class="step-placeholder" style="display: none;">🥏</div>
                     </div>
                     <div class="step-content">
-                        <h3>Discen hittas</h3>
-                        <p>Någon hittar din disc i skogen eller på banan.</p>
+                        <h3>
+                            {% if lang == 'en' %}
+                                Disc is found
+                            {% else %}
+                                Discen hittas
+                            {% endif %}
+                        </h3>
+                        <p>
+                            {% if lang == 'en' %}
+                                Someone finds your disc in the woods or on the course.
+                            {% else %}
+                                Någon hittar din disc i skogen eller på banan.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 
@@ -392,15 +416,27 @@
                     <div class="step-image-wrapper">
                         <div class="step-number">2</div>
                         <img src="{{ url_for('static', filename='images/step2-scan-qr.png') }}" 
-                             alt="Scannar QR-kod" 
+                             alt="{% if lang == 'en' %}Scanning QR code{% else %}Scannar QR-kod{% endif %}" 
                              class="step-image"
                              loading="lazy"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                         <div class="step-placeholder" style="display: none;">📱</div>
                     </div>
                     <div class="step-content">
-                        <h3>Scannar koden</h3>
-                        <p>QR-koden skannas med telefonen. Ingen app behövs.</p>
+                        <h3>
+                            {% if lang == 'en' %}
+                                Scans the code
+                            {% else %}
+                                Scannar koden
+                            {% endif %}
+                        </h3>
+                        <p>
+                            {% if lang == 'en' %}
+                                The QR code is scanned with a phone. No app needed.
+                            {% else %}
+                                QR-koden skannas med telefonen. Ingen app behövs.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 
@@ -409,15 +445,27 @@
                     <div class="step-image-wrapper">
                         <div class="step-number">3</div>
                         <img src="{{ url_for('static', filename='images/step3-hide-disc.png') }}" 
-                             alt="Gömmer discen" 
+                             alt="{% if lang == 'en' %}Hiding the disc{% else %}Gömmer discen{% endif %}" 
                              class="step-image"
                              loading="lazy"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                         <div class="step-placeholder" style="display: none;">📍</div>
                     </div>
                     <div class="step-content">
-                        <h3>Gömmer & skickar</h3>
-                        <p>Discen göms säkert. Bild och position skickas.</p>
+                        <h3>
+                            {% if lang == 'en' %}
+                                Hides & sends
+                            {% else %}
+                                Gömmer & skickar
+                            {% endif %}
+                        </h3>
+                        <p>
+                            {% if lang == 'en' %}
+                                The disc is hidden safely. Photo and position are sent.
+                            {% else %}
+                                Discen göms säkert. Bild och position skickas.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 
@@ -426,15 +474,27 @@
                     <div class="step-image-wrapper">
                         <div class="step-number">4</div>
                         <img src="{{ url_for('static', filename='images/step4-walk-away.png') }}" 
-                             alt="Hämta discen" 
+                             alt="{% if lang == 'en' %}Pick up the disc{% else %}Hämta discen{% endif %}" 
                              class="step-image"
                              loading="lazy"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                         <div class="step-placeholder" style="display: none;">✅</div>
                     </div>
                     <div class="step-content">
-                        <h3>Du hämtar</h3>
-                        <p>Du får mail med plats. Hämta när det passar.</p>
+                        <h3>
+                            {% if lang == 'en' %}
+                                You pick up
+                            {% else %}
+                                Du hämtar
+                            {% endif %}
+                        </h3>
+                        <p>
+                            {% if lang == 'en' %}
+                                You get an email with the location. Pick up when it suits you.
+                            {% else %}
+                                Du får mail med plats. Hämta när det passar.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -443,7 +503,7 @@
         <!-- Features Section -->
         <section class="features-section">
             <div class="features-grid">
-                <!-- Kort 1: QR-kod -->
+                <!-- Card 1: QR Code -->
                 <div class="feature-card">
                     <div class="feature-icon">
                         <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -473,12 +533,24 @@
                         </svg>
                     </div>
                     <div class="feature-text">
-                        <h4>QR-kod</h4>
-                        <p>Identisk QR-kod på varje disc</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                QR Code
+                            {% else %}
+                                QR-kod
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Identical QR code on every disc
+                            {% else %}
+                                Identisk QR-kod på varje disc
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
                 
-                <!-- Kort 2: Anonymt -->
+                <!-- Card 2: Anonymous -->
                 <div class="feature-card">
                     <div class="feature-icon">
                         <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -491,12 +563,24 @@
                         </svg>
                     </div>
                     <div class="feature-text">
-                        <h4>Anonymt</h4>
-                        <p>Kontaktfri överlämning</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                Anonymous
+                            {% else %}
+                                Anonymt
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Contact-free handover
+                            {% else %}
+                                Kontaktfri överlämning
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
                 
-                <!-- Kort 3: Position -->
+                <!-- Card 3: Position -->
                 <div class="feature-card">
                     <div class="feature-icon">
                         <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -508,12 +592,24 @@
                         </svg>
                     </div>
                     <div class="feature-text">
-                        <h4>Position</h4>
-                        <p>GPS + bild direkt till mailen</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                Position
+                            {% else %}
+                                Position
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                GPS + photo directly to your email
+                            {% else %}
+                                GPS + bild direkt till mailen
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
                 
-                <!-- Kort 4: 30 sekunder -->
+                <!-- Card 4: 30 seconds -->
                 <div class="feature-card">
                     <div class="feature-icon">
                         <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -531,8 +627,20 @@
                         </svg>
                     </div>
                     <div class="feature-text">
-                        <h4>30 sekunder</h4>
-                        <p>Skanna, göm, klart</p>
+                        <h4>
+                            {% if lang == 'en' %}
+                                30 seconds
+                            {% else %}
+                                30 sekunder
+                            {% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}
+                                Scan, hide, done
+                            {% else %}
+                                Skanna, göm, klart
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -540,10 +648,34 @@
 
         <!-- CTA Section -->
         <section class="cta-section">
-            <h2>Redo att skydda dina discar?</h2>
-            <p>Skapa ett konto och aktivera din QR-kod på mindre än en minut.</p>
-            <a href="{{ url_for('auth.signup') }}" class="btn-primary">Skapa gratiskonto</a>
-            <a href="{{ url_for('auth.index') }}" class="btn-secondary">Tillbaka till startsidan</a>
+            <h2>
+                {% if lang == 'en' %}
+                    Ready to protect your discs?
+                {% else %}
+                    Redo att skydda dina discar?
+                {% endif %}
+            </h2>
+            <p>
+                {% if lang == 'en' %}
+                    Create an account and activate your QR code in less than a minute.
+                {% else %}
+                    Skapa ett konto och aktivera din QR-kod på mindre än en minut.
+                {% endif %}
+            </p>
+            <a href="{{ url_for('auth.signup') }}" class="btn-primary">
+                {% if lang == 'en' %}
+                    Create free account
+                {% else %}
+                    Skapa gratiskonto
+                {% endif %}
+            </a>
+            <a href="{{ url_for('auth.index') }}" class="btn-secondary">
+                {% if lang == 'en' %}
+                    Back to homepage
+                {% else %}
+                    Tillbaka till startsidan
+                {% endif %}
+            </a>
         </section>
     </div>
 </div>
