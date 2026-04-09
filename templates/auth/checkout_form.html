@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Beställning - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Order - ReturnaDisc{% else %}Beställning - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -283,23 +283,41 @@
     
     <div class="checkout-content">
         <div class="checkout-header">
-            <h1>Beställ <span>Stickers</span></h1>
-            <p>Fyll i dina uppgifter för leverans</p>
+            <h1>
+                {% if lang == 'en' %}Order <span>Stickers</span>{% else %}Beställ <span>Stickers</span>{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Fill in your details for delivery{% else %}Fyll i dina uppgifter för leverans{% endif %}
+            </p>
         </div>
         
         <div class="checkout-card">
             <div class="order-summary">
-                <h3>🛒 Din beställning</h3>
+                <h3>
+                    {% if lang == 'en' %}🛒 Your order{% else %}🛒 Din beställning{% endif %}
+                </h3>
                 <div class="order-item">
                     <div>
                         <div class="order-item-name">{{ package_name }}</div>
-                        <div class="order-item-detail">{{ sticker_count }} stickers • Samma QR-kod på alla</div>
+                        <div class="order-item-detail">
+                            {% if lang == 'en' %}
+                                {{ sticker_count }} stickers • Same QR code on all
+                            {% else %}
+                                {{ sticker_count }} stickers • Samma QR-kod på alla
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="order-item-price">{{ price }} kr</div>
+                    <div class="order-item-price">
+                        {% if lang == 'en' %}${{ price }}{% else %}{{ price }} kr{% endif %}
+                    </div>
                 </div>
                 <div class="order-total">
-                    <span class="order-total-label">Totalt</span>
-                    <span class="order-total-price">{{ price }} kr</span>
+                    <span class="order-total-label">
+                        {% if lang == 'en' %}Total{% else %}Totalt{% endif %}
+                    </span>
+                    <span class="order-total-price">
+                        {% if lang == 'en' %}${{ price }}{% else %}{{ price }} kr{% endif %}
+                    </span>
                 </div>
             </div>
             
@@ -307,45 +325,59 @@
                 <input type="hidden" name="package" value="{{ package }}">
                 
                 <div class="form-group">
-                    <label for="name">Fullständigt namn *</label>
+                    <label for="name">
+                        {% if lang == 'en' %}Full name *{% else %}Fullständigt namn *{% endif %}
+                    </label>
                     <input type="text" id="name" name="name" required 
-                           placeholder="Förnamn Efternamn" autocomplete="name">
+                           placeholder="{% if lang == 'en' %}Firstname Lastname{% else %}Förnamn Efternamn{% endif %}" autocomplete="name">
                 </div>
                 
                 <div class="form-group">
-                    <label for="email">Email *</label>
+                    <label for="email">
+                        {% if lang == 'en' %}Email *{% else %}Email *{% endif %}
+                    </label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="email">
-                    <span class="form-hint">Vi skickar bekräftelsen hit</span>
+                           placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}" autocomplete="email">
+                    <span class="form-hint">
+                        {% if lang == 'en' %}We send the confirmation here{% else %}Vi skickar bekräftelsen hit{% endif %}
+                    </span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="phone">Telefonnummer</label>
+                    <label for="phone">
+                        {% if lang == 'en' %}Phone number{% else %}Telefonnummer{% endif %}
+                    </label>
                     <input type="tel" id="phone" name="phone" 
-                           placeholder="07X-XXX XX XX" autocomplete="tel">
+                           placeholder="{% if lang == 'en' %}XXX-XXX XXXX{% else %}07X-XXX XX XX{% endif %}" autocomplete="tel">
                 </div>
                 
                 <div class="form-group">
-                    <label for="address">Gatuadress *</label>
+                    <label for="address">
+                        {% if lang == 'en' %}Street address *{% else %}Gatuadress *{% endif %}
+                    </label>
                     <textarea id="address" name="address" required 
-                              placeholder="Storgatan 123, lgh 456" autocomplete="street-address"></textarea>
+                              placeholder="{% if lang == 'en' %}Main Street 123, Apt 456{% else %}Storgatan 123, lgh 456{% endif %}" autocomplete="street-address"></textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="postal_code">Postnummer *</label>
+                        <label for="postal_code">
+                            {% if lang == 'en' %}Zip code *{% else %}Postnummer *{% endif %}
+                        </label>
                         <input type="text" id="postal_code" name="postal_code" required 
                                placeholder="123 45" autocomplete="postal-code">
                     </div>
                     <div class="form-group">
-                        <label for="city">Ort *</label>
+                        <label for="city">
+                            {% if lang == 'en' %}City *{% else %}Ort *{% endif %}
+                        </label>
                         <input type="text" id="city" name="city" required 
-                               placeholder="Stockholm" autocomplete="address-level2">
+                               placeholder="{% if lang == 'en' %}New York{% else %}Stockholm{% endif %}" autocomplete="address-level2">
                     </div>
                 </div>
                 
                 <button type="submit" class="btn-submit">
-                    Gå till betalning →
+                    {% if lang == 'en' %}Go to payment →{% else %}Gå till betalning →{% endif %}
                 </button>
                 
                 <div class="secure-badge">
@@ -353,7 +385,7 @@
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    Säker betalning med Stripe
+                    {% if lang == 'en' %}Secure payment with Stripe{% else %}Säker betalning med Stripe{% endif %}
                 </div>
             </form>
             
@@ -362,7 +394,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till paket
+                    {% if lang == 'en' %}Back to packages{% else %}Tillbaka till paket{% endif %}
                 </a>
             </div>
         </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Betalning bekräftad - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Payment confirmed - ReturnaDisc{% else %}Betalning bekräftad - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -311,75 +311,4 @@
             display: none;
         }
 
-        .delivery-box p {
-            max-width: 100%;
-        }
-
-        .action-buttons {
-            flex-direction: column;
-        }
-
-        .btn-yellow, .btn-outline {
-            width: 100%;
-            text-align: center;
-        }
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="confirmation-page">
-    <div class="confirmation-bg" style="background-image: url('{{ url_for('static', filename='images/login-bg.png') }}');"></div>
-    <div class="confirmation-overlay"></div>
-    
-    <div class="confirmation-container">
-        <div class="confirmation-card">
-            <div class="success-badge">
-                <svg viewBox="0 0 24 24">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Betalning mottagen
-            </div>
-            
-            <div class="confirmation-header">
-                <h1>Tack för din <span>beställning</span></h1>
-                <p class="confirmation-subtitle">Dina QR-stickers är på väg till dig. Vi har skickat en bekräftelse till din e-post.</p>
-            </div>
-            
-            <div class="order-timeline">
-                <div class="timeline-item">
-                    <div class="timeline-icon">📋</div>
-                    <div class="timeline-content">
-                        <div class="timeline-label">Ordernummer</div>
-                        <div class="timeline-value order-num">#{{ order_id }}</div>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-icon">📦</div>
-                    <div class="timeline-content">
-                        <div class="timeline-label">Paket</div>
-                        <div class="timeline-value">{{ package.capitalize() }} ({% if package == 'start' %}12{% elif package == 'standard' %}24{% elif package == 'pro' %}48{% else %}{{ count }}{% endif %} stickers)</div>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-icon">✉️</div>
-                    <div class="timeline-content">
-                        <div class="timeline-label">E-post</div>
-                        <div class="timeline-value email">{{ email }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="delivery-box">
-                <h3>🚚 Leveransinformation</h3>
-                <p>Vi tillverkar och skickar dina stickers inom 1-2 arbetsdagar.</p>
-            </div>
-            
-            <div class="action-buttons">
-                <a href="{{ url_for('disc.dashboard') }}" class="btn-yellow">Gå till min dashboard</a>
-                <a href="{{ url_for('auth.index') }}" class="btn-outline">Till startsidan</a>
-            </div>         
-        </div>
-    </div>
-</div>
-{% endblock %}
+        .delivery-box p

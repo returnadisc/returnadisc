@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Beställning - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Order - ReturnaDisc{% else %}Beställning - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -277,8 +277,12 @@
     
     <div class="checkout-content">
         <div class="checkout-header">
-            <h1>Beställ <span>Stickers</span></h1>
-            <p>Fyll i dina uppgifter</p>
+            <h1>
+                {% if lang == 'en' %}Order <span>Stickers</span>{% else %}Beställ <span>Stickers</span>{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Fill in your details{% else %}Fyll i dina uppgifter{% endif %}
+            </p>
         </div>
         
         <div class="checkout-card">
@@ -289,17 +293,31 @@
             {% endif %}
             
             <div class="order-summary">
-                <h3>🛒 Din beställning</h3>
+                <h3>
+                    {% if lang == 'en' %}🛒 Your order{% else %}🛒 Din beställning{% endif %}
+                </h3>
                 <div class="order-item">
                     <div>
                         <div class="order-item-name">{{ package_name }}</div>
-                        <div class="order-item-detail">{{ sticker_count }} stickers • Samma QR-kod</div>
+                        <div class="order-item-detail">
+                            {% if lang == 'en' %}
+                                {{ sticker_count }} stickers • Same QR code
+                            {% else %}
+                                {{ sticker_count }} stickers • Samma QR-kod
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="order-item-price">{{ price }} kr</div>
+                    <div class="order-item-price">
+                        {% if lang == 'en' %}${{ price }}{% else %}{{ price }} kr{% endif %}
+                    </div>
                 </div>
                 <div class="order-total">
-                    <span class="order-total-label">Totalt</span>
-                    <span class="order-total-price">{{ price }} kr</span>
+                    <span class="order-total-label">
+                        {% if lang == 'en' %}Total{% else %}Totalt{% endif %}
+                    </span>
+                    <span class="order-total-price">
+                        {% if lang == 'en' %}${{ price }}{% else %}{{ price }} kr{% endif %}
+                    </span>
                 </div>
             </div>
             
@@ -308,50 +326,64 @@
                 <input type="hidden" name="count" value="{{ sticker_count }}">
                 
                 <div class="form-group">
-                    <label for="name">Fullständigt namn *</label>
+                    <label for="name">
+                        {% if lang == 'en' %}Full name *{% else %}Fullständigt namn *{% endif %}
+                    </label>
                     <input type="text" id="name" name="name" required 
-                           placeholder="Förnamn Efternamn" autocomplete="name"
+                           placeholder="{% if lang == 'en' %}Firstname Lastname{% else %}Förnamn Efternamn{% endif %}" autocomplete="name"
                            value="{{ request.form.name or '' }}">
                 </div>
                 
                 <div class="form-group">
-                    <label for="email">Email *</label>
+                    <label for="email">
+                        {% if lang == 'en' %}Email *{% else %}Email *{% endif %}
+                    </label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="username email"
+                           placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}" autocomplete="username email"
                            value="{{ request.form.email or '' }}">
-                    <span class="form-hint">Vi skickar aktiveringslänken hit</span>
+                    <span class="form-hint">
+                        {% if lang == 'en' %}We send the activation link here{% else %}Vi skickar aktiveringslänken hit{% endif %}
+                    </span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="phone">Telefonnummer</label>
+                    <label for="phone">
+                        {% if lang == 'en' %}Phone number{% else %}Telefonnummer{% endif %}
+                    </label>
                     <input type="tel" id="phone" name="phone" 
-                           placeholder="07X-XXX XX XX" autocomplete="tel"
+                           placeholder="{% if lang == 'en' %}XXX-XXX XXXX{% else %}07X-XXX XX XX{% endif %}" autocomplete="tel"
                            value="{{ request.form.phone or '' }}">
                 </div>
                 
                 <div class="form-group">
-                    <label for="address">Leveransadress *</label>
+                    <label for="address">
+                        {% if lang == 'en' %}Delivery address *{% else %}Leveransadress *{% endif %}
+                    </label>
                     <textarea id="address" name="address" required 
-                              placeholder="Gatuadress, postnummer, ort" autocomplete="street-address">{{ request.form.address or '' }}</textarea>
+                              placeholder="{% if lang == 'en' %}Street address, zip code, city{% else %}Gatuadress, postnummer, ort{% endif %}" autocomplete="street-address">{{ request.form.address or '' }}</textarea>
                 </div>
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="postal_code">Postnummer *</label>
+                        <label for="postal_code">
+                            {% if lang == 'en' %}Zip code *{% else %}Postnummer *{% endif %}
+                        </label>
                         <input type="text" id="postal_code" name="postal_code" required 
                                placeholder="123 45" autocomplete="postal-code"
                                value="{{ request.form.postal_code or '' }}">
                     </div>
                     <div class="form-group">
-                        <label for="city">Ort *</label>
+                        <label for="city">
+                            {% if lang == 'en' %}City *{% else %}Ort *{% endif %}
+                        </label>
                         <input type="text" id="city" name="city" required 
-                               placeholder="Stockholm" autocomplete="address-level2"
+                               placeholder="{% if lang == 'en' %}New York{% else %}Stockholm{% endif %}" autocomplete="address-level2"
                                value="{{ request.form.city or '' }}">
                     </div>
                 </div>
                 
                 <button type="submit" class="btn-submit">
-                    Beställ nu →
+                    {% if lang == 'en' %}Order now →{% else %}Beställ nu →{% endif %}
                 </button>
             </form>
             
@@ -360,7 +392,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka
+                    {% if lang == 'en' %}Back{% else %}Tillbaka{% endif %}
                 </a>
             </div>
         </div>

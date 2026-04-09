@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Orderbekräftelse - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Order confirmation - ReturnaDisc{% else %}Orderbekräftelse - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -538,24 +538,36 @@
     <div class="confirmation-container">
         <div class="confirmation-header">
             <div class="success-icon">✓</div>
-            <h1>Tack för din <span>beställning!</span></h1>
-            <p>Dina QR-koder är genererade och redo</p>
+            <h1>
+                {% if lang == 'en' %}Thank you for your <span>order!</span>{% else %}Tack för din <span>beställning!</span>{% endif %}
+            </h1>
+            <p>
+                {% if lang == 'en' %}Your QR codes are generated and ready{% else %}Dina QR-koder är genererade och redo{% endif %}
+            </p>
         </div>
         
         <div class="main-card">
             <!-- Order Info -->
             <div class="order-info">
                 <div class="order-detail">
-                    <div class="order-label">Ordernummer</div>
+                    <div class="order-label">
+                        {% if lang == 'en' %}Order number{% else %}Ordernummer{% endif %}
+                    </div>
                     <div class="order-value">#{{ order_id }}</div>
                 </div>
                 <div class="order-detail">
-                    <div class="order-label">Antal koder</div>
-                    <div class="order-value">{{ qr_codes|length }} st</div>
+                    <div class="order-label">
+                        {% if lang == 'en' %}Number of codes{% else %}Antal koder{% endif %}
+                    </div>
+                    <div class="order-value">{{ qr_codes|length }} {% if lang == 'en' %}pcs{% else %}st{% endif %}</div>
                 </div>
                 <div class="order-detail">
-                    <div class="order-label">Totalt</div>
-                    <div class="order-value">{{ total_price }} kr</div>
+                    <div class="order-label">
+                        {% if lang == 'en' %}Total{% else %}Totalt{% endif %}
+                    </div>
+                    <div class="order-value">
+                        {% if lang == 'en' %}${{ total_price }}{% else %}{{ total_price }} kr{% endif %}
+                    </div>
                 </div>
             </div>
             
@@ -563,36 +575,58 @@
             <div class="email-notice">
                 <span class="email-icon">📧</span>
                 <p class="email-text">
-                    <strong>En kopia har skickats till din email</strong>
-                    Spara mailet! Det innehåller dina QR-koder och aktiveringslänkar.
+                    <strong>
+                        {% if lang == 'en' %}A copy has been sent to your email{% else %}En kopia har skickats till din email{% endif %}
+                    </strong>
+                    {% if lang == 'en' %}
+                        Save the email! It contains your QR codes and activation links.
+                    {% else %}
+                        Spara mailet! Det innehåller dina QR-koder och aktiveringslänkar.
+                    {% endif %}
                 </p>
             </div>
             
-            <!-- Hur det fungerar -->
+            <!-- How it works -->
             <div class="how-it-works-mini">
-                <h3>🎯 Så här fungerar det</h3>
+                <h3>
+                    {% if lang == 'en' %}🎯 How it works{% else %}🎯 Så här fungerar det{% endif %}
+                </h3>
                 <div class="steps-mini">
                     <div class="step-mini">
                         <div class="step-mini-icon">🖨️</div>
-                        <h4>1. Skriv ut</h4>
-                        <p>Ladda ner PDF och skriv ut dina QR-koder</p>
+                        <h4>
+                            {% if lang == 'en' %}1. Print{% else %}1. Skriv ut{% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}Download PDF and print your QR codes{% else %}Ladda ner PDF och skriv ut dina QR-koder{% endif %}
+                        </p>
                     </div>
                     <div class="step-mini">
                         <div class="step-mini-icon">🏷️</div>
-                        <h4>2. Sätt på discarna</h4>
-                        <p>Samma kod på alla dina discar</p>
+                        <h4>
+                            {% if lang == 'en' %}2. Put on discs{% else %}2. Sätt på discarna{% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}Same code on all your discs{% else %}Samma kod på alla dina discar{% endif %}
+                        </p>
                     </div>
                     <div class="step-mini">
                         <div class="step-mini-icon">🎯</div>
-                        <h4>3. Aktivera</h4>
-                        <p>Skapa konto och aktivera när du vill</p>
+                        <h4>
+                            {% if lang == 'en' %}3. Activate{% else %}3. Aktivera{% endif %}
+                        </h4>
+                        <p>
+                            {% if lang == 'en' %}Create account and activate when you want{% else %}Skapa konto och aktivera när du vill{% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
             
-            <!-- QR-koder lista -->
+            <!-- QR codes list -->
             <div class="qr-list-section">
-                <h3>🏷️ Dina QR-koder (färdiga att använda)</h3>
+                <h3>
+                    {% if lang == 'en' %}🏷️ Your QR codes (ready to use){% else %}🏷️ Dina QR-koder (färdiga att använda){% endif %}
+                </h3>
                 {% for qr in qr_codes %}
                 <div class="qr-code-item">
                     <div class="qr-code-info">
@@ -604,61 +638,97 @@
                         </div>
                         <div class="qr-code-details">
                             <h4>{{ qr.qr_id }}</h4>
-                            <p>Samma kod på alla dina discar</p>
+                            <p>
+                                {% if lang == 'en' %}Same code on all your discs{% else %}Samma kod på alla dina discar{% endif %}
+                            </p>
                         </div>
                     </div>
-                    <span class="qr-code-status">Ej aktiverad</span>
+                    <span class="qr-code-status">
+                        {% if lang == 'en' %}Not activated{% else %}Ej aktiverad{% endif %}
+                    </span>
                 </div>
                 {% endfor %}
             </div>
             
             <!-- Download Section -->
             <div class="download-section">
-                <h3>🖨️ Skriv ut dina klistermärken</h3>
-                <p>Ladda ner alla QR-koder som PDF för enkel utskrift på etikettpapper</p>
+                <h3>
+                    {% if lang == 'en' %}🖨️ Print your stickers{% else %}🖨️ Skriv ut dina klistermärken{% endif %}
+                </h3>
+                <p>
+                    {% if lang == 'en' %}
+                        Download all QR codes as PDF for easy printing on label paper
+                    {% else %}
+                        Ladda ner alla QR-koder som PDF för enkel utskrift på etikettpapper
+                    {% endif %}
+                </p>
                 <a href="{{ url_for('auth.download_order_pdf', order_id=order_id) }}" class="btn-download">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    Ladda ner PDF för utskrift
+                    {% if lang == 'en' %}Download PDF for printing{% else %}Ladda ner PDF för utskrift{% endif %}
                 </a>
             </div>
             
-            <!-- Aktivera nu ELLER senare -->
+            <!-- Activate now OR later -->
             <div class="activation-box">
-                <h3>🚀 Redan redo att aktivera?</h3>
-                <p>Du kan aktivera din QR-kod direkt nu, eller vänta tills senare. 
-                   Koden fungerar inte förrän den är aktiverad.</p>
+                <h3>
+                    {% if lang == 'en' %}🚀 Already ready to activate?{% else %}🚀 Redan redo att aktivera?{% endif %}
+                </h3>
+                <p>
+                    {% if lang == 'en' %}
+                        You can activate your QR code directly now, or wait until later. 
+                        The code will not work until it is activated.
+                    {% else %}
+                        Du kan aktivera din QR-kod direkt nu, eller vänta tills senare. 
+                        Koden fungerar inte förrän den är aktiverad.
+                    {% endif %}
+                </p>
                 
                 <div class="activation-steps">
                     <div class="activation-step">
                         <span class="step-number">1</span>
-                        <span class="step-text">Skapa konto på returnadisc.se</span>
+                        <span class="step-text">
+                            {% if lang == 'en' %}Create account at returnadisc.com{% else %}Skapa konto på returnadisc.se{% endif %}
+                        </span>
                     </div>
                     <div class="activation-step">
                         <span class="step-number">2</span>
-                        <span class="step-text">Ange din QR-kod: <strong>{{ qr_codes[0].qr_id }}</strong></span>
+                        <span class="step-text">
+                            {% if lang == 'en' %}Enter your QR code: <strong>{{ qr_codes[0].qr_id }}</strong>{% else %}Ange din QR-kod: <strong>{{ qr_codes[0].qr_id }}</strong>{% endif %}
+                        </span>
                     </div>
                     <div class="activation-step">
                         <span class="step-number">3</span>
-                        <span class="step-text">Klart! Din kod är nu aktiv</span>
+                        <span class="step-text">
+                            {% if lang == 'en' %}Done! Your code is now active{% else %}Klart! Din kod är nu aktiv{% endif %}
+                        </span>
                     </div>
                 </div>
                 
                 <a href="{{ url_for('auth.signup_with_qr', order_id=order_id) }}" class="btn-activate">
-                    Skapa konto & aktivera nu →
+                    {% if lang == 'en' %}Create account & activate now →{% else %}Skapa konto & aktivera nu →{% endif %}
                 </a>
             </div>
             
-            <!-- Aktivera senare -->
+            <!-- Activate later -->
             <div class="activate-later-box">
-                <h3>⏰ Vill du aktivera senare?</h3>
-                <p>Inga problem! Spara din orderbekräftelse och kom tillbaka när du vill. 
-                   QR-koden är förberedd och väntar på dig.</p>
+                <h3>
+                    {% if lang == 'en' %}⏰ Want to activate later?{% else %}⏰ Vill du aktivera senare?{% endif %}
+                </h3>
+                <p>
+                    {% if lang == 'en' %}
+                        No problem! Save your order confirmation and come back when you want. 
+                        The QR code is prepared and waiting for you.
+                    {% else %}
+                        Inga problem! Spara din orderbekräftelse och kom tillbaka när du vill. 
+                        QR-koden är förberedd och väntar på dig.
+                    {% endif %}
+                </p>
                 <a href="{{ url_for('auth.activate_later', order_id=order_id) }}" class="btn-activate-later">
-                    Läs mer om aktivering →
+                    {% if lang == 'en' %}Read more about activation →{% else %}Läs mer om aktivering →{% endif %}
                 </a>
             </div>
             
@@ -667,7 +737,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till startsidan
+                    {% if lang == 'en' %}Back to homepage{% else %}Tillbaka till startsidan{% endif %}
                 </a>
             </div>
         </div>

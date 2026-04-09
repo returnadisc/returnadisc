@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Skapa konto - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Create Account - ReturnaDisc{% else %}Skapa konto - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,7 +10,7 @@
         box-sizing: border-box;
     }
 
-    /* Hero Section - Samma stil som index.html */
+    /* Hero Section - Same style as index.html */
     .hero {
         min-height: 100vh;
         position: relative;
@@ -106,7 +106,7 @@
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
-    /* Main Card - Beige stil */
+    /* Main Card - Beige style */
     .signup-card {
         background: rgba(245, 245, 220, 0.98);
         backdrop-filter: blur(10px);
@@ -298,14 +298,13 @@
                     <line x1="23" y1="11" x2="17" y2="11"></line>
                 </svg>
             </div>
-            <h1>Bli <span>medlem</span></h1>
-            <p>En QR-kod. Alla dina discar. Gratis.</p>
+            <h1>{% if lang == 'en' %}Become a <span>member</span>{% else %}Bli <span>medlem</span>{% endif %}</h1>
+            <p>{% if lang == 'en' %}One QR code. All your discs. Free.{% else %}En QR-kod. Alla dina discar. Gratis.{% endif %}</p>
         </div>
         
         <!-- Main Card -->
         <div class="signup-card">
-            <!-- FEL: Duplicerad flash-hantering - base.html hanterar redan detta -->
-            <!-- Men vi behöver specifik styling för error inuti kortet -->
+            <!-- Error handling inside card -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -319,38 +318,40 @@
             <!-- Form -->
             <form method="post" class="signup-form">
                 <div class="form-group">
-                    <label for="name">Ditt namn</label>
+                    <label for="name">{% if lang == 'en' %}Your name{% else %}Ditt namn{% endif %}</label>
                     <input type="text" id="name" name="name" required 
-                           placeholder="Förnamn Efternamn" autocomplete="name">
+                           placeholder="{% if lang == 'en' %}Firstname Lastname{% else %}Förnamn Efternamn{% endif %}" 
+                           autocomplete="name">
                 </div>
                 
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">{% if lang == 'en' %}Email{% else %}Email{% endif %}</label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="email">
+                           placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}" 
+                           autocomplete="email">
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Lösenord</label>
+                    <label for="password">{% if lang == 'en' %}Password{% else %}Lösenord{% endif %}</label>
                     <input type="password" id="password" name="password" required 
-                           placeholder="Välj ett säkert lösenord" 
+                           placeholder="{% if lang == 'en' %}Choose a secure password{% else %}Välj ett säkert lösenord{% endif %}" 
                            minlength="6" autocomplete="new-password">
-                    <small class="help-text">Minst 6 tecken</small>
+                    <small class="help-text">{% if lang == 'en' %}At least 6 characters{% else %}Minst 6 tecken{% endif %}</small>
                 </div>
                 
                 <button type="submit" class="btn-signup">
-                    Skapa konto gratis
+                    {% if lang == 'en' %}Create free account{% else %}Skapa konto gratis{% endif %}
                 </button>
             </form>
             
             <!-- Divider -->
-            <div class="divider">eller</div>
+            <div class="divider">{% if lang == 'en' %}or{% else %}eller{% endif %}</div>
             
             <!-- Login Link -->
             <div class="login-prompt">
-                <p>Har du redan ett konto?</p>
+                <p>{% if lang == 'en' %}Already have an account?{% else %}Har du redan ett konto?{% endif %}</p>
                 <a href="{{ url_for('auth.login') }}" class="btn-login-link">
-                    Logga in här
+                    {% if lang == 'en' %}Log in here{% else %}Logga in här{% endif %}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
@@ -363,7 +364,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till startsidan
+                    {% if lang == 'en' %}Back to homepage{% else %}Tillbaka till startsidan{% endif %}
                 </a>
             </div>
         </div>
@@ -373,7 +374,7 @@
 
 {% block extra_js %}
 <script>
-    // FEL: Samma problem som i andra filer - konflikt med CSS-animation
+    // NOTE: Same issue as other files - conflict with CSS animation
     window.addEventListener('scroll', () => {
         const scrolled = window.pageYOffset;
         const heroBg = document.getElementById('heroBg');

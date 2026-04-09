@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Aktivera din QR-kod - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Activate Your QR Code - ReturnaDisc{% else %}Aktivera din QR-kod - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -338,27 +338,27 @@
     <div class="activate-container">
         <div class="activate-header">
             <div class="activate-icon">🎯</div>
-            <h1>Aktivera din <span>QR-kod</span></h1>
-            <p>Skapa konto för att aktivera {{ qr_code.qr_id }}</p>
+            <h1>{% if lang == 'en' %}Activate your <span>QR code</span>{% else %}Aktivera din <span>QR-kod</span>{% endif %}</h1>
+            <p>{% if lang == 'en' %}Create account to activate {{ qr_code.qr_id }}{% else %}Skapa konto för att aktivera {{ qr_code.qr_id }}{% endif %}</p>
         </div>
         
         <div class="main-card">
             <!-- QR Preview -->
             <div class="qr-preview">
                 <img src="{{ url_for('static', filename='qr/qr_' + qr_code.qr_id + '.png') }}" 
-                     alt="QR-kod {{ qr_code.qr_id }}"
+                     alt="{% if lang == 'en' %}QR code {{ qr_code.qr_id }}{% else %}QR-kod {{ qr_code.qr_id }}{% endif %}"
                      loading="lazy"
                      id="qrImage">
                 <div class="qr-fallback" id="qrFallback">📱</div>
                 <div class="qr-code-display">{{ qr_code.qr_id }}</div>
-                <div class="qr-label">Din QR-kod (ej aktiverad)</div>
+                <div class="qr-label">{% if lang == 'en' %}Your QR code (not activated){% else %}Din QR-kod (ej aktiverad){% endif %}</div>
             </div>
             
             <!-- Manual Activation Option -->
             <div class="manual-activation">
-                <p>Har du redan ett konto?</p>
+                <p>{% if lang == 'en' %}Already have an account?{% else %}Har du redan ett konto?{% endif %}</p>
                 <a href="{{ url_for('auth.activate_existing', qr_id=qr_code.qr_id) }}" class="btn-manual">
-                    Aktivera på befintligt konto →
+                    {% if lang == 'en' %}Activate on existing account →{% else %}Aktivera på befintligt konto →{% endif %}
                 </a>
             </div>
             
@@ -371,44 +371,46 @@
                         <line x1="20" y1="8" x2="20" y2="14"></line>
                         <line x1="23" y1="11" x2="17" y2="11"></line>
                     </svg>
-                    Eller skapa nytt konto
+                    {% if lang == 'en' %}Or create new account{% else %}Eller skapa nytt konto{% endif %}
                 </h2>
                 
                 <form method="post" action="{{ url_for('auth.signup_with_qr', order_id=order_id) }}" class="signup-form" autocomplete="on">
                     <input type="hidden" name="qr_id" value="{{ qr_code.qr_id }}">
                     
                     <div class="form-group">
-                        <label for="name">Ditt namn</label>
+                        <label for="name">{% if lang == 'en' %}Your name{% else %}Ditt namn{% endif %}</label>
                         <input type="text" id="name" name="name" required 
-                               placeholder="Förnamn Efternamn" autocomplete="name">
+                               placeholder="{% if lang == 'en' %}Firstname Lastname{% else %}Förnamn Efternamn{% endif %}" 
+                               autocomplete="name">
                     </div>
                     
                     <div class="form-group">
-                        <label for="email">Email</label>
+                        <label for="email">{% if lang == 'en' %}Email{% else %}Email{% endif %}</label>
                         <input type="email" id="email" name="email" required 
-                               placeholder="din@email.se" autocomplete="username email">
+                               placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}" 
+                               autocomplete="username email">
                     </div>
                     
                     <div class="form-group">
-                        <label for="password">Lösenord</label>
+                        <label for="password">{% if lang == 'en' %}Password{% else %}Lösenord{% endif %}</label>
                         <input type="password" id="password" name="password" required 
-                               placeholder="Välj ett säkert lösenord" 
+                               placeholder="{% if lang == 'en' %}Choose a secure password{% else %}Välj ett säkert lösenord{% endif %}" 
                                minlength="6" autocomplete="new-password">
-                        <span class="form-hint">Minst 6 tecken</span>
+                        <span class="form-hint">{% if lang == 'en' %}At least 6 characters{% else %}Minst 6 tecken{% endif %}</span>
                     </div>
                     
                     <button type="submit" class="btn-submit">
-                        Skapa konto & aktivera {{ qr_code.qr_id }}
+                        {% if lang == 'en' %}Create account & activate {{ qr_code.qr_id }}{% else %}Skapa konto & aktivera {{ qr_code.qr_id }}{% endif %}
                     </button>
                 </form>
             </div>
             
-            <div class="divider">eller</div>
+            <div class="divider">{% if lang == 'en' %}or{% else %}eller{% endif %}</div>
             
             <div class="login-prompt">
-                <p>Har du redan ett konto?</p>
+                <p>{% if lang == 'en' %}Already have an account?{% else %}Har du redan ett konto?{% endif %}</p>
                 <a href="{{ url_for('auth.login') }}" class="btn-login-link">
-                    Logga in först →
+                    {% if lang == 'en' %}Log in first →{% else %}Logga in först →{% endif %}
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
@@ -420,7 +422,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till orderbekräftelse
+                    {% if lang == 'en' %}Back to order confirmation{% else %}Tillbaka till orderbekräftelse{% endif %}
                 </a>
             </div>
         </div>
@@ -430,7 +432,7 @@
 
 {% block extra_js %}
 <script>
-    // QR bild fallback
+    // QR image fallback
     document.getElementById('qrImage').addEventListener('error', function() {
         this.classList.add('hidden');
         document.getElementById('qrFallback').classList.add('visible');

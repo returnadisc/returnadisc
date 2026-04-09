@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Aktivera din QR-kod - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}Activate Your QR Code - ReturnaDisc{% else %}Aktivera din QR-kod - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -370,8 +370,8 @@
     <div class="qr-signup-container">
         <div class="qr-signup-header">
             <div class="qr-signup-icon">🎯</div>
-            <h1>Aktivera din <span>QR-kod</span></h1>
-            <p>Skapa konto och koppla din QR-kod</p>
+            <h1>{% if lang == 'en' %}Activate your <span>QR code</span>{% else %}Aktivera din <span>QR-kod</span>{% endif %}</h1>
+            <p>{% if lang == 'en' %}Create account and link your QR code{% else %}Skapa konto och koppla din QR-kod{% endif %}</p>
         </div>
         
         <div class="main-card">
@@ -384,16 +384,16 @@
                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
                     {% if request.args.get('qr_id') %}
-                        Du skannade QR-koden {{ request.args.get('qr_id') }}
+                        {% if lang == 'en' %}You scanned QR code {{ request.args.get('qr_id') }}{% else %}Du skannade QR-koden {{ request.args.get('qr_id') }}{% endif %}
                     {% else %}
-                        Har du köpt QR-klistermärken?
+                        {% if lang == 'en' %}Have you purchased QR stickers?{% else %}Har du köpt QR-klistermärken?{% endif %}
                     {% endif %}
                 </h3>
                 <p>
                     {% if request.args.get('qr_id') %}
-                        Skapa ett konto nedan för att aktivera denna kod. Sedan är den redo att användas på dina discar!
+                        {% if lang == 'en' %}Create an account below to activate this code. Then it's ready to use on your discs!{% else %}Skapa ett konto nedan för att aktivera denna kod. Sedan är den redo att användas på dina discar!{% endif %}
                     {% else %}
-                        Skriv in koden från ditt klistermärke nedan. När du skapat kontot är koden aktiverad och redo att användas på dina discar!
+                        {% if lang == 'en' %}Enter the code from your sticker below. When you've created the account, the code is activated and ready to use on your discs!{% else %}Skriv in koden från ditt klistermärke nedan. När du skapat kontot är koden aktiverad och redo att användas på dina discar!{% endif %}
                     {% endif %}
                 </p>
             </div>
@@ -401,7 +401,7 @@
             <!-- QR Code Display (if from scan) -->
             {% if request.args.get('qr_id') %}
             <div class="qr-code-display">
-                <div class="qr-code-label">QR-kod som aktiveras</div>
+                <div class="qr-code-label">{% if lang == 'en' %}QR code to activate{% else %}QR-kod som aktiveras{% endif %}</div>
                 <div class="qr-code-value">{{ request.args.get('qr_id') }}</div>
             </div>
             {% endif %}
@@ -411,11 +411,11 @@
                 <!-- QR Code Input - hidden if from scan, visible if manual -->
                 {% if not request.args.get('qr_id') %}
                 <div class="qr-code-input">
-                    <label for="qr_id">Din QR-kod:</label>
+                    <label for="qr_id">{% if lang == 'en' %}Your QR code:{% else %}Din QR-kod:{% endif %}</label>
                     <input type="text" id="qr_id" name="qr_id" required 
-                           placeholder="T.ex. ABC123" 
+                           placeholder="{% if lang == 'en' %}e.g. ABC123{% else %}T.ex. ABC123{% endif %}" 
                            pattern="[A-Za-z0-9]{5,10}"
-                           title="QR-koden består av 5-10 bokstäver och siffror"
+                           title="{% if lang == 'en' %}QR code consists of 5-10 letters and numbers{% else %}QR-koden består av 5-10 bokstäver och siffror{% endif %}"
                            maxlength="10"
                            autocomplete="off">
                 </div>
@@ -424,47 +424,49 @@
                 {% endif %}
                 
                 <div class="form-group">
-                    <label for="name">Ditt namn</label>
+                    <label for="name">{% if lang == 'en' %}Your name{% else %}Ditt namn{% endif %}</label>
                     <input type="text" id="name" name="name" required 
-                           placeholder="Förnamn Efternamn" autocomplete="name">
+                           placeholder="{% if lang == 'en' %}Firstname Lastname{% else %}Förnamn Efternamn{% endif %}" 
+                           autocomplete="name">
                 </div>
                 
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email">{% if lang == 'en' %}Email{% else %}Email{% endif %}</label>
                     <input type="email" id="email" name="email" required 
-                           placeholder="din@email.se" autocomplete="username email">
+                           placeholder="{% if lang == 'en' %}your@email.com{% else %}din@email.se{% endif %}" 
+                           autocomplete="username email">
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Lösenord</label>
+                    <label for="password">{% if lang == 'en' %}Password{% else %}Lösenord{% endif %}</label>
                     <input type="password" id="password" name="password" required 
-                           placeholder="Välj ett säkert lösenord" 
+                           placeholder="{% if lang == 'en' %}Choose a secure password{% else %}Välj ett säkert lösenord{% endif %}" 
                            minlength="6" autocomplete="new-password">
-                    <span class="form-hint">Minst 6 tecken</span>
+                    <span class="form-hint">{% if lang == 'en' %}At least 6 characters{% else %}Minst 6 tecken{% endif %}</span>
                 </div>
                 
                 <button type="submit" class="btn-submit">
                     {% if request.args.get('qr_id') %}
-                        Skapa konto & aktivera {{ request.args.get('qr_id') }}
+                        {% if lang == 'en' %}Create account & activate {{ request.args.get('qr_id') }}{% else %}Skapa konto & aktivera {{ request.args.get('qr_id') }}{% endif %}
                     {% else %}
-                        Skapa konto & aktivera QR-kod
+                        {% if lang == 'en' %}Create account & activate QR code{% else %}Skapa konto & aktivera QR-kod{% endif %}
                     {% endif %}
                 </button>
             </form>
             
-            <div class="divider">eller</div>
+            <div class="divider">{% if lang == 'en' %}or{% else %}eller{% endif %}</div>
             
             <!-- Alternative Options -->
             <div class="alt-options">
                 <a href="{{ url_for('auth.signup') }}" class="alt-option">
                     <div class="alt-option-icon">✨</div>
-                    <h4>Skapa konto utan QR</h4>
-                    <p>Få en QR-kod automatiskt</p>
+                    <h4>{% if lang == 'en' %}Create account without QR{% else %}Skapa konto utan QR{% endif %}</h4>
+                    <p>{% if lang == 'en' %}Get a QR code automatically{% else %}Få en QR-kod automatiskt{% endif %}</p>
                 </a>
                 <a href="{{ url_for('auth.login') }}" class="alt-option">
                     <div class="alt-option-icon">🔑</div>
-                    <h4>Logga in</h4>
-                    <p>Har du redan ett konto?</p>
+                    <h4>{% if lang == 'en' %}Log in{% else %}Logga in{% endif %}</h4>
+                    <p>{% if lang == 'en' %}Already have an account?{% else %}Har du redan ett konto?{% endif %}</p>
                 </a>
             </div>
             
@@ -473,7 +475,7 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 12H5M12 19l-7-7 7-7"/>
                     </svg>
-                    Tillbaka till startsidan
+                    {% if lang == 'en' %}Back to homepage{% else %}Tillbaka till startsidan{% endif %}
                 </a>
             </div>
         </div>
