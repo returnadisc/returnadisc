@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Min sida - ReturnaDisc{% endblock %}
+{% block title %}{% if lang == 'en' %}My Page - ReturnaDisc{% else %}Min sida - ReturnaDisc{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -528,11 +528,13 @@
     
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <h1>Välkommen, {{ user.name }}!</h1>
+            <h1>
+                {% if lang == 'en' %}Welcome, {{ user.name }}!{% else %}Välkommen, {{ user.name }}!{% endif %}
+            </h1>
             {% if qr and qr.qr_id %}
-                <p>Din QR-kod är redo att användas</p>
+                <p>{% if lang == 'en' %}Your QR code is ready to use{% else %}Din QR-kod är redo att användas{% endif %}</p>
             {% else %}
-                <p>Aktivera din QR-kod för att komma igång</p>
+                <p>{% if lang == 'en' %}Activate your QR code to get started{% else %}Aktivera din QR-kod för att komma igång{% endif %}</p>
             {% endif %}
         </div>
         
@@ -541,14 +543,23 @@
                 <div class="premium-badge">
                     💎 Premium 
                     {% if premium_status and premium_status.premium_until %}
-                        <small>till {{ premium_status.premium_until.strftime('%Y-%m-%d') }}</small>
+                        <small>
+                            {% if lang == 'en' %}until{% else %}till{% endif %} 
+                            {{ premium_status.premium_until.strftime('%Y-%m-%d') }}
+                        </small>
                     {% endif %}
                 </div>
             {% else %}
                 <div class="premium-cta-box">
-                    <div class="premium-cta-text">Uppgradera till Premium</div>
+                    <div class="premium-cta-text">
+                        {% if lang == 'en' %}Upgrade to Premium{% else %}Uppgradera till Premium{% endif %}
+                    </div>
                     <a href="{{ url_for('premium.index') }}" class="btn-premium-cta">
-                        {% if is_launch %}🎉 1 år gratis (före 1 juli){% else %}Köp Premium{% endif %}
+                        {% if lang == 'en' %}
+                            {% if is_launch %}🎉 1 year free (before July 1){% else %}Buy Premium{% endif %}
+                        {% else %}
+                            {% if is_launch %}🎉 1 år gratis (före 1 juli){% else %}Köp Premium{% endif %}
+                        {% endif %}
                     </a>
                 </div>
             {% endif %}
@@ -557,11 +568,11 @@
         <div class="stats-bar">
             <div class="stat-item">
                 <div class="stat-number missing">{{ missing_stats.missing }}</div>
-                <div class="stat-label">Saknade</div>
+                <div class="stat-label">{% if lang == 'en' %}Missing{% else %}Saknade{% endif %}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number found">{{ missing_stats.found }}</div>
-                <div class="stat-label">Återfunna</div>
+                <div class="stat-label">{% if lang == 'en' %}Found{% else %}Återfunna{% endif %}</div>
             </div>
         </div>
         
@@ -573,33 +584,45 @@
                         <path d="M8 12h8M12 8v8"></path>
                     </svg>
                 </div>
-                <h2>Aktivera din QR-kod</h2>
-                <p>Skriv in koden från ditt klistermärke för att komma igång.</p>
+                <h2>{% if lang == 'en' %}Activate your QR code{% else %}Aktivera din QR-kod{% endif %}</h2>
+                <p>
+                    {% if lang == 'en' %}
+                        Enter the code from your sticker to get started.
+                    {% else %}
+                        Skriv in koden från ditt klistermärke för att komma igång.
+                    {% endif %}
+                </p>
                 
                 <div class="activation-form">
-                    <h3>Ange din kod</h3>
+                    <h3>{% if lang == 'en' %}Enter your code{% else %}Ange din kod{% endif %}</h3>
                     <form action="{{ url_for('qr.activate') }}" method="post">
                         <div class="input-row">
                             <input type="text" name="qr_id" placeholder="ABC123" required 
                                    pattern="[A-Za-z0-9]{5,10}" maxlength="10" autocomplete="off">
-                            <button type="submit" class="btn-activate">Aktivera</button>
+                            <button type="submit" class="btn-activate">
+                                {% if lang == 'en' %}Activate{% else %}Aktivera{% endif %}
+                            </button>
                         </div>
                     </form>
                 </div>
                 
                 <p class="activation-help">
-                    Har du ingen kod? <a href="{{ url_for('auth.buy_stickers') }}">Beställ klistermärken</a>
+                    {% if lang == 'en' %}
+                        No code? <a href="{{ url_for('auth.buy_stickers') }}">Order stickers</a>
+                    {% else %}
+                        Har du ingen kod? <a href="{{ url_for('auth.buy_stickers') }}">Beställ klistermärken</a>
+                    {% endif %}
                 </p>
             </div>
         {% else %}
             <div class="dashboard-grid">
                 <div class="qr-card">
-                    <div class="qr-status-bar">Aktiv</div>
-                    <h2>Din QR-kod</h2>
+                    <div class="qr-status-bar">{% if lang == 'en' %}Active{% else %}Aktiv{% endif %}</div>
+                    <h2>{% if lang == 'en' %}Your QR Code{% else %}Din QR-kod{% endif %}</h2>
                     
                     <div class="qr-box">
                         <img src="{{ url_for('disc.qr_image', qr_id=qr.qr_id) }}" 
-                             alt="Din QR-kod {{ qr.qr_id }}" 
+                             alt="{% if lang == 'en' %}Your QR code{% else %}Din QR-kod{% endif %} {{ qr.qr_id }}" 
                              class="qr-image"
                              id="qrImage"
                              onerror="this.style.display='none'; document.getElementById('qrFallback').style.display='block';">
@@ -619,13 +642,25 @@
                             <line x1="8" y1="12" x2="16" y2="12"></line>
                             <line x1="8" y1="16" x2="16" y2="16"></line>
                         </svg>
-                        Hantera QR-koder
+                        {% if lang == 'en' %}Manage QR codes{% else %}Hantera QR-koder{% endif %}
                     </a>
                 </div>
                 
                 <div class="info-card">
-                    <h2>Så här märker du din disc</h2>
-                    <p class="info-subtitle">Välj det alternativ som passar dig bäst</p>
+                    <h2>
+                        {% if lang == 'en' %}
+                            How to mark your disc
+                        {% else %}
+                            Så här märker du din disc
+                        {% endif %}
+                    </h2>
+                    <p class="info-subtitle">
+                        {% if lang == 'en' %}
+                            Choose the option that suits you best
+                        {% else %}
+                            Välj det alternativ som passar dig bäst
+                        {% endif %}
+                    </p>
                     
                     <div class="option-list">
                         <div class="option">
@@ -637,9 +672,15 @@
                                         <rect x="6" y="14" width="12" height="8"></rect>
                                     </svg>
                                 </div>
-                                <h3>Skriv ut själv</h3>
+                                <h3>{% if lang == 'en' %}Print yourself{% else %}Skriv ut själv{% endif %}</h3>
                             </div>
-                            <p>Högerklicka på QR-koden och välj "Spara bild som" för att sedan skriva ut på egen etikett</p>
+                            <p>
+                                {% if lang == 'en' %}
+                                    Right-click on the QR code and select "Save image as" to print on your own label
+                                {% else %}
+                                    Högerklicka på QR-koden och välj "Spara bild som" för att sedan skriva ut på egen etikett
+                                {% endif %}
+                            </p>
                         </div>
                                                
                         <a href="{{ url_for('auth.buy_stickers') }}" class="option stickers-option">
@@ -649,10 +690,16 @@
                                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                                     </svg>
                                 </div>
-                                <h3>Beställ klistermärken</h3>
+                                <h3>{% if lang == 'en' %}Order stickers{% else %}Beställ klistermärken{% endif %}</h3>
                             </div>
-                            <p>Vattentåliga, UV-beständiga, perfekt storlek Ø30mm</p>
-                            <span class="option-badge">Rekommenderat</span>
+                            <p>
+                                {% if lang == 'en' %}
+                                    Waterproof, UV-resistant, perfect size Ø30mm
+                                {% else %}
+                                    Vattentåliga, UV-beständiga, perfekt storlek Ø30mm
+                                {% endif %}
+                            </p>
+                            <span class="option-badge">{% if lang == 'en' %}Recommended{% else %}Rekommenderat{% endif %}</span>
                         </a>
                     </div>
                 </div>
