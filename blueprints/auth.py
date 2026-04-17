@@ -32,25 +32,6 @@ bp = Blueprint('auth', __name__, url_prefix='')
 
 
 # ============================================================================
-# Exceptions
-# ============================================================================
-
-class AuthError(Exception):
-    """Bas-exception för auth-fel."""
-    pass
-
-
-class ValidationError(AuthError):
-    """Valideringsfel."""
-    pass
-
-
-class OrderError(AuthError):
-    """Order-relaterat fel."""
-    pass
-
-
-# ============================================================================
 # Dataclasses
 # ============================================================================
 
@@ -150,18 +131,32 @@ class ValidationService:
     """Validering av input."""
     
     # UPPDATERADE PAKET: small, medium, large
-    PACKAGE_CONFIG = {
-        'small': {'count': 6, 'price': 49},
-        'medium': {'count': 12, 'price': 69},
-        'large': {'count': 24, 'price': 99}
+    # Priser för .se (SEK) - OFÖRÄNDRADE
+    PACKAGE_CONFIG_SE = {
+        'small': {'count': 6, 'price': 49, 'price_id': None},  # 49 kr
+        'medium': {'count': 12, 'price': 69, 'price_id': None},  # 69 kr
+        'large': {'count': 24, 'price': 99, 'price_id': None}  # 99 kr
+    }
+    
+    # Priser för .com (USD) - NYA
+    PACKAGE_CONFIG_US = {
+        'small': {'count': 6, 'price': 5.99, 'price_id': None},   # $5.99
+        'medium': {'count': 12, 'price': 7.99, 'price_id': None},  # $7.99
+        'large': {'count': 24, 'price': 9.99, 'price_id': None}   # $9.99
     }
     
     @classmethod
-    def validate_package(cls, package: str) -> Dict:
-        """Validera paket och returnera konfiguration."""
-        if package not in cls.PACKAGE_CONFIG:
+    def get_package_config(cls, package: str, domain: str = None) -> Dict:
+        """Validera paket och returnera konfiguration baserat på domän."""
+        if package not in cls.PACKAGE_CONFIG_SE:
             raise ValidationError("Ogiltigt paket.")
-        return cls.PACKAGE_CONFIG[package]
+        
+        # Om .com domän, använd USD-priser
+        if domain and 'returnadisc.com' in domain.lower():
+            return cls.PACKAGE_CONFIG_US[package]
+        
+        # Standard: .se priser
+        return cls.PACKAGE_CONFIG_SE[package]
 
 
 class QRGenerationService:
@@ -254,6 +249,25 @@ class AuthService:
         
         self.db.update_last_login(user['id'])
         return user
+
+
+# ============================================================================
+# Exceptions
+# ============================================================================
+
+class AuthError(Exception):
+    """Bas-exception för auth-fel."""
+    pass
+
+
+class ValidationError(AuthError):
+    """Valideringsfel."""
+    pass
+
+
+class OrderError(AuthError):
+    """Order-relaterat fel."""
+    pass
 
 
 # ============================================================================
@@ -473,12 +487,18 @@ def reset_password(token):
 
 
 # ============================================================================
-# Routes - Stripe Betalning
+# Routes - Stripe Betalning (UPPDATERAD FÖR .COM/.SE)
 # ============================================================================
 
 @bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     """Checkout med formulär för leveransadress INNAN Stripe."""
+    
+    # Kolla om det är .com eller .se
+    host = request.host.lower()
+    is_com = 'returnadisc.com' in host
+    is_se = 'returnadisc.se' in host or not is_com  # Default till .se beteende
+    
     if request.method == 'POST':
         # Steg 2: Formuläret är skickat, spara i session och gå till Stripe
         package = request.form.get('package')
@@ -503,39 +523,58 @@ def checkout():
         session['checkout_postal_code'] = postal_code
         session['checkout_city'] = city
         
-        # Hämta paketinfo
+        # Hämta paketinfo baserat på domän
         try:
-            config = ValidationService.validate_package(package)
+            config = ValidationService.get_package_config(package, host)
             count = config['count']
-            price = config['price'] * 100  # Öre
+            price = config['price']
         except ValidationError:
             flash('Ogiltigt paket.', 'error')
             return redirect(url_for('auth.buy_stickers'))
+        
+        # Hämta rätt Stripe Price ID baserat på domän
+        price_ids = Config.get_stripe_price_ids(host)
+        price_id = price_ids.get(package)
+        currency = price_ids.get('currency', 'sek')
+        
+        if not price_id:
+            # Fallback till price_data om inget Price ID är konfigurerat
+            logger.warning(f"Inget Stripe Price ID konfigurerat för {package} på {host}")
+            unit_amount = int(price * 100)  # Öre/cents
+            
+            line_item = {
+                'price_data': {
+                    'currency': currency,
+                    'product_data': {
+                        'name': f'ReturnaDisc Stickers - {package.capitalize()}',
+                        'description': f'{count} QR stickers',
+                    },
+                    'unit_amount': unit_amount,
+                },
+                'quantity': 1,
+            }
+        else:
+            # Använd befintligt Price ID
+            line_item = {
+                'price': price_id,
+                'quantity': 1,
+            }
         
         # Skapa Stripe Checkout Session
         try:
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'sek',
-                        'product_data': {
-                            'name': f'ReturnaDisc Stickers - {package.capitalize()}',
-                            'description': f'{count} st QR-klistermärken',
-                        },
-                        'unit_amount': price,
-                    },
-                    'quantity': 1,
-                }],
+                line_items=[line_item],
                 mode='payment',
-                # TA BORT shipping_address_collection - vi har redan adressen!
                 success_url=request.host_url + 'order-confirmation-stripe?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.host_url + 'buy-stickers',
-                customer_email=email,  # Fyll i email automatiskt i Stripe
+                customer_email=email,
                 metadata={
                     'package': package,
                     'count': str(count),
                     'customer_email': email,
+                    'domain': 'com' if is_com else 'se',
+                    'currency': currency
                 }
             )
             
@@ -550,17 +589,25 @@ def checkout():
     package = request.args.get('package', 'medium')
     
     try:
-        config = ValidationService.validate_package(package)
+        config = ValidationService.get_package_config(package, host)
     except ValidationError:
         flash('Ogiltigt paket.', 'error')
         return redirect(url_for('auth.buy_stickers'))
     
-    # UPPDATERADE PAKETNAMN
-    package_names = {
-        'small': 'Small (6 stickers)',
-        'medium': 'Medium (12 stickers)',
-        'large': 'Large (24 stickers)'
-    }
+    # UPPDATERADE PAKETNAMN baserat på domän
+    if is_com:
+        package_names = {
+            'small': 'Small (6 stickers)',
+            'medium': 'Medium (12 stickers)',
+            'large': 'Large (24 stickers)'
+        }
+    else:
+        # Svenska för .se
+        package_names = {
+            'small': 'Small (6 stickers)',
+            'medium': 'Medium (12 stickers)',
+            'large': 'Large (24 stickers)'
+        }
     
     return render_template('auth/checkout_form.html',
                          package=package,
@@ -585,30 +632,25 @@ def order_confirmation_stripe():
             flash('Betalningen är inte slutförd', 'warning')
             return redirect(url_for('auth.buy_stickers'))
         
-        # ============================================================================
-        # SÄKER HÄMTNING AV METADATA - Stripe-objekt beter sig annorlunda!
-        # ============================================================================
-        
         # Konvertera Stripe metadata-objekt till vanlig dict
         metadata_obj = getattr(checkout_session, 'metadata', None)
         
         if metadata_obj is None:
             metadata = {}
         elif hasattr(metadata_obj, 'to_dict'):
-            # Nyare Stripe-klienter har to_dict()
             metadata = metadata_obj.to_dict()
         elif isinstance(metadata_obj, dict):
             metadata = metadata_obj
         else:
-            # Fallback: konvertera via __dict__ eller iterera
             try:
                 metadata = dict(metadata_obj)
             except:
                 metadata = {}
         
-        # Nu kan vi använda .get() säkert
         package = metadata.get('package')
         count_str = metadata.get('count', '12')
+        domain = metadata.get('domain', 'se')
+        currency = metadata.get('currency', 'sek')
         
         try:
             count = int(count_str)
@@ -639,10 +681,7 @@ def order_confirmation_stripe():
             package = 'medium'
             count = 12
         
-        # ============================================================================
-        # HÄMTA KUNDUPPGIFTER
-        # ============================================================================
-        
+        # Hämta KUNDUPPGIFTER
         shipping_name = session.get('checkout_name', '')
         shipping_email = session.get('checkout_email', '')
         shipping_phone = session.get('checkout_phone', '')
@@ -677,14 +716,11 @@ def order_confirmation_stripe():
             flash('Ett fel uppstod - kunde inte identifiera beställningen', 'error')
             return redirect(url_for('auth.index'))
         
-        shipping_country = 'SE'
+        shipping_country = 'SE' if domain == 'se' else 'US'
         
-        logger.info(f"Order från: {shipping_email}, paket: {package}, count: {count}")
+        logger.info(f"Order från: {shipping_email}, paket: {package}, count: {count}, domain: {domain}")
         
-        # ============================================================================
         # SKAPA ANVÄNDARE ELLER HÄMTA BEFINTLIG
-        # ============================================================================
-        
         user = db.get_user_by_email(shipping_email) if shipping_email else None
         user_id = None
         qr_id = None
@@ -697,12 +733,14 @@ def order_confirmation_stripe():
         else:
             user_id = 0
         
-        # ============================================================================
         # SKAPA ORDER
-        # ============================================================================
+        # Använd rätt pris baserat på domän
+        if domain == 'com':
+            package_prices = {'small': 5.99, 'medium': 7.99, 'large': 9.99}
+        else:
+            package_prices = {'small': 49, 'medium': 69, 'large': 99}
         
-        package_prices = {'small': 49, 'medium': 69, 'large': 99}
-        total_amount = package_prices.get(package, 69)
+        total_amount = package_prices.get(package, 69 if domain == 'se' else 7.99)
         
         order_data = {
             'user_id': user_id,
@@ -710,7 +748,7 @@ def order_confirmation_stripe():
             'package_type': package,
             'quantity': count,
             'total_amount': total_amount,
-            'currency': 'SEK',
+            'currency': currency.upper(),
             'status': 'paid',
             'payment_method': 'stripe',
             'payment_id': checkout_session.payment_intent,
@@ -731,28 +769,30 @@ def order_confirmation_stripe():
             random_suffix = ''.join([str(random.randint(0, 9)) for _ in range(4)])
             order_number = f"RD-{date_str}-{random_suffix}"
         
-        # ============================================================================
         # RENSA SESSION
-        # ============================================================================
-        
         for key in ['checkout_package', 'checkout_name', 'checkout_email', 
                     'checkout_phone', 'checkout_address', 'checkout_postal_code', 
                     'checkout_city']:
             session.pop(key, None)
         
-        # ============================================================================
         # SKICKA MAIL
-        # ============================================================================
+        admin_email = 'info@returnadisc.com'
         
-        admin_email = 'info@returnadisc.se'
-        address_html = f"{shipping_name or ''}<br>{shipping_address or ''}<br>{shipping_postal_code or ''} {shipping_city or ''}"
+        # Anpassa mail baserat på domän
+        if domain == 'com':
+            address_html = f"{shipping_name or ''}<br>{shipping_address or ''}<br>{shipping_postal_code or ''} {shipping_city or ''}"
+            currency_symbol = '$'
+        else:
+            address_html = f"{shipping_name or ''}<br>{shipping_address or ''}<br>{shipping_postal_code or ''} {shipping_city or ''}"
+            currency_symbol = 'kr'
         
         admin_html = f"""<h2>Ny betalning mottagen!</h2>
 <p><strong>Order:</strong> #{order_number}</p>
 <p><strong>Kund:</strong> {shipping_email}</p>
 <p><strong>Telefon:</strong> {shipping_phone or '-'}</p>
 <p><strong>Paket:</strong> {package} ({count} stickers)</p>
-<p><strong>Betalat:</strong> {total_amount} kr</p>
+<p><strong>Betalat:</strong> {currency_symbol}{total_amount}</p>
+<p><strong>Domän:</strong> {domain}</p>
 <hr>
 <p><strong>Leveransadress:</strong><br>{address_html}</p>
 <hr>
@@ -764,20 +804,35 @@ def order_confirmation_stripe():
         except Exception as e:
             logger.error(f"Kunde inte skicka admin-mail: {e}")
         
-        customer_html = f"""<div style="font-family: Arial, sans-serif; max-width: 600px;">
+        # Kundmail anpassat för domän
+        if domain == 'com':
+            customer_html = f"""<div style="font-family: Arial, sans-serif; max-width: 600px;">
+<h2 style="color: #166534;">Hi {shipping_name or 'Customer'}!</h2>
+<p style="font-size: 16px;">Thank you for your order at <strong>ReturnaDisc</strong>.</p>
+<p style="font-size: 16px;"><strong>Your order number:</strong> #{order_number}</p>
+<p style="font-size: 16px; background: #f0fdf4; padding: 15px; border-radius: 8px;">
+Your QR stickers will be shipped within <strong>1-2 business days</strong> to:</p>
+<p style="font-size: 14px;">{shipping_name or ''}<br>{shipping_address or ''}<br>{shipping_postal_code or ''} {shipping_city or ''}</p>
+<p style="font-size: 14px; color: #666;">Questions? Contact us at <a href="mailto:info@returnadisc.com">info@returnadisc.com</a></p>
+<br>
+<p style="font-size: 14px;">Best regards,<br><strong>The ReturnaDisc Team</strong></p>
+</div>"""
+        else:
+            # Svenskt mail för .se
+            customer_html = f"""<div style="font-family: Arial, sans-serif; max-width: 600px;">
 <h2 style="color: #166534;">Hej {shipping_name or 'Kund'}!</h2>
 <p style="font-size: 16px;">Tack för din beställning hos <strong>ReturnaDisc</strong>.</p>
 <p style="font-size: 16px;"><strong>Ditt ordernummer:</strong> #{order_number}</p>
 <p style="font-size: 16px; background: #f0fdf4; padding: 15px; border-radius: 8px;">
 Dina QR-klistermärken skickas inom <strong>1-2 arbetsdagar</strong> till:</p>
 <p style="font-size: 14px;">{shipping_name or ''}<br>{shipping_address or ''}<br>{shipping_postal_code or ''} {shipping_city or ''}</p>
-<p style="font-size: 14px; color: #666;">Har du frågor? Kontakta oss på <a href="mailto:info@returnadisc.se">info@returnadisc.se</a></p>
+<p style="font-size: 14px; color: #666;">Har du frågor? Kontakta oss på <a href="mailto:info@returnadisc.com">info@returnadisc.com</a></p>
 <br>
 <p style="font-size: 14px;">Med vänliga hälsningar,<br><strong>ReturnaDisc-teamet</strong></p>
 </div>"""
         
         try:
-            send_email_async(shipping_email, f"Din beställning #{order_number} är bekräftad", customer_html)
+            send_email_async(shipping_email, f"Din beställning #{order_number} är bekräftad" if domain == 'se' else f"Your order #{order_number} is confirmed", customer_html)
         except Exception as e:
             logger.error(f"Kunde inte skicka kundmail: {e}")
         
@@ -785,7 +840,8 @@ Dina QR-klistermärken skickas inom <strong>1-2 arbetsdagar</strong> till:</p>
                              package=package,
                              count=count,
                              order_id=order_number,
-                             email=shipping_email)
+                             email=shipping_email,
+                             domain=domain)
         
     except Exception as e:
         logger.error(f"Order confirmation error: {e}")
