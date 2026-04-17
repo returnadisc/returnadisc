@@ -244,7 +244,7 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     final_img.paste(qr_img, (0, 0))
     draw = ImageDraw.Draw(final_img)
     
-    # RITA DOMÄN (returnadisc.se)
+    # RITA DOMÄN (returnadisc.com)
     x_d = (qr_width - domain_w) // 2
     y_d = qr_height + space_below_qr
     draw.text((x_d, y_d), "returnadisc.com", fill="#555555", font=font_domain)
@@ -296,14 +296,14 @@ def create_qr_code(qr_id: str, user_id: Optional[int] = None, save_to_db: bool =
     if qr_img.mode != 'RGB':
         qr_img = qr_img.convert('RGB')
     
-    # Lägg till text (returnadisc.se + QR-id)
+    # Lägg till text (returnadisc.com + QR-id)
     try:
         font_large = ImageFont.truetype(font_path, 140)
         font_small = ImageFont.truetype(font_path, 90)
         
         draw = ImageDraw.Draw(qr_img)
         
-        text_se = "returnadisc.se"
+        text_se = "returnadisc.com"
         text_id = qr_id
         
         bbox_se = draw.textbbox((0, 0), text_se, font=font_small)
