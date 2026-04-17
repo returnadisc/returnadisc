@@ -68,7 +68,20 @@ class Config:
     
     # Priser (i ören/cents)
     PREMIUM_PRICE_SEK = 3900  # 39 SEK
-    PREMIUM_PRICE_USD = 399   # $3.99
+    PREMIUM_PRICE_USD = 499   # $4.99
+    
+    # === STRIPE PRICE IDs ===
+    # SEK-produkter (befintliga - .se domän)
+    STRIPE_PRICE_SMALL_SEK = os.environ.get('STRIPE_PRICE_SMALL_SEK', '')
+    STRIPE_PRICE_MEDIUM_SEK = os.environ.get('STRIPE_PRICE_MEDIUM_SEK', '')
+    STRIPE_PRICE_LARGE_SEK = os.environ.get('STRIPE_PRICE_LARGE_SEK', '')
+    STRIPE_PREMIUM_PRICE_SEK = os.environ.get('STRIPE_PREMIUM_PRICE_SEK', '')
+    
+    # USD-produkter (nya - .com domän)
+    STRIPE_PRICE_SMALL_USD = os.environ.get('STRIPE_PRICE_SMALL_USD', '')   # 6 stickers $5.99
+    STRIPE_PRICE_MEDIUM_USD = os.environ.get('STRIPE_PRICE_MEDIUM_USD', '')  # 12 stickers $7.99
+    STRIPE_PRICE_LARGE_USD = os.environ.get('STRIPE_PRICE_LARGE_USD', '')     # 24 stickers $9.99
+    STRIPE_PREMIUM_PRICE_USD = os.environ.get('STRIPE_PREMIUM_PRICE_USD', '') # Premium $4.99/year
     
     # Lanseringsdatum
     PREMIUM_LAUNCH_DATE = datetime(2026, 7, 1)
@@ -91,6 +104,27 @@ class Config:
         if cls.DOMAIN_COM in domain:
             return cls.CURRENCY_COM
         return cls.CURRENCY_SE
+    
+    @classmethod
+    def get_stripe_price_ids(cls, domain):
+        """Hämta rätt Stripe Price IDs baserat på domän."""
+        if cls.DOMAIN_COM in domain:
+            return {
+                'small': cls.STRIPE_PRICE_SMALL_USD,
+                'medium': cls.STRIPE_PRICE_MEDIUM_USD,
+                'large': cls.STRIPE_PRICE_LARGE_USD,
+                'premium': cls.STRIPE_PREMIUM_PRICE_USD,
+                'currency': cls.CURRENCY_COM
+            }
+        else:
+            # Standard är SEK för .se och allt annat
+            return {
+                'small': cls.STRIPE_PRICE_SMALL_SEK,
+                'medium': cls.STRIPE_PRICE_MEDIUM_SEK,
+                'large': cls.STRIPE_PRICE_LARGE_SEK,
+                'premium': cls.STRIPE_PREMIUM_PRICE_SEK,
+                'currency': cls.CURRENCY_SE
+            }
 
 
 class DevelopmentConfig(Config):

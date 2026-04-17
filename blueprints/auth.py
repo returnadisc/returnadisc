@@ -149,20 +149,32 @@ class SessionService:
 class ValidationService:
     """Validering av input."""
     
-    # UPPDATERADE PAKET: small, medium, large
-    PACKAGE_CONFIG = {
+    # Priser för .se (SEK) - OFÖRÄNDRADE
+    PACKAGE_CONFIG_SE = {
         'small': {'count': 6, 'price': 49},
         'medium': {'count': 12, 'price': 69},
         'large': {'count': 24, 'price': 99}
     }
     
+    # Priser för .com (USD) - NYA
+    PACKAGE_CONFIG_US = {
+        'small': {'count': 6, 'price': 5.99},
+        'medium': {'count': 12, 'price': 7.99},
+        'large': {'count': 24, 'price': 9.99}
+    }
+    
     @classmethod
-    def validate_package(cls, package: str) -> Dict:
-        """Validera paket och returnera konfiguration."""
-        if package not in cls.PACKAGE_CONFIG:
+    def get_package_config(cls, package: str, domain: str = None) -> Dict:
+        """Välj rätt priser baserat på domän."""
+        if package not in cls.PACKAGE_CONFIG_SE:
             raise ValidationError("Ogiltigt paket.")
-        return cls.PACKAGE_CONFIG[package]
-
+        
+        # Om .com domän, använd USD-priser
+        if domain and 'returnadisc.com' in domain.lower():
+            return cls.PACKAGE_CONFIG_US[package]
+        
+        # Standard: .se priser
+        return cls.PACKAGE_CONFIG_SE[package]
 
 class QRGenerationService:
     """Generering av QR-koder för ordrar."""
@@ -478,6 +490,9 @@ def reset_password(token):
 
 @bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
+    # Kolla om det är .com eller .se
+    host = request.host.lower()
+    is_com = 'returnadisc.com' in host
     """Checkout med formulär för leveransadress INNAN Stripe."""
     if request.method == 'POST':
         # Steg 2: Formuläret är skickat, spara i session och gå till Stripe
@@ -503,11 +518,11 @@ def checkout():
         session['checkout_postal_code'] = postal_code
         session['checkout_city'] = city
         
-        # Hämta paketinfo
+        # Hämta paketinfo baserat på domän
         try:
-            config = ValidationService.validate_package(package)
+            config = ValidationService.get_package_config(package, host)  # <-- ÄNDRA TILL DETTA
             count = config['count']
-            price = config['price'] * 100  # Öre
+            price = config['price']
         except ValidationError:
             flash('Ogiltigt paket.', 'error')
             return redirect(url_for('auth.buy_stickers'))
@@ -517,25 +532,32 @@ def checkout():
             checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=[{
-                    'price_data': {
-                        'currency': 'sek',
-                        'product_data': {
-                            'name': f'ReturnaDisc Stickers - {package.capitalize()}',
-                            'description': f'{count} st QR-klistermärken',
-                        },
-                        'unit_amount': price,
-                    },
+            # Välj rätt Stripe Price ID baserat på domän
+            price_ids = Config.get_stripe_price_ids(host)
+            price_id = price_ids.get(package)
+            currency = price_ids.get('currency', 'sek')
+            
+            if not price_id:
+                # Fallback om inget Price ID är satt
+                flash('Betalning är inte konfigurerad för denna domän.', 'error')
+                return redirect(url_for('auth.buy_stickers'))
+            
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': price_id,  # <-- ANVÄND Price ID ISTÄLLET
                     'quantity': 1,
                 }],
                 mode='payment',
-                # TA BORT shipping_address_collection - vi har redan adressen!
                 success_url=request.host_url + 'order-confirmation-stripe?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=request.host_url + 'buy-stickers',
-                customer_email=email,  # Fyll i email automatiskt i Stripe
+                customer_email=email,
                 metadata={
                     'package': package,
                     'count': str(count),
                     'customer_email': email,
+                    'domain': 'com' if is_com else 'se',  # <-- LÄGG TILL DETTA
+                    'currency': currency
                 }
             )
             
