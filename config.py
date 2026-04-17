@@ -72,10 +72,10 @@ class Config:
     
     # === STRIPE PRICE IDs ===
     # SEK-produkter (befintliga - .se domän)
-    STRIPE_PRICE_SMALL_SEK = os.environ.get('STRIPE_PRICE_SMALL_SEK', '')
-    STRIPE_PRICE_MEDIUM_SEK = os.environ.get('STRIPE_PRICE_MEDIUM_SEK', '')
-    STRIPE_PRICE_LARGE_SEK = os.environ.get('STRIPE_PRICE_LARGE_SEK', '')
-    STRIPE_PREMIUM_PRICE_SEK = os.environ.get('STRIPE_PREMIUM_PRICE_SEK', '')
+    STRIPE_PRICE_SMALL_SEK = os.environ.get('STRIPE_PRICE_SMALL_SEK', os.environ.get('STRIPE_PRICE_SMALL', ''))
+    STRIPE_PRICE_MEDIUM_SEK = os.environ.get('STRIPE_PRICE_MEDIUM_SEK', os.environ.get('STRIPE_PRICE_MEDIUM', ''))
+    STRIPE_PRICE_LARGE_SEK = os.environ.get('STRIPE_PRICE_LARGE_SEK', os.environ.get('STRIPE_PRICE_LARGE', ''))
+    STRIPE_PREMIUM_PRICE_SEK = os.environ.get('STRIPE_PREMIUM_PRICE_SEK', os.environ.get('STRIPE_PREMIUM_PRICE_ID', ''))
     
     # USD-produkter (nya - .com domän)
     STRIPE_PRICE_SMALL_USD = os.environ.get('STRIPE_PRICE_SMALL_USD', '')   # 6 stickers $5.99
