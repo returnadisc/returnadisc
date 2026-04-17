@@ -29,6 +29,23 @@ def login_required(f):
     return decorated_function
 
 
+def get_domain_config():
+    """Hämta domänkonfiguration baserat på request."""
+    host = request.host.lower()
+    is_com = 'returnadisc.com' in host
+    domain = 'com' if is_com else 'se'
+    currency = 'usd' if is_com else 'sek'
+    price_display = '$4.99/year' if is_com else '39 kr/år'
+    
+    return {
+        'host': host,
+        'is_com': is_com,
+        'domain': domain,
+        'currency': currency,
+        'price_display': price_display
+    }
+
+
 @bp.route('/')
 @login_required
 def index():
@@ -38,24 +55,15 @@ def index():
     is_launch = datetime.now() < datetime(2026, 7, 1)
     can_get_free = is_launch and not premium_status.get('has_premium')
     
-    # Kolla om det är .com eller .se för att visa rätt pris
-    host = request.host.lower()
-    is_com = 'returnadisc.com' in host
-    
-    if is_com:
-        price_display = '$4.99/year'
-        currency = 'usd'
-    else:
-        price_display = '39 kr/år'
-        currency = 'sek'
+    config = get_domain_config()
     
     return render_template('premium/premium_index.html',
                          premium_status=premium_status,
                          is_launch=is_launch,
                          can_get_free=can_get_free,
-                         launch_end_date="1 juli 2026",
-                         price_display=price_display,
-                         currency=currency)
+                         launch_end_date="1 juli 2026" if not config['is_com'] else "July 1, 2026",
+                         price_display=config['price_display'],
+                         currency=config['currency'])
 
 
 @bp.route('/checkout', methods=['POST'])
@@ -69,17 +77,23 @@ def checkout():
         flash('Användare hittades inte.', 'error')
         return redirect(url_for('premium.index'))
     
-    # Kolla om det är .com eller .se
-    host = request.host.lower()
-    is_com = 'returnadisc.com' in host
+    config = get_domain_config()
+    logger.info(f"Checkout initiated for user {user_id} on domain: {config['host']}")
     
-    # Välj rätt pris baserat på domän
-    price_ids = Config.get_stripe_price_ids(host)
+    # Hämta rätt pris baserat på domän
+    price_ids = Config.get_stripe_price_ids(config['host'])
     price_id = price_ids.get('premium')
     currency = price_ids.get('currency', 'sek')
     
+    logger.info(f"Price ID for {config['domain']}: {price_id}")
+    logger.info(f"Available price IDs: {price_ids}")
+    
     if not price_id:
-        flash('Premium är inte konfigurerat för denna domän.', 'error')
+        logger.error(f"No premium price ID configured for domain: {config['host']}")
+        if config['is_com']:
+            flash('Premium is not configured for this domain.', 'error')
+        else:
+            flash('Premium är inte konfigurerat för denna domän.', 'error')
         return redirect(url_for('premium.index'))
     
     try:
@@ -94,7 +108,7 @@ def checkout():
             'metadata': {
                 'user_id': str(user_id), 
                 'type': 'premium',
-                'domain': 'com' if is_com else 'se',
+                'domain': config['domain'],
                 'currency': currency
             },
             'customer_email': user.get('email')
@@ -108,11 +122,15 @@ def checkout():
             }
         
         checkout_session = stripe.checkout.Session.create(**checkout_params)
+        logger.info(f"Checkout session created: {checkout_session.id} for user {user_id}")
         return redirect(checkout_session.url, code=303)
         
     except Exception as e:
         logger.error(f"Stripe checkout error: {e}")
-        flash('Ett fel uppstod.', 'error')
+        if config['is_com']:
+            flash('An error occurred during checkout.', 'error')
+        else:
+            flash('Ett fel uppstod.', 'error')
         return redirect(url_for('premium.index'))
 
 
@@ -122,9 +140,13 @@ def success():
     """Efter lyckad betalning."""
     session_id = request.args.get('session_id')
     user_id = session.get('user_id')
+    config = get_domain_config()
     
     if not session_id:
-        flash('Ingen betalningsinfo hittades.', 'error')
+        if config['is_com']:
+            flash('No payment info found.', 'error')
+        else:
+            flash('Ingen betalningsinfo hittades.', 'error')
         return redirect(url_for('premium.index'))
     
     try:
@@ -134,7 +156,10 @@ def success():
         subscription_attr = getattr(checkout_session, 'subscription', None)
         
         if subscription_attr is None:
-            flash('Ingen prenumeration hittades.', 'error')
+            if config['is_com']:
+                flash('No subscription found.', 'error')
+            else:
+                flash('Ingen prenumeration hittades.', 'error')
             return redirect(url_for('premium.index'))
         
         # Om det är en sträng, hämta prenumerationen
@@ -144,7 +169,10 @@ def success():
             subscription_id = getattr(subscription_attr, 'id', None)
         
         if not subscription_id:
-            flash('Ingen prenumeration hittades.', 'error')
+            if config['is_com']:
+                flash('No subscription found.', 'error')
+            else:
+                flash('Ingen prenumeration hittades.', 'error')
             return redirect(url_for('premium.index'))
         
         # Hämta prenumerationsdetaljer
@@ -196,14 +224,14 @@ def success():
         if checkout_metadata_obj:
             if hasattr(checkout_metadata_obj, 'to_dict'):
                 checkout_metadata = checkout_metadata_obj.to_dict()
-            elif isinstance(checkout_metadata_obj, dict):
+            elif isinstance(checkchange_metadata_obj, dict):
                 checkout_metadata = checkout_metadata_obj
             else:
                 checkout_metadata = {}
         else:
             checkout_metadata = {}
         
-        domain = checkout_metadata.get('domain', 'se')
+        domain = checkout_metadata.get('domain', config['domain'])
         
         # SPARA I DATABASEN
         db.activate_premium_subscription(
@@ -213,6 +241,8 @@ def success():
             expires_at=expires_at,
             is_launch_offer=is_launch_offer
         )
+        
+        logger.info(f"Premium activated for user {user_id}, domain={domain}, launch_offer={is_launch_offer}")
         
         # Anpassa meddelande baserat på domän
         if is_launch_offer:
@@ -229,9 +259,12 @@ def success():
         return render_template('premium/success.html', domain=domain)
         
     except Exception as e:
-        logger.error(f"Fel i success: {e}")
+        logger.error(f"Error in success route: {e}")
         logger.exception("Full stacktrace:")
-        flash('Ett fel uppstod.', 'error')
+        if config['is_com']:
+            flash('An error occurred.', 'error')
+        else:
+            flash('Ett fel uppstod.', 'error')
         return redirect(url_for('premium.index'))
 
 
@@ -241,18 +274,18 @@ def manage():
     """Hantera prenumeration."""
     user_id = session.get('user_id')
     premium_status = db.get_user_premium_status(user_id)
+    config = get_domain_config()
     
     if not premium_status.get('has_premium'):
-        flash('Du har inte premium.', 'info')
+        if config['is_com']:
+            flash('You do not have premium.', 'info')
+        else:
+            flash('Du har inte premium.', 'info')
         return redirect(url_for('premium.index'))
-    
-    # Kolla domän för att visa rätt pris
-    host = request.host.lower()
-    is_com = 'returnadisc.com' in host
     
     return render_template('premium/manage.html', 
                          premium_status=premium_status,
-                         is_com=is_com)
+                         is_com=config['is_com'])
 
 
 @bp.route('/cancel', methods=['POST'])
@@ -260,10 +293,7 @@ def manage():
 def cancel():
     """Avbryt prenumeration - behåll till periodens slut."""
     user_id = session.get('user_id')
-    
-    # Kolla domän för rätt meddelande
-    host = request.host.lower()
-    is_com = 'returnadisc.com' in host
+    config = get_domain_config()
     
     try:
         sub = db.get_stripe_subscription(user_id)
@@ -273,20 +303,20 @@ def cancel():
                 cancel_at_period_end=True
             )
             db.update_cancel_at_period_end(user_id, True)
-            logger.info(f"Prenumeration markerad för avbrytning för användare {user_id}")
+            logger.info(f"Subscription marked for cancellation for user {user_id}")
             
-            if is_com:
+            if config['is_com']:
                 flash('Your subscription will be cancelled at the end of the period. You keep premium until then.', 'success')
             else:
                 flash('Din prenumeration avbryts vid periodens slut. Du behåller premium till dess.', 'success')
         else:
-            if is_com:
+            if config['is_com']:
                 flash('No active subscription found.', 'error')
             else:
                 flash('Ingen aktiv prenumeration hittades.', 'error')
     except Exception as e:
-        logger.error(f"Fel vid avbrytning: {e}")
-        if is_com:
+        logger.error(f"Error during cancellation: {e}")
+        if config['is_com']:
             flash('An error occurred.', 'error')
         else:
             flash('Ett fel uppstod.', 'error')
@@ -299,10 +329,7 @@ def cancel():
 def reactivate():
     """Återaktivera prenumeration som ska avbrytas."""
     user_id = session.get('user_id')
-    
-    # Kolla domän för rätt meddelande
-    host = request.host.lower()
-    is_com = 'returnadisc.com' in host
+    config = get_domain_config()
     
     try:
         sub = db.get_stripe_subscription(user_id)
@@ -312,20 +339,20 @@ def reactivate():
                 cancel_at_period_end=False
             )
             db.update_cancel_at_period_end(user_id, False)
-            logger.info(f"Prenumeration återaktiverad för {user_id}")
+            logger.info(f"Subscription reactivated for user {user_id}")
             
-            if is_com:
+            if config['is_com']:
                 flash('Your subscription is reactivated!', 'success')
             else:
                 flash('Din prenumeration är återaktiverad!', 'success')
         else:
-            if is_com:
+            if config['is_com']:
                 flash('No subscription found.', 'error')
             else:
                 flash('Ingen prenumeration hittades.', 'error')
     except Exception as e:
-        logger.error(f"Fel vid återaktivering: {e}")
-        if is_com:
+        logger.error(f"Error during reactivation: {e}")
+        if config['is_com']:
             flash('An error occurred.', 'error')
         else:
             flash('Ett fel uppstod.', 'error')
@@ -563,11 +590,11 @@ def webhook():
                                     """
                             
                             send_email_async(user.get('email'), subject, html_content)
-                            logger.info(f"Premium bekräftelsemail skickat till {user.get('email')} via webhook")
+                            logger.info(f"Premium confirmation email sent to {user.get('email')} via webhook")
                     except Exception as e:
-                        logger.error(f"Kunde inte skicka premium bekräftelsemail via webhook: {e}")
+                        logger.error(f"Could not send premium confirmation email via webhook: {e}")
                     
-                    logger.info(f"Premium aktiverat via webhook för {user_id}, launch_offer={is_launch_offer}")
+                    logger.info(f"Premium activated via webhook for user {user_id}, launch_offer={is_launch_offer}")
         
         # Hantera automatisk förnyelse (varje år)
         elif event_type == 'invoice.payment_succeeded':
@@ -633,11 +660,11 @@ def webhook():
                             </div>
                             """
                         send_email_async(user.get('email'), subject, html_content)
-                        logger.info(f"Förnyelsemail skickat till {user.get('email')}")
+                        logger.info(f"Renewal email sent to {user.get('email')}")
                     except Exception as e:
-                        logger.error(f"Kunde inte skicka förnyelsemail: {e}")
+                        logger.error(f"Could not send renewal email: {e}")
                     
-                    logger.info(f"Premium förnyat för {user['id']} till {new_expires}")
+                    logger.info(f"Premium renewed for user {user['id']} until {new_expires}")
         
         # Hantera misslyckad betalning
         elif event_type == 'invoice.payment_failed':
@@ -699,11 +726,11 @@ def webhook():
                             </div>
                             """
                         send_email_async(user.get('email'), subject, html_content)
-                        logger.info(f"Misslyckad betalning mail skickat till {user.get('email')}")
+                        logger.info(f"Failed payment email sent to {user.get('email')}")
                     except Exception as e:
-                        logger.error(f"Kunde inte skicka misslyckad betalning mail: {e}")
+                        logger.error(f"Could not send failed payment email: {e}")
                     
-                    logger.info(f"Premium avbrutet för {user['id']} pga misslyckad betalning")
+                    logger.info(f"Premium cancelled for user {user['id']} due to failed payment")
         
         return jsonify({'status': 'success'}), 200
         
