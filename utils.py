@@ -180,7 +180,7 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     available_width = qr_width - (2 * margin)
     
     # === STORLEKAR SOM FUNKAR ===
-    domain_size = 32  # returnadisc.se
+    domain_size = 32  # returnadisc.com
     id_size = 44      # C7YKU (större)
     
     try:
@@ -194,7 +194,7 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     temp_draw = ImageDraw.Draw(Image.new('RGB', (1, 1)))
     
     # Mät domän
-    bbox_d = temp_draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+    bbox_d = temp_draw.textbbox((0, 0), "returnadisc.com", font=font_domain)
     domain_w = bbox_d[2] - bbox_d[0]
     domain_h = bbox_d[3] - bbox_d[1]
     
@@ -206,7 +206,7 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
             font_domain = ImageFont.truetype("static/fonts/arial.ttf", domain_size)
         except:
             font_domain = ImageFont.load_default()
-        bbox_d = temp_draw.textbbox((0, 0), "returnadisc.se", font=font_domain)
+        bbox_d = temp_draw.textbbox((0, 0), "returnadisc.com", font=font_domain)
         domain_w = bbox_d[2] - bbox_d[0]
         domain_h = bbox_d[3] - bbox_d[1]
     
@@ -247,7 +247,7 @@ def create_qr_with_design(qr_id: str, public_url: str, target_size: int = None) 
     # RITA DOMÄN (returnadisc.se)
     x_d = (qr_width - domain_w) // 2
     y_d = qr_height + space_below_qr
-    draw.text((x_d, y_d), "returnadisc.se", fill="#555555", font=font_domain)
+    draw.text((x_d, y_d), "returnadisc.com", fill="#555555", font=font_domain)
     
     # RITA ID (C7YKU) - EFTER DOMÄNEN + MELLANRUM
     x_i = (qr_width - id_w) // 2
