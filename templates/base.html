@@ -366,11 +366,7 @@
                 </span>
             </a>
             
-            <div class="language-switcher">
-                <a href="?lang=sv" class="{% if lang == 'sv' %}active{% endif %}">SV</a>
-                <span class="lang-divider">|</span>
-                <a href="?lang=en" class="{% if lang == 'en' %}active{% endif %}">EN</a>
-            </div>
+<!-- Språk sätts automatiskt baserat på domän: .se = svenska, .com = engelska -->
             
             <div class="nav-links" id="navLinks">
                 {% if session.get('user_id') %}
