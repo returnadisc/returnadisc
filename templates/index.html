@@ -887,7 +887,8 @@
         </div>
         
         <div class="news-image-wrapper">
-            <img src="{{ url_for('static', filename='images/community-map-sweden.png') }}" 
+            <img id="communityMapImage"
+                 src="{{ url_for('static', filename='images/community-map-sweden.png') }}" 
                  alt="{% if lang == 'en' %}Community map{% else %}Community-karta{% endif %}" 
                  class="news-image"
                  loading="lazy"
@@ -895,4 +896,17 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Byt community-karta bild baserat på domän
+    (function() {
+        var isDotCom = window.location.hostname.includes('.com');
+        var img = document.getElementById('communityMapImage');
+        if (img && isDotCom) {
+            img.src = "{{ url_for('static', filename='images/community-map-usa.png') }}";
+        }
+    })();
+</script>
 {% endblock %}

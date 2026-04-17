@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{% if lang == 'en' %}Community Map - ReturnaDisc{% else %}Community-karta - ReturnaDisc{% endif %}{% endblock %}
+{% block title %}{% if lang == 'en' %}Community Map - ReturnaDisc{% else %}Community-karta - ReturnaDisc{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -790,6 +790,20 @@
         font-size: 24px;
     }
 
+    /* REGION BADGE */
+    .region-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,255,255,0.2);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-left: 10px;
+    }
+
     @media (max-width: 1024px) {
         .map-content {
             grid-template-columns: 1fr;
@@ -871,16 +885,16 @@
             <div class="map-header">
                 <h1>
                     {% if lang == 'en' %}
-                        Community <span>Map</span>
+                        Global Community <span>Map</span>
                     {% else %}
-                        Community <span>Kartan</span>
+                        Global Community <span>Kartan</span>
                     {% endif %}
                 </h1>
                 <p class="subtitle">
                     {% if lang == 'en' %}
-                        Help discs find their way home - see and report lost discs
+                        Help discs find their way home worldwide
                     {% else %}
-                        Hjälp discar hitta hem - se och rapportera saknade discar
+                        Hjälp discar hitta hem över hela världen
                     {% endif %}
                 </p>
                 
@@ -888,17 +902,17 @@
                 <div class="premium-badge">
                     ⭐ 
                     {% if lang == 'en' %}
-                        Premium - You can see all discs!
+                        Premium - You can see all discs globally!
                     {% else %}
-                        Premium - Du ser alla discar!
+                        Premium - Du ser alla discar globalt!
                     {% endif %}
                 </div>
                 {% else %}
                 <div class="bas-info-inline">
                     {% if lang == 'en' %}
-                        You have <strong>BASIC</strong> - Upgrade to Premium to see all lost discs
+                        You have <strong>BASIC</strong> - Upgrade to Premium to see all lost discs worldwide
                     {% else %}
-                        Du har <strong>BAS</strong> - Uppgradera till Premium för att se alla förlorade discar
+                        Du har <strong>BAS</strong> - Uppgradera till Premium för att se alla förlorade discar globalt
                     {% endif %}
                 </div>
                 {% endif %}
@@ -916,9 +930,9 @@
                     </h3>
                     <p>
                         {% if lang == 'en' %}
-                            See ALL lost discs in your area and help reunite them with their owners
+                            See ALL lost discs worldwide and help reunite them with their owners
                         {% else %}
-                            Se ALLA förlorade discar i området och hjälp till att återförena dem med sina ägare
+                            Se ALLA förlorade discar globalt och hjälp till att återförena dem med sina ägare
                         {% endif %}
                     </p>
                 </div>
@@ -1116,11 +1130,13 @@
                             </label>
                             <select id="radiusFilter" onchange="applyFilters()">
                                 <option value="10">10 km</option>
+                                <option value="50">50 km</option>
+                                <option value="100">100 km</option>
                                 <option value="all" selected>
                                     {% if lang == 'en' %}
-                                        All of USA
+                                        Global view
                                     {% else %}
-                                        Hela Sverige
+                                        Global vy
                                     {% endif %}
                                 </option>
                             </select>
@@ -1399,6 +1415,20 @@
     var currentUserId = {{ session.get('user_id', 'null') }};
     var hasPremium = {{ 'true' if has_premium else 'false' }};
     
+    // DETEKTERA DOMÄN OCH SÄTT RÄTT STARTPOSITION
+    var isDotCom = window.location.hostname.includes('.com');
+    var isDotSe = window.location.hostname.includes('.se');
+    
+    // Startpositioner baserat på domän
+    var startPositions = {
+        se: { center: [59.3293, 18.0686], zoom: 5, name: 'Sverige' },  // Sverige
+        com: { center: [39.8283, -98.5795], zoom: 4, name: 'USA' }    // USA (geografiskt centrum)
+    };
+    
+    // Välj rätt startposition
+    var currentRegion = isDotCom ? 'com' : 'se';
+    var startPos = startPositions[currentRegion];
+    
     var myDiscs = {{ my_discs|tojson }};
     var otherDiscs = {{ other_discs|tojson }};
     var allDiscs = myDiscs.concat(otherDiscs);
@@ -1416,7 +1446,8 @@
             yourDisc: "⭐ Din disc",
             reported: "Rapporterad",
             hole: "Hål",
-            course: "📍"
+            course: "📍",
+            globalView: "Global vy"
         },
         en: {
             youAreHere: "You are here",
@@ -1428,7 +1459,8 @@
             yourDisc: "⭐ Your disc",
             reported: "Reported",
             hole: "Hole",
-            course: "📍"
+            course: "📍",
+            globalView: "Global view"
         }
     };
 
@@ -1451,10 +1483,11 @@
         })
     };
 
+    // Initiera karta med rätt startposition baserat på domän
     map = L.map('map', {
         zoomControl: true,
         attributionControl: true
-    }).setView([59.3293, 18.0686], 5);
+    }).setView(startPos.center, startPos.zoom);
 
     currentLayer = layers.satellite;
     currentLayer.addTo(map);
