@@ -1613,21 +1613,70 @@
         return R * c;
     }
 
+    // 🔴 FIXAD: Funktion för att parsa datum korrekt oavsett tidszon
+    function parseDateSafely(dateString) {
+        if (!dateString) return null;
+        
+        // Om det redan är ett Date-objekt
+        if (dateString instanceof Date) return dateString;
+        
+        var str = dateString.toString();
+        
+        // Hantera ISO-format med T
+        if (str.includes('T')) {
+            // Ersätt Z om den finns för att behandla som lokal tid
+            var cleanStr = str.replace('Z', '');
+            return new Date(cleanStr);
+        }
+        
+        // Hantera format: "2025-04-17 14:30:00"
+        if (str.includes(' ') && str.includes('-')) {
+            var parts = str.split(' ');
+            var datePart = parts[0];
+            var timePart = parts[1] || '00:00:00';
+            var isoStr = datePart + 'T' + timePart;
+            return new Date(isoStr);
+        }
+        
+        // Fallback till standardparsning
+        return new Date(str);
+    }
+
+    // 🔴 FIXAD: Funktion för att jämföra datum utan att bry sig om tid
+    function isDateBefore(date1, date2) {
+        var d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+        var d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+        return d1 < d2;
+    }
+
     function applyFilters() {
         var radius = document.getElementById('radiusFilter').value;
         var maxAge = document.getElementById('ageFilter').value;
         
+        // Rensa befintliga markers
         allMarkers.forEach(function(m) { map.removeLayer(m); });
         allMarkers = [];
         
         var filteredDiscs = allDiscs.filter(function(disc) {
+            // 🔴 FIXAD: Åldersfilter med korrekt datumhantering
             if (maxAge !== 'all') {
-                var discDate = new Date(disc.created_at);
+                var discDate = parseDateSafely(disc.created_at);
+                
+                if (!discDate || isNaN(discDate.getTime())) {
+                    console.warn('Kunde inte parsa datum för disc:', disc.id, disc.created_at);
+                    return true; // Visa discen om datum inte kan parsas
+                }
+                
                 var monthsAgo = new Date();
                 monthsAgo.setMonth(monthsAgo.getMonth() - parseInt(maxAge));
-                if (discDate < monthsAgo) return false;
+                
+                // Jämför endast datumdelen
+                if (isDateBefore(discDate, monthsAgo)) {
+                    return false;
+                }
             }
             
+            // Avståndsfilter
             if (radius !== 'all' && userPosition) {
                 var dist = calculateDistance(
                     userPosition.lat, userPosition.lng,
@@ -1639,6 +1688,13 @@
             return true;
         });
         
+        // Debug-logg för att se vad som filtreras
+        console.log('Total discs:', allDiscs.length);
+        console.log('Filtered discs:', filteredDiscs.length);
+        console.log('My discs:', myDiscs.length);
+        console.log('Other discs:', otherDiscs.length);
+        
+        // Rendera markers
         filteredDiscs.forEach(function(disc) {
             var isOwn = disc.user_id === currentUserId;
             var color = isOwn ? '#22c55e' : '#f59e0b';
@@ -1672,6 +1728,7 @@
             allMarkers.push(marker);
         });
         
+        // Zooma till bounds om vi har markers och radius-filter är aktivt
         if (filteredDiscs.length > 0 && userPosition && radius !== 'all') {
             var group = new L.featureGroup(allMarkers);
             map.fitBounds(group.getBounds().pad(0.1));
@@ -1734,8 +1791,10 @@
         if (event.target === ownModal) closeOwnModal();
     }
 
+    // Kör applyFilters vid start
     applyFilters();
 
+    // Försök hämta användarens position för avståndsfilter
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
             userPosition = {
@@ -1743,6 +1802,8 @@
                 lng: pos.coords.longitude
             };
             applyFilters();
+        }, function(err) {
+            console.log('GPS inte tillgänglig:', err);
         });
     }
 
