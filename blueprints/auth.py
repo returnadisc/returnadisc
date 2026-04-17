@@ -433,23 +433,49 @@ def forgot_password():
             
             reset_url = url_for('auth.reset_password', token=reset_token, _external=True)
             
-            subject = "Återställ ditt lösenord - ReturnaDisc"
-            html_content = f"""
-            <h2>Hej {user.get('name', '')}!</h2>
-            <p>Du har begärt att återställa ditt lösenord.</p>
-            <p>Klicka på länken nedan för att välja ett nytt lösenord:</p>
-            <p><a href="{reset_url}" style="display: inline-block; background: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">Återställ lösenord</a></p>
-            <p>Eller kopiera denna länk: {reset_url}</p>
-            <p>Länken är giltig i 24 timmar.</p>
-            <p>Om du inte begärt detta kan du ignorera detta mail.</p>
-            <br>
-            <p>Med vänliga hälsningar,<br>ReturnaDisc-teamet</p>
-            """
+            # Kolla domän för språkval
+            host = request.host.lower()
+            is_com = 'returnadisc.com' in host
+            
+            if is_com:
+                # Engelska för .com
+                subject = "Reset your password - ReturnaDisc"
+                html_content = f"""
+                <h2>Hi {user.get('name', 'there')}!</h2>
+                <p>You requested a password reset for your ReturnaDisc account.</p>
+                <p>Click the link below to choose a new password:</p>
+                <p><a href="{reset_url}" style="display: inline-block; background: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">Reset Password</a></p>
+                <p>Or copy this link: {reset_url}</p>
+                <p>The link is valid for 24 hours.</p>
+                <p>If you didn't request this, you can ignore this email.</p>
+                <br>
+                <p>Best regards,<br>The ReturnaDisc Team</p>
+                """
+            else:
+                # Svenska för .se (original)
+                subject = "Återställ ditt lösenord - ReturnaDisc"
+                html_content = f"""
+                <h2>Hej {user.get('name', '')}!</h2>
+                <p>Du har begärt att återställa ditt lösenord.</p>
+                <p>Klicka på länken nedan för att välja ett nytt lösenord:</p>
+                <p><a href="{reset_url}" style="display: inline-block; background: #166534; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px;">Återställ lösenord</a></p>
+                <p>Eller kopiera denna länk: {reset_url}</p>
+                <p>Länken är giltig i 24 timmar.</p>
+                <p>Om du inte begärt detta kan du ignorera detta mail.</p>
+                <br>
+                <p>Med vänliga hälsningar,<br>ReturnaDisc-teamet</p>
+                """
             
             send_email_async(email, subject, html_content)
-            logger.info(f"Password reset requested for: {email}")
+            logger.info(f"Password reset requested for: {email} (lang: {'en' if is_com else 'sv'})")
         
-        flash('Om det finns ett konto med den emailen har vi skickat en återställningslänk.', 'info')
+        # Flash-meddelande anpassat efter domän
+        host = request.host.lower()
+        if 'returnadisc.com' in host:
+            flash('If an account with that email exists, we have sent a reset link.', 'info')
+        else:
+            flash('Om det finns ett konto med den emailen har vi skickat en återställningslänk.', 'info')
+        
         return redirect(url_for('auth.login'))
     
     return render_template('auth/forgot_password.html')
